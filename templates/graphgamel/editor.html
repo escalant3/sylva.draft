@@ -13,6 +13,7 @@
     var node_from_json = {};
     var relation_json = {};
     var node_to_json = {};
+    var node_json = {};
 
     function updateSelect(step) {
     second_select = document.getElementById('relation_type');
@@ -104,6 +105,7 @@
         document.getElementById('node_from_properties_form').style.display = 'none';
         document.getElementById('relation_properties_form').style.display = 'none';
         document.getElementById('node_to_properties_form').style.display = 'none';
+        document.getElementById('node_properties_form').style.display = 'none';
     }
 </script>
 {% endblock %}
@@ -125,6 +127,7 @@ Schema: {{ schema }}
     <input id="node_from_properties_hidden" name="node_from_properties" type="hidden" value="{}"/>
     <input id="relation_properties_hidden" name="relation_properties" type="hidden" value="{}"/>
     <input id="node_to_properties_hidden" name="node_to_properties" type="hidden" value="{}"/>
+    <input type="hidden" name="mode" value="relation"/>
     <input type="submit"/>
     <br/>
     <a href="." class="findlink">Search node</a>
@@ -168,16 +171,30 @@ Schema: {{ schema }}
             <div id="node_to_properties"></div>
         </td>
     </tr>
-
 </table>
-        
+
 <h3>Add isolated node</h3>
-    <form method="POST">
-        <input id="node_from_id" name="node_from_id" type="text"/>
-            <br/>
-        <a href="." class="addlink">Add property</a>
-        <a href="." class="findlink">Search node</a>
-    </form>
+<form action="." method="POST">
+    <input id="node_id" name="node_id" type="text" onChange="loadProperties('node_from');"/>
+    <input type="hidden" name="mode" value="node"/>
+    <input id="node_properties_hidden" name="node_properties" type="hidden" value="{}"/>
+    <input type="submit"/>
+</form>
+<table>
+    <tr class="row1">
+        <td id="node_properties_id"></td>
+        <td><a class="addlink" onClick="addProperty('node_properties_form');">Add property</a></td>
+        <td>
+            <div id="node_properties_form">
+                <input type="text" id="node_key"/>
+                <input type="text" id="node_value"/>
+                <input type="button" value="Save" onclick="saveProperty('node');"/>
+            </div>
+            <div id="node_properties"></div>
+        </td>
+    </tr>
+</table>
+
 {% endblock %}
 
 {% block sidebar %}

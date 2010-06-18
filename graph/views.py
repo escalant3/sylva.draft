@@ -22,29 +22,37 @@ def editor(request, graph_id):
         gdb = request.session.get('gdb', None)
         if gdb:
             data = request.POST.copy()
-            #Check if it is a valid relationship
-            #Create data in Neo4j server
-            node_from = {'id': data['node_from_id'],
-                        'type': data['node_from_type']}
-            properties = simplejson.loads(data['node_from_properties'])
-            node_from.update(properties)
-            relation = {'type': data['relation_type']}
-            properties = simplejson.loads(data['relation_properties'])
-            relation.update(properties)
-            node_to = {'id': data['node_to_id'],
-                        'type': data['node_to_type']}
-            properties = simplejson.loads(data['node_to_properties'])
-            node_to.update(properties)
-            edge_type = relation['type']
-            node1 = gdb.node(**node_from)
-            node2 = gdb.node(**node_to)
-            getattr(node1, edge_type)(node2)
-            messages = ['Created %s(%s) %s %s(%s) relation' %
-                                    (data['node_from_id'],
-                                    data['node_from_type'],
-                                    edge_type,
-                                    data['node_to_id'],
-                                    data['node_to_type'])]
+            if data['mode'] == 'node':
+                pass
+                node = {'id': data['node_id']}
+                properties = simplejson.loads(data['node_properties'])
+                node.update(properties)
+                node = gdb.node(**node)
+                messages = ['Created %s' % (data['node_id'])]
+            elif data['mode'] == 'relation':
+                #Check if it is a valid relationship
+                #Create data in Neo4j server
+                node_from = {'id': data['node_from_id'],
+                            'type': data['node_from_type']}
+                properties = simplejson.loads(data['node_from_properties'])
+                node_from.update(properties)
+                relation = {'type': data['relation_type']}
+                properties = simplejson.loads(data['relation_properties'])
+                relation.update(properties)
+                node_to = {'id': data['node_to_id'],
+                            'type': data['node_to_type']}
+                properties = simplejson.loads(data['node_to_properties'])
+                node_to.update(properties)
+                edge_type = relation['type']
+                node1 = gdb.node(**node_from)
+                node2 = gdb.node(**node_to)
+                getattr(node1, edge_type)(node2)
+                messages = ['Created %s(%s) %s %s(%s) relation' %
+                                        (data['node_from_id'],
+                                        data['node_from_type'],
+                                        edge_type,
+                                        data['node_to_id'],
+                                        data['node_to_type'])]
     else:
         # Check connection
         host = graph.neo4jgraph.host
