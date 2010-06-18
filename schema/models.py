@@ -33,3 +33,23 @@ class Schema(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def get_dictionaries(self):
+        form_structure = {}
+        valid_relations = self.valid_relations.all()
+        from_nodes = set([vr.node_from for vr in valid_relations])
+        for node in from_nodes:
+            form_structure[node] = {}
+            form_structure[node.name] = {}
+            relations = set([r.relation for r in \
+                                self.valid_relations.filter(node_from=node)])
+            for relation in relations:
+                form_structure[node.name][relation.name] = {}
+                to_nodes = [r.node_to.name for r in self.valid_relations.filter(
+                                                        node_from=node,
+                                                        relation=relation)]
+                for to_node in to_nodes:
+                    form_structure[node.name][relation.name][to_node] = {}
+        for node_obj in from_nodes:
+            form_structure.pop(node_obj)
+        return form_structure

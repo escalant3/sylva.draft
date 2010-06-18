@@ -1,0 +1,22 @@
+{% extends "admin/change_list.html" %}
+
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Graphgamel</h1>
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<h1>Available Graphs</h1>
+{% for graph in graph_list %}
+    <ul>
+        <li>
+            <a class="changelink" href="{% url graph.views.editor graph.id %}">
+                {{ graph.name }}: {{ graph.description }}
+            </a>
+        </li>
+    </ul>
+{% endfor %}
+{% endblock %}

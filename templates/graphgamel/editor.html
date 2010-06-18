@@ -1,0 +1,189 @@
+{% extends "admin/change_list.html" %}
+
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Graphgamel</h1>
+{% endblock %}
+
+{% block extrahead %}
+<script type="application/javascript">
+
+    var form_structure = eval({{ form_structure|safe }});
+    var node_from_json = {};
+    var relation_json = {};
+    var node_to_json = {};
+
+    function updateSelect(step) {
+    second_select = document.getElementById('relation_type');
+    third_select = document.getElementById('node_to_type');
+        if (step == 1) {
+            value = document.getElementById('node_from_type').value;
+            populateSelect(second_select, form_structure[value]);
+            second_select.disabled = false;
+            third_select.options.length = 0;
+            third_select.disabled = true;
+        }
+        if (step == 2) {
+            value1 = document.getElementById('node_from_type').value;
+            value2 = document.getElementById('relation_type').value;
+            populateSelect(third_select, form_structure[value1][value2]);
+            document.getElementById('node_to_type').disabled = false;
+        }
+    }
+
+    function populateSelect(select, data_source) {
+        select.options[0] = new Option("---", "");
+        i = 1;
+        for (var key in data_source) {
+            select.options[i] = new Option(key, key);
+            i++;
+        }
+    }
+
+    function initSelects() {
+        first_select = document.getElementById('node_from_type');
+        populateSelect(first_select, form_structure);
+        document.getElementById('relation_type').disabled = true;
+        document.getElementById('node_to_type').disabled = true;
+    }
+
+    function initProperties() {
+        loadProperties('node_from');
+        loadProperties('relation');
+        loadProperties('node_to');
+    }
+
+    function loadProperties(element) {
+        label = element.split('_')[0];
+        id_cell = document.getElementById(element+'_properties_id');
+        if (label == "node") {
+            node_id = document.getElementById(element+'_id').value;
+            text = label + " " + node_id;
+        } else {
+            text = label;
+        }
+        id_cell.innerText = text;
+    }
+
+    function addProperty(element){
+        form = document.getElementById(element);
+        if (form.style.display == 'none') {
+            form.style.display = '';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+
+    function saveProperty(element) {
+        key = document.getElementById(element+'_key').value;
+        if (key) {
+            value = document.getElementById(element+'_value').value;
+            data = eval(element+'_json');
+            data[key] = value;
+            refreshData(element, data);
+            document.getElementById(element+'_key').value = "";
+            document.getElementById(element+'_value').value = "";
+            document.getElementById(element+'_properties_form').style.display = 'none';
+            document.getElementById(element+'_properties_hidden').value = JSON.stringify(data);
+        }
+    }
+
+    function refreshData(element, data) {
+        output = "<table>";
+        for (var i in data) {
+            output += "<tr><td>" + i + ":</td><td>" + data[i] + "</td></td>";
+        }
+        output += "</table>";
+        document.getElementById(element+'_properties').innerHTML = output;
+    }
+
+    window.onload = function() {
+        initSelects();
+        initProperties();
+        document.getElementById('node_from_properties_form').style.display = 'none';
+        document.getElementById('relation_properties_form').style.display = 'none';
+        document.getElementById('node_to_properties_form').style.display = 'none';
+    }
+</script>
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<h3>Add relation</h3>
+Schema: {{ schema }}
+<form action="." method="POST">
+    <select id="node_from_type" name="node_from_type" onChange="updateSelect(1);">
+    </select>
+    <input id="node_from_id" name="node_from_id" type="text" onChange="loadProperties('node_from');"/>
+    <select id="relation_type" name="relation_type" onChange="updateSelect(2);loadProperties('relation');">
+    </select>
+    <select id="node_to_type" name="node_to_type">
+    </select>
+    <input id="node_to_id" name="node_to_id" type="text" onChange="loadProperties('node_to');"/>
+    <input id="node_from_properties_hidden" name="node_from_properties" type="hidden" value="{}"/>
+    <input id="relation_properties_hidden" name="relation_properties" type="hidden" value="{}"/>
+    <input id="node_to_properties_hidden" name="node_to_properties" type="hidden" value="{}"/>
+    <input type="submit"/>
+    <br/>
+    <a href="." class="findlink">Search node</a>
+    <a href="." class="findlink">Search node</a>
+</form>
+<h5>Properties</h5>
+<table>
+    <tr class="row1">
+        <td id="node_from_properties_id"></td>
+        <td><a class="addlink" onClick="addProperty('node_from_properties_form');">Add property</a></td>
+        <td>
+            <div id="node_from_properties_form">
+                <input type="text" id="node_from_key"/>
+                <input type="text" id="node_from_value"/>
+                <input type="button" value="Save" onclick="saveProperty('node_from');"/>
+            </div>
+            <div id="node_from_properties"></div>
+        </td>
+    </tr>
+    <tr class="row2">
+        <td id="relation_properties_id"></td>
+        <td><a class="addlink" onClick="addProperty('relation_properties_form');">Add property</a></td>
+        <td>
+            <div id="relation_properties_form">
+                <input type="text" id="relation_key"/>
+                <input type="text" id="relation_value"/>
+                <input type="button" value="Save" onclick="saveProperty('relation');"/>
+            </div>
+            <div id="relation_properties"></div>
+        </td>
+    </tr>
+    <tr class="row1">
+        <td id="node_to_properties_id"></td>
+        <td><a class="addlink" onClick="addProperty('node_to_properties_form');">Add property</a></td>
+        <td>
+            <div id="node_to_properties_form">
+                <input type="text" id="node_to_key"/>
+                <input type="text" id="node_to_value"/>
+                <input type="button" value="Save" onclick="saveProperty('node_to');"/>
+            </div>
+            <div id="node_to_properties"></div>
+        </td>
+    </tr>
+
+</table>
+        
+<h3>Add isolated node</h3>
+    <form method="POST">
+        <input id="node_from_id" name="node_from_id" type="text"/>
+            <br/>
+        <a href="." class="addlink">Add property</a>
+        <a href="." class="findlink">Search node</a>
+    </form>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <p>sdfsdfsdf</p>
+    </div>
+</div>
+{% endblock %}
