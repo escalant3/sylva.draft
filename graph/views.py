@@ -19,7 +19,7 @@ def editor(request, graph_id):
     graph = Graph.objects.get(pk=graph_id)
     schema = graph.schema
     if request.method == 'POST':
-        gdb = request.session.get('gdb', None)
+        gdb = neo4jclient.GraphDatabase(request.session['host'])
         if gdb:
             data = request.POST.copy()
             if data['mode'] == 'node':
@@ -58,7 +58,7 @@ def editor(request, graph_id):
         host = graph.neo4jgraph.host
         try:
             gdb = neo4jclient.GraphDatabase(host)
-            request.session['gdb'] = gdb
+            request.session["host"] = host
             messages = ['Successfully connected to %s' % host]
         except:
             request.session['messages'] = ['Unavailable host']
@@ -70,3 +70,12 @@ def editor(request, graph_id):
                         'schema': schema,
                         'messages': messages,
                         'form_structure': form_structure})
+
+
+def info(request, graph_id, node_id):
+    gdb = neo4jclient.GraphDatabase(request.session["host"])
+    node = gdb.node[int(node_id)]
+    properties = [(key, value) for key, value in node.properties.iteritems()]
+    relationships = node.relationships.all()
+    return render_to_response('graphgamel/info.html', {'properties': properties,
+                                    'relationships': relationships})

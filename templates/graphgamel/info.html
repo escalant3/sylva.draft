@@ -1,0 +1,21 @@
+{% extends "graphgamel/index.html" %}
+
+{% load i18n %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<h1>Node info</h1>
+<h3>Properties</h3>
+<table class="properties">
+{% for property in properties %}
+    <tr>
+        <td>{{ property.0 }}:</td><td>{{ property.1 }}</td>
+    </tr>
+{% endfor %}
+</table>
+<h3>Relationships</h3>
+{% for relation in relationships %}
+    {{ relation }}
+{% endfor %}
+{% endblock %}
