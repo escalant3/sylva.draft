@@ -1,9 +1,12 @@
 import neo4jclient
 import simplejson
 
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, HttpResponse
 
 from graph.models import Graph
+
+
+RESERVED_FIELD_NAMES = ('id', 'type')
 
 
 def index(request):
@@ -77,5 +80,29 @@ def info(request, graph_id, node_id):
     node = gdb.node[int(node_id)]
     properties = [(key, value) for key, value in node.properties.iteritems()]
     relationships = node.relationships.all()
+    relationships_list = []
+    for r in relationships:
+        relation_info = {'start_id': r.start.get('id', None),
+                        'start_type': r.start.get('type', None),
+                        'start_url': r.start.url,
+                        'relation_type': r.type,
+                        'relation_url': r.url,
+                        'end_id': r.end.get('id', None),
+                        'end_type': r.end.get('type', None),
+                        'end_url': r.end.url}
+        relationships_list.append(relation_info)
     return render_to_response('graphgamel/info.html', {'properties': properties,
-                                    'relationships': relationships})
+                                    'relationships': relationships_list})
+
+
+def add_property(request, graph_id, node_id):
+    if request.is_ajax():
+        graph = Graph.objects.get(pk=graph_id)
+        gdb = neo4jclient.GraphDatabase(graph.neo4jgraph.host)
+        key = request.GET['property_key']
+        value = request.GET['property_value']
+        if key not in RESERVED_FIELD_NAMES:
+            n = gdb.node[int(node_id)]
+            if key not in n.properties.keys():
+                n.set(key, value)
+                return HttpResponse()
