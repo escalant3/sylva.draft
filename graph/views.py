@@ -17,6 +17,25 @@ def index(request):
                         'messages': messages})
 
 
+def get_or_create(gdb, n, creation_info=False):
+    created = False
+    result = filter_by_property(gdb.index('id', n['id']),
+                                'type', n['type'])
+    if len(result) == 1:
+        node = result[0]
+        for key, value in n.iteritems():
+            node.set(key, value)
+    else:
+        node = gdb.node(**n)
+        gdb.add_to_index('id', n['id'], node)
+        gdb.add_to_index('type', n['type'], node)
+        created = True
+    if creation_info:
+        return node, created
+    else:
+        return node
+
+
 def editor(request, graph_id):
     messages = []
     graph = Graph.objects.get(pk=graph_id)
@@ -26,12 +45,14 @@ def editor(request, graph_id):
         if gdb:
             data = request.POST.copy()
             if data['mode'] == 'node':
-                pass
-                node = {'id': data['node_id']}
+                n = {'id': data['node_id'], 'type': data['node_type']}
                 properties = simplejson.loads(data['node_properties'])
-                node.update(properties)
-                node = gdb.node(**node)
-                messages = ['Created %s' % (data['node_id'])]
+                n.update(properties)
+                node, new = get_or_create(gdb, n, True)
+                if new:
+                    messages = ['Created %s' % (data['node_id'])]
+                else:
+                    messages = ['Node %s already exists' % n['id']]
             elif data['mode'] == 'relation':
                 #Check if it is a valid relationship
                 #Create data in Neo4j server
@@ -47,8 +68,8 @@ def editor(request, graph_id):
                 properties = simplejson.loads(data['node_to_properties'])
                 node_to.update(properties)
                 edge_type = relation['type']
-                node1 = gdb.node(**node_from)
-                node2 = gdb.node(**node_to)
+                node1 = get_or_create(gdb, node_from)
+                node2 = get_or_create(gdb, node_to)
                 getattr(node1, edge_type)(node2)
                 messages = ['Created %s(%s) %s %s(%s) relation' %
                                         (data['node_from_id'],
@@ -67,18 +88,22 @@ def editor(request, graph_id):
             request.session['messages'] = ['Unavailable host']
             return redirect(index)
         form_structure = simplejson.dumps(schema.get_dictionaries())
+        node_types = simplejson.dumps(schema.get_node_types())
         request.session['form_structure'] = form_structure
+        request.session['node_types'] = node_types
     form_structure = request.session['form_structure']
+    node_types = request.session['node_types']
     return render_to_response('graphgamel/editor.html', {
                         'schema': schema,
                         'messages': messages,
-                        'form_structure': form_structure})
+                        'form_structure': form_structure,
+                        'node_types': node_types})
 
 
 def info(request, graph_id, node_id):
     gdb = neo4jclient.GraphDatabase(request.session["host"])
     node = gdb.node[int(node_id)]
-    properties = [(key, value) for key, value in node.properties.iteritems()]
+    properties = simplejson.dumps(node.properties)
     relationships = node.relationships.all()
     relationships_list = []
     for r in relationships:
@@ -91,18 +116,91 @@ def info(request, graph_id, node_id):
                         'end_type': r.end.get('type', None),
                         'end_url': r.end.url}
         relationships_list.append(relation_info)
+    graph = Graph.objects.get(pk=graph_id)
+    outgoing = {}
+    incoming = {}
+    node_type = node['type']
+    for vr in graph.schema.valid_relations.all():
+        if vr.node_from.name == node_type:
+            if not vr.relation.name in outgoing:
+                outgoing[vr.relation.name] = {}
+            outgoing[vr.relation.name][vr.node_to.name] = None
+        if vr.node_to.name == node_type:
+            if not vr.relation.name in incoming:
+                incoming[vr.relation.name] = {}
+            incoming[vr.relation.name][vr.node_from.name] = None
     return render_to_response('graphgamel/info.html', {'properties': properties,
-                                    'relationships': relationships_list})
+                                    'relationships': relationships_list,
+                                    'outgoing': simplejson.dumps(outgoing),
+                                    'incoming': simplejson.dumps(incoming)})
+
+
+def get_neo4j_connection(graph_id):
+    graph = Graph.objects.get(pk=graph_id)
+    return neo4jclient.GraphDatabase(graph.neo4jgraph.host)
 
 
 def add_property(request, graph_id, node_id):
-    if request.is_ajax():
-        graph = Graph.objects.get(pk=graph_id)
-        gdb = neo4jclient.GraphDatabase(graph.neo4jgraph.host)
+    success = False
+    properties = None
+    if request.method == 'GET':
+        gdb = get_neo4j_connection(graph_id)
         key = request.GET['property_key']
         value = request.GET['property_value']
         if key not in RESERVED_FIELD_NAMES:
             n = gdb.node[int(node_id)]
             if key not in n.properties.keys():
                 n.set(key, value)
-                return HttpResponse()
+                properties = n.properties
+                success = True
+        return HttpResponse(simplejson.dumps({'success': success,
+                                            'properties': properties}))
+
+
+def modify_property(request, graph_id, node_id):
+    success = False
+    properties = None
+    if request.method == 'GET':
+        gdb = get_neo4j_connection(graph_id)
+        key = request.GET['property_key']
+        value = request.GET['property_value']
+        if key not in RESERVED_FIELD_NAMES:
+            n = gdb.node[int(node_id)]
+            if key in n.properties.keys():
+                n.set(key, value)
+                properties = n.properties
+                success = True
+        return HttpResponse(simplejson.dumps({'success': success,
+                                            'properties': properties}))
+
+
+def delete_property(request, graph_id, node_id):
+    success = False
+    properties = None
+    if request.method == 'GET':
+        gdb = get_neo4j_connection(graph_id)
+        key = request.GET['property_key']
+        if key not in RESERVED_FIELD_NAMES:
+            n = gdb.node[int(node_id)]
+            if key in n.properties.keys():
+                n.delete(key)
+                properties = n.properties
+                success = True
+        return HttpResponse(simplejson.dumps({'success': success,
+                                            'properties': properties}))
+
+
+def search_node(request, graph_id):
+    if request.method == 'GET':
+        gdb = get_neo4j_connection(graph_id)
+        node_id = request.GET.get('node_id', None)
+        result = gdb.index('id', node_id)
+        if 'node_type' in request.GET:
+            node_type = request.GET['node_type']
+            result = [r for r in result if node_type == r.properties['type']]
+        response = [{'url': r.url, 'properties': r.properties} for r in result]
+        return HttpResponse(simplejson.dumps({'results': response}))
+
+
+def filter_by_property(nodes, prop, value):
+    return [n for n in nodes if n.properties[prop] == value]

@@ -7,9 +7,11 @@
 {% endblock %}
 
 {% block extrahead %}
+<script language="javascript" src="/site_media/js/jquery-1.3.2.min.js"></script>
 <script type="application/javascript">
 
     var form_structure = eval({{ form_structure|safe }});
+    var node_types = eval({{ node_types|safe }});
     var node_from_json = {};
     var relation_json = {};
     var node_to_json = {};
@@ -33,16 +35,29 @@
         }
     }
 
-    function populateSelect(select, data_source) {
-        select.options[0] = new Option("---", "");
-        i = 1;
-        for (var key in data_source) {
-            select.options[i] = new Option(key, key);
-            i++;
+    function populateSelect(select, data_source, blank_option) {
+        if (blank_option) {
+            select.options[0] = new Option("---", "");
+            i = 1;
+        } else {
+            i = 0;
+        }
+        if (data_source instanceof Array) {
+            for(i;i<data_source.length;i++) {
+                key = data_source[i];
+                select.options[i] = new Option(key, key);
+            }
+        } else {
+            for (var key in data_source) {
+                select.options[i] = new Option(key, key);
+                i++;
+            }
         }
     }
 
     function initSelects() {
+        isolated_select = document.getElementById('node_type');
+        populateSelect(isolated_select, node_types);
         first_select = document.getElementById('node_from_type');
         populateSelect(first_select, form_structure);
         document.getElementById('relation_type').disabled = true;
@@ -60,6 +75,22 @@
         id_cell = document.getElementById(element+'_properties_id');
         if (label == "node") {
             node_id = document.getElementById(element+'_id').value;
+            if (node_id) {
+                // Check if node exists
+                $.ajax({url: location.href + "search_node",
+                        data: {node_id: node_id},
+                        dataType: "json",
+                        success: function(response) {
+                            results = response['results'];
+                            if (results.length == 1) {
+                                eval(element+"_json=results[0]['properties']");
+                                refreshData(element, results[0]['properties']);
+                            } else {
+                                refreshData(element, {});
+                            }
+                        }
+                });
+            }
             text = label + " " + node_id;
         } else {
             text = label;
@@ -113,13 +144,35 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% block content %}
+<h3>Add isolated node</h3>
+<form action="." method="POST">
+    <select id="node_type" name="node_type"></select>
+    <input id="node_id" name="node_id" type="text" onChange="loadProperties('node');"/>
+    <input type="hidden" name="mode" value="node"/>
+    <input id="node_properties_hidden" name="node_properties" type="hidden" value="{}"/>
+    <input type="submit"/>
+</form>
+<table>
+    <tr class="row1">
+        <td id="node_properties_id"></td>
+        <td><a class="addlink" onClick="addProperty('node_properties_form');">Add property</a></td>
+        <td>
+            <div id="node_properties_form">
+                <input type="text" id="node_key"/>
+                <input type="text" id="node_value"/>
+                <input type="button" value="Save" onclick="saveProperty('node');"/>
+            </div>
+            <div id="node_properties"></div>
+        </td>
+    </tr>
+</table>
 <h3>Add relation</h3>
 Schema: {{ schema }}
 <form action="." method="POST">
-    <select id="node_from_type" name="node_from_type" onChange="updateSelect(1);">
+    <select id="node_from_type" name="node_from_type" onblur="updateSelect(1);">
     </select>
-    <input id="node_from_id" name="node_from_id" type="text" onChange="loadProperties('node_from');"/>
-    <select id="relation_type" name="relation_type" onChange="updateSelect(2);loadProperties('relation');">
+    <input id="node_from_id" name="node_from_id" type="text" onblur="loadProperties('node_from');"/>
+    <select id="relation_type" name="relation_type" onblur="updateSelect(2);loadProperties('relation');">
     </select>
     <select id="node_to_type" name="node_to_type">
     </select>
@@ -130,8 +183,6 @@ Schema: {{ schema }}
     <input type="hidden" name="mode" value="relation"/>
     <input type="submit"/>
     <br/>
-    <a href="." class="findlink">Search node</a>
-    <a href="." class="findlink">Search node</a>
 </form>
 <h5>Properties</h5>
 <table>
@@ -173,34 +224,11 @@ Schema: {{ schema }}
     </tr>
 </table>
 
-<h3>Add isolated node</h3>
-<form action="." method="POST">
-    <input id="node_id" name="node_id" type="text" onChange="loadProperties('node_from');"/>
-    <input type="hidden" name="mode" value="node"/>
-    <input id="node_properties_hidden" name="node_properties" type="hidden" value="{}"/>
-    <input type="submit"/>
-</form>
-<table>
-    <tr class="row1">
-        <td id="node_properties_id"></td>
-        <td><a class="addlink" onClick="addProperty('node_properties_form');">Add property</a></td>
-        <td>
-            <div id="node_properties_form">
-                <input type="text" id="node_key"/>
-                <input type="text" id="node_value"/>
-                <input type="button" value="Save" onclick="saveProperty('node');"/>
-            </div>
-            <div id="node_properties"></div>
-        </td>
-    </tr>
-</table>
-
 {% endblock %}
 
 {% block sidebar %}
 <div id="content-related">
     <div class="module" id="recent-actions-module">
-        <p>sdfsdfsdf</p>
     </div>
 </div>
 {% endblock %}

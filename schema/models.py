@@ -53,3 +53,12 @@ class Schema(models.Model):
         for node_obj in from_nodes:
             form_structure.pop(node_obj)
         return form_structure
+
+    def get_node_types(self):
+        node_types = set();
+        for vr in self.valid_relations.all():
+            if vr.node_from.name not in node_types:
+                node_types.add(vr.node_from.name)
+            if vr.node_to.name not in node_types:
+                node_types.add(vr.node_to.name)
+        return list(node_types)

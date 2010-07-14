@@ -7,42 +7,121 @@
 {% block extrahead %}
 <script language="javascript" src="/site_media/js/jquery-1.3.2.min.js"></script>
 <script type="application/javascript">
+
+    var SCHEMA_DATA = {outgoing: {{ outgoing|safe }},
+                        incoming: {{ incoming|safe }}}
+
     function add_property() {
         property_key = document.getElementById('new_property_key').value;
         property_value = document.getElementById('new_property_value').value;
         $.ajax({url: location.href + "add_property",
-                dataType: "html",
+                dataType: "json",
                 type: "GET",
                 data: {property_key: property_key,
                         property_value: property_value},
-                success: function success(response){console.log(response);
-                                            table = document.getElementById('properties_table');
-                                            tr = document.createElement('tr');
-                                            td = document.createElement('td');
-                                            td.appendChild(document.createTextNode(property_key));
-                                            tr.appendChild(td);
-                                            td = document.createElement('td');
-                                            td.appendChild(document.createTextNode(property_value));
-                                            tr.appendChild(td);
-                                            table.appendChild(tr);}});
+                success: function(response){
+                            if (response['success']) {
+                                populate_table('properties_table', response['properties']);
+                            } else {
+                                alert('Unable to add property')
+                            }
+                        }});
+    }
+
+    function modify_property(property) {
+        new_value = prompt("New value");
+        $.ajax({url: location.href + "modify_property",
+            dataType: "json",
+            type: "GET",
+            data: {property_key: property,
+                    property_value: new_value},
+            success: function(response){
+                        if (response['success']) {
+                            populate_table('properties_table', response['properties']);
+                        } else {
+                            alert('Unable to edit property')
+                        }
+                    }});
+    }
+
+    function delete_property(property) {
+        $.ajax({url: location.href + "delete_property",
+                dataType: "json",
+                type: "GET",
+                data: {property_key: property},
+                success: function(response){
+                            if (response['success']) {
+                                populate_table('properties_table', response['properties']);
+                            } else {
+                                alert('Unable to delete property');
+                            }
+                        }});
+    }
+
+    function populate_table(table_id, properties) {
+        table = document.getElementById('properties_table');
+        table.innerHTML = "";
+        i = 1;
+        for (var key in properties) {
+            tr = document.createElement('tr');
+            td = document.createElement('td');
+            td.appendChild(document.createTextNode(key));
+            tr.appendChild(td);
+            td = document.createElement('td');
+            td.appendChild(document.createTextNode(properties[key]));
+            tr.appendChild(td);
+            td = document.createElement('td');
+            td.innerHTML = '<a class="changelink" onClick="modify_property(\'' + key + '\')">Edit</a>';
+            tr.appendChild(td);
+            td = document.createElement('td');
+            td.innerHTML = '<a class="deletelink" onClick="delete_property(\'' + key + '\')">Delete</a>';
+            tr.appendChild(td);
+            tr.className = "row" + i%2;
+            table.appendChild(tr);
+            i++;
+        }
+    }
+
+    function populateSelect(select, data_source, blank_option) {
+        if (blank_option) {
+            select.options[0] = new Option("---", "");
+            i = 1;
+        } else {
+            i = 0;
+        }
+        for (var key in data_source) {
+            select.options[i] = new Option(key, key);
+            i++;
+        }
+    }
+
+    window.onload = function() {
+        populate_table('properties_table', {{ properties|safe }});
+        populateSelect(document.getElementById('out_relation'),
+                        SCHEMA_DATA.outgoing);
+        if (document.getElementById('out_relation').value != "") {
+            populateSelect(document.getElementById('out_node_type'),
+                        SCHEMA_DATA.outgoing[document.getElementById('out_relation').value]);
+        }
+        populateSelect(document.getElementById('in_relation'),
+                        SCHEMA_DATA.incoming);
+        if (document.getElementById('in_relation').value != "") {
+            populateSelect(document.getElementById('in_node_type'),
+                        SCHEMA_DATA.incoming[document.getElementById('in_relation').value]);
+        }
     }
 </script>
 {% endblock %}
 
 {% block content %}
+<div id="main">
 <h1>Node info</h1>
 <h3>Properties</h3>
-<table id="properties_table" class="properties">
-{% for property in properties %}
-    <tr>
-        <td>{{ property.0 }}:</td><td>{{ property.1 }}</td>
-    </tr>
-{% endfor %}
-</table>
+<table id="properties_table" class="properties"></table>
 <h5>Add property</h5>
-    <input type="text" id="new_property_key"/>
-    <input type="text" id="new_property_value"/>
-    <input type="button" value="Add new property" onClick="add_property()"/>
+    <input type="text" id="new_property_key">
+    <input type="text" id="new_property_value">
+    <input type="button" value="Add new property" onClick="add_property()">
 <h3>Relationships</h3>
 <table>
 {% for relation in relationships %}
@@ -56,6 +135,18 @@
     <tr>
 {% endfor %}
 </table>
-<h5>Add incoming relationship</h5>
 <h5>Add outgoing relationship</h5>
+<select id="out_relation" name="out_relation" onblur="populateSelect(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out_relation').value])"></select>
+<select id="out_node_type" name="out_node_type"></select>
+<input id="out_node_id" name="out_node_id">
+<input type="button" value="Search node" onclick="search_node('out_node');">
+<h5>Add incoming relationship</h5>
+<select id="in_relation" name="in_relation" onblur="populateSelect(document.getElementById('in_node_type'), SCHEMA_DATA['incoming'][document.getElementById('in_relation').value])"></select>
+<select id="in_node_type" name="in_node_type"></select>
+<input id="in_node_id" name="in_node_id">
+<input type="button" value="Search node" onclick="search_node('out_node');">
+</div>
+<div id="right_tab">
+
+</div>
 {% endblock %}
