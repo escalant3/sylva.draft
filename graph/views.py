@@ -17,7 +17,14 @@ def index(request):
                         'messages': messages})
 
 
-def get_or_create(gdb, n, creation_info=False):
+def return_function(obj, value, show_info):
+    if show_info:
+        return obj, value
+    else:
+        return obj
+
+
+def get_or_create_node(gdb, n, creation_info=False):
     created = False
     result = filter_by_property(gdb.index('id', n['id']),
                                 'type', n['type'])
@@ -30,10 +37,18 @@ def get_or_create(gdb, n, creation_info=False):
         gdb.add_to_index('id', n['id'], node)
         gdb.add_to_index('type', n['type'], node)
         created = True
-    if creation_info:
-        return node, created
+    return return_function(node, created, creation_info)
+
+
+def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
+    created = True
+    for relation in node1.relationships.all():
+        if relation.end == node2:
+            created = False
+            break
     else:
-        return node
+        relation = getattr(node1, edge_type)(node2)
+    return return_function(relation, created, creation_info)
 
 
 def editor(request, graph_id):
@@ -48,7 +63,7 @@ def editor(request, graph_id):
                 n = {'id': data['node_id'], 'type': data['node_type']}
                 properties = simplejson.loads(data['node_properties'])
                 n.update(properties)
-                node, new = get_or_create(gdb, n, True)
+                node, new = get_or_create_node(gdb, n, True)
                 if new:
                     messages = ['Created %s' % (data['node_id'])]
                 else:
@@ -68,11 +83,21 @@ def editor(request, graph_id):
                 properties = simplejson.loads(data['node_to_properties'])
                 node_to.update(properties)
                 edge_type = relation['type']
-                node1 = get_or_create(gdb, node_from)
-                node2 = get_or_create(gdb, node_to)
-                getattr(node1, edge_type)(node2)
-                messages = ['Created %s(%s) %s %s(%s) relation' %
-                                        (data['node_from_id'],
+                node1 = get_or_create_node(gdb, node_from)
+                node2 = get_or_create_node(gdb, node_to)
+                rel_obj, new = get_or_create_relationship(node1,
+                                                            node2,
+                                                            edge_type,
+                                                            True)
+                for key, value in relation.iteritems():
+                    rel_obj.set(key, value)
+                if new:
+                    action = 'Created'
+                else:
+                    action = 'Modified'
+                messages = ['%s %s(%s) %s %s(%s) relation' %
+                                        (action,
+                                        data['node_from_id'],
                                         data['node_from_type'],
                                         edge_type,
                                         data['node_to_id'],
