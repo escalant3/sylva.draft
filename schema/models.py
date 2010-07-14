@@ -23,7 +23,7 @@ class ValidRelation(models.Model):
     node_to = models.ForeignKey(NodeType, related_name='node_to')
 
     def __unicode__(self):
-        return '%s %s %s' % (self.node_from, self.relation, self.node_to)
+        return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
 
 
 class Schema(models.Model):
