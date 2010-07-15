@@ -231,3 +231,19 @@ def search_node(request, graph_id):
 
 def filter_by_property(nodes, prop, value):
     return [n for n in nodes if n.properties[prop] == value]
+
+
+def delete_node(request, graph_id, node_id):
+    success = False
+    if request.is_ajax():
+        gdb = get_neo4j_connection(graph_id)
+        try:
+            # TODO API corrupts database
+            if False:
+                gdb.nodes[int(node_id)].delete()
+                success = True
+            messages = ["Node deleted"]
+        except:
+            pass
+    return HttpResponse(simplejson.dumps({'success': success,
+                                        'messages': messages}))
