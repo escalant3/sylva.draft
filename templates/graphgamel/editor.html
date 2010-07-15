@@ -85,8 +85,16 @@
                             if (results.length == 1) {
                                 eval(element+"_json=results[0]['properties']");
                                 refreshData(element, results[0]['properties']);
+                                if (element == "node") {
+                                    document.getElementById("node_editor").style.display = "";
+                                    document.getElementById("node_editor_link").href = 
+                                        location.href + results[0]['neo_id'];
+                                }
                             } else {
                                 refreshData(element, {});
+                                if (element == "node") {
+                                    document.getElementById("node_editor").style.display = "none";
+                                }
                             }
                         }
                 });
@@ -137,6 +145,7 @@
         document.getElementById('relation_properties_form').style.display = 'none';
         document.getElementById('node_to_properties_form').style.display = 'none';
         document.getElementById('node_properties_form').style.display = 'none';
+        document.getElementById("node_editor").style.display = "none";
     }
 </script>
 {% endblock %}
@@ -150,8 +159,9 @@
     <input id="node_id" name="node_id" type="text" onChange="loadProperties('node');"/>
     <input type="hidden" name="mode" value="node"/>
     <input id="node_properties_hidden" name="node_properties" type="hidden" value="{}"/>
-    <input type="submit"/>
+    <input type="submit" value="Commit"/>
 </form>
+<h5>Properties</h5>
 <table>
     <tr class="row1">
         <td id="node_properties_id"></td>
@@ -166,6 +176,9 @@
         </td>
     </tr>
 </table>
+<div id="node_editor">
+    <a id="node_editor_link" href="." class="changelink">Browse this node</a>
+</div>
 <h3>Add relation</h3>
 Schema: {{ schema }}
 <form action="." method="POST">
@@ -181,7 +194,7 @@ Schema: {{ schema }}
     <input id="relation_properties_hidden" name="relation_properties" type="hidden" value="{}"/>
     <input id="node_to_properties_hidden" name="node_to_properties" type="hidden" value="{}"/>
     <input type="hidden" name="mode" value="relation"/>
-    <input type="submit"/>
+    <input type="submit" value="Commit"/>
     <br/>
 </form>
 <h5>Properties</h5>

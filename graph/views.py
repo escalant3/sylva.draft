@@ -223,7 +223,9 @@ def search_node(request, graph_id):
         if 'node_type' in request.GET:
             node_type = request.GET['node_type']
             result = [r for r in result if node_type == r.properties['type']]
-        response = [{'url': r.url, 'properties': r.properties} for r in result]
+        response = [{'url': r.url,
+                    'neo_id': r.id,
+                    'properties': r.properties} for r in result]
         return HttpResponse(simplejson.dumps({'results': response}))
 
 
