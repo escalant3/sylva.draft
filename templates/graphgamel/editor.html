@@ -22,15 +22,11 @@
         if (step == 1) {
             value = document.getElementById('node_from_type').value;
             populateSelect(second_select, form_structure[value]);
-            second_select.disabled = false;
-            third_select.options.length = 0;
-            third_select.disabled = true;
         }
         if (step == 2) {
             value1 = document.getElementById('node_from_type').value;
             value2 = document.getElementById('relation_type').value;
             populateSelect(third_select, form_structure[value1][value2]);
-            document.getElementById('node_to_type').disabled = false;
         }
     }
 
@@ -59,8 +55,8 @@
         populateSelect(isolated_select, node_types);
         first_select = document.getElementById('node_from_type');
         populateSelect(first_select, form_structure);
-        document.getElementById('relation_type').disabled = true;
-        document.getElementById('node_to_type').disabled = true;
+        updateSelect(1);
+        updateSelect(2);
     }
 
     function initProperties() {
@@ -181,14 +177,14 @@
 <h3>Add relation</h3>
 Schema: {{ schema }}
 <form action="." method="POST">
-    <select id="node_from_type" name="node_from_type" onblur="updateSelect(1);">
+    <select id="node_from_type" name="node_from_type" onchange="updateSelect(1);updateSelect(2);">
     </select>
-    <input id="node_from_id" name="node_from_id" type="text" onblur="loadProperties('node_from');"/>
-    <select id="relation_type" name="relation_type" onblur="updateSelect(2);loadProperties('relation');">
+    <input id="node_from_id" name="node_from_id" type="text" onchange="loadProperties('node_from');"/>
+    <select id="relation_type" name="relation_type" onchange="updateSelect(2);loadProperties('relation');">
     </select>
     <select id="node_to_type" name="node_to_type">
     </select>
-    <input id="node_to_id" name="node_to_id" type="text" onChange="loadProperties('node_to');"/>
+    <input id="node_to_id" name="node_to_id" type="text" onchange="loadProperties('node_to');"/>
     <input id="node_from_properties_hidden" name="node_from_properties" type="hidden" value="{}"/>
     <input id="relation_properties_hidden" name="relation_properties" type="hidden" value="{}"/>
     <input id="node_to_properties_hidden" name="node_to_properties" type="hidden" value="{}"/>
