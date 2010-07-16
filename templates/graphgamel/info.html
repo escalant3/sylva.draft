@@ -2,7 +2,13 @@
 
 {% load i18n %}
 
-{% block breadcrumbs %}{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a>&rsaquo;
+    <a href="{% url graph.views.editor graph_id%}">Editor</a>&rsaquo;
+    <a href="{% url graph.views.info graph_id node_id %}">Node Info</a>
+</div>
+{% endblock %}
 
 {% block extracode %}
 <script type="application/javascript">

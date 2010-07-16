@@ -16,7 +16,11 @@
     {% endblock %}
 {% endblock %}
 
-{% block breadcrumbs %}{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a>
+</div>
+{% endblock %}
 
 {% block content %}
 <h1>Available Graphs</h1>

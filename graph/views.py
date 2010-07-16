@@ -122,7 +122,8 @@ def editor(request, graph_id):
                         'schema': schema,
                         'messages': messages,
                         'form_structure': form_structure,
-                        'node_types': node_types})
+                        'node_types': node_types,
+                        'graph_id': graph_id})
 
 
 def info(request, graph_id, node_id):
@@ -157,7 +158,9 @@ def info(request, graph_id, node_id):
     return render_to_response('graphgamel/info.html', {'properties': properties,
                                     'relationships': relationships_list,
                                     'outgoing': simplejson.dumps(outgoing),
-                                    'incoming': simplejson.dumps(incoming)})
+                                    'incoming': simplejson.dumps(incoming),
+                                    'graph_id': graph_id,
+                                    'node_id': node_id})
 
 
 def get_neo4j_connection(graph_id):
