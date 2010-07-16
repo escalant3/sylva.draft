@@ -12,9 +12,11 @@ RESERVED_FIELD_NAMES = ('id', 'type')
 def index(request):
     graphs = Graph.objects.all()
     messages = request.session.get('messages', None)
+    if not messages:
+        request.session['messages'] = []
+        messages = []
     return render_to_response('graphgamel/index.html', {
-                        'graph_list': graphs,
-                        'messages': messages})
+                        'graph_list': graphs})
 
 
 def return_function(obj, value, show_info):
@@ -22,6 +24,19 @@ def return_function(obj, value, show_info):
         return obj, value
     else:
         return obj
+
+
+def add_message(request, text,
+                title='',
+                element_id='',
+                element_type='',
+                action_type=''):
+    request.session['messages'].insert(0, {'title': title,
+                                            'element_id': element_id,
+                                            'element_type': element_type,
+                                            'action_type': action_type,
+                                            'text': text})
+    request.session['messages'] = request.session['messages'][:10]
 
 
 def get_or_create_node(gdb, n, creation_info=False):
@@ -52,7 +67,6 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
 
 
 def editor(request, graph_id):
-    messages = []
     graph = Graph.objects.get(pk=graph_id)
     schema = graph.schema
     if request.method == 'POST':
@@ -65,9 +79,19 @@ def editor(request, graph_id):
                 n.update(properties)
                 node, new = get_or_create_node(gdb, n, True)
                 if new:
-                    messages = ['Created %s' % (data['node_id'])]
+                    add_message(request,
+                                title='Created %s' % data['node_id'],
+                                action_type='add',
+                                element_id=node.id,
+                                element_type='node',
+                                text='%s node' % data['node_type'])
                 else:
-                    messages = ['Node %s already exists' % n['id']]
+                    add_message(request,
+                                title='Modified %s' % data['node_id'],
+                                action_type='add',
+                                element_id=node.id,
+                                element_type='node',
+                                text='%s node' % data['node_type'])
             elif data['mode'] == 'relation':
                 #Check if it is a valid relationship
                 #Create data in Neo4j server
@@ -91,26 +115,40 @@ def editor(request, graph_id):
                                                             True)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
+                rel_id = rel_obj.url.split('/')[-1]
                 if new:
-                    action = 'Created'
-                else:
-                    action = 'Modified'
-                messages = ['%s %s(%s) %s %s(%s) relation' %
-                                        (action,
-                                        data['node_from_id'],
+                    add_message(request,
+                                title='Created %s' % edge_type,
+                                action_type='add',
+                                element_type='edge',
+                                element_id=rel_id,
+                                text='%s(%s) %s %s(%s) relation' %
+                                        (data['node_from_id'],
                                         data['node_from_type'],
                                         edge_type,
                                         data['node_to_id'],
-                                        data['node_to_type'])]
+                                        data['node_to_type']))
+                else:
+                    add_message(request,
+                                title='Modified %s' % edge_type,
+                                action_type='change',
+                                element_type='edge',
+                                element_id=rel_id,
+                                text='%s(%s) %s %s(%s) relation' %
+                                        (data['node_from_id'],
+                                        data['node_from_type'],
+                                        edge_type,
+                                        data['node_to_id'],
+                                        data['node_to_type']))
     else:
         # Check connection
         host = graph.neo4jgraph.host
         try:
             gdb = neo4jclient.GraphDatabase(host)
             request.session["host"] = host
-            messages = ['Successfully connected to %s' % host]
+            add_message(request, 'Successfully connected to %s' % host)
         except:
-            request.session['messages'] = ['Unavailable host']
+            add_message(request, 'Unavailable host')
             return redirect(index)
         form_structure = simplejson.dumps(schema.get_dictionaries())
         node_types = simplejson.dumps(schema.get_node_types())
@@ -118,9 +156,10 @@ def editor(request, graph_id):
         request.session['node_types'] = node_types
     form_structure = request.session['form_structure']
     node_types = request.session['node_types']
+    messages = request.session['messages']
     return render_to_response('graphgamel/editor.html', {
                         'schema': schema,
-                        'messages': messages,
+                        'history_list': messages,
                         'form_structure': form_structure,
                         'node_types': node_types,
                         'graph_id': graph_id})

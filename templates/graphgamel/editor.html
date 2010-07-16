@@ -155,6 +155,8 @@
 {% endblock %}
 
 {% block content %}
+<div id="content" class="colMS">
+<div id="content-main">
 <h3>Add isolated node</h3>
 <form action="." method="POST">
     <select id="node_type" name="node_type" onChange="loadProperties('node');"></select>
@@ -238,12 +240,26 @@ Schema: {{ schema }}
         </td>
     </tr>
 </table>
-
-{% endblock %}
-
-{% block sidebar %}
+</div>
 <div id="content-related">
     <div class="module" id="recent-actions-module">
+        <h2>Recent Actions</h2>
+        <h3>My Actions</h3>
+        <ul class="actionlist">
+        {% for history in history_list %}
+        <li>
+            <a href="{% if history.element_id %}
+                        {% ifequal history.element_type 'node' %}
+                            {% url graph.views.info graph_id history.element_id %}
+                        {% endifequal %}
+                    {% endif %}">{{ history.title }}</a>
+            <br>
+            <span class="mini quiet">{{ history.text }}</span>
+        </li>
+        {% endfor %}
+        </ul>
     </div>
 </div>
+</div>
 {% endblock %}
+
