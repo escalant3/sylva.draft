@@ -146,9 +146,7 @@ def editor(request, graph_id):
         try:
             gdb = neo4jclient.GraphDatabase(host)
             request.session["host"] = host
-            add_message(request, 'Successfully connected to %s' % host)
         except:
-            add_message(request, 'Unavailable host')
             return redirect(index)
         form_structure = simplejson.dumps(schema.get_dictionaries())
         node_types = simplejson.dumps(schema.get_node_types())
@@ -165,7 +163,7 @@ def editor(request, graph_id):
                         'graph_id': graph_id})
 
 
-def info(request, graph_id, node_id):
+def node_info(request, graph_id, node_id):
     gdb = neo4jclient.GraphDatabase(request.session["host"])
     node = gdb.node[int(node_id)]
     properties = simplejson.dumps(node.properties)
@@ -200,6 +198,10 @@ def info(request, graph_id, node_id):
                                     'incoming': simplejson.dumps(incoming),
                                     'graph_id': graph_id,
                                     'node_id': node_id})
+
+
+def relation_info(request, graph_id, relation_id):
+    pass
 
 
 def get_neo4j_connection(graph_id):

@@ -1,0 +1,25 @@
+{% extends "graphgamel/index.html" %}
+
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a>&rsaquo;
+    <a href="{% url graph.views.editor graph_id%}">Editor</a>&rsaquo;
+    <a href="{% url graph.views.relation_info graph_id node_id %}">Relation Info</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="main">
+<h1>Relationship info</h1>
+<h3>Actions</h3>
+<a class="deletelink" onclick="delete_relationship()">Delete this relationship</a>
+<h3>Properties</h3>
+<table id="properties_table" class="properties"></table>
+<h5>Add property</h5>
+    <input type="text" id="new_property_key">
+    <input type="text" id="new_property_value">
+    <input type="button" value="Add new property" onClick="add_property()">
+</div>
+{% endblock %}
