@@ -6,20 +6,28 @@
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a>&rsaquo;
     <a href="{% url graph.views.editor graph_id%}">Editor</a>&rsaquo;
-    <a href="{% url graph.views.relation_info graph_id node_id %}">Relation Info</a>
+    <a href="{% url graph.views.relation_info graph_id start_node_id edge_type end_node_id%}">Relation Info</a>
 </div>
+{% endblock %}
+
+{% block extracode %}
+<script type="application/javascript">
+    window.onload = function() {
+        GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
+    }
+</script>
 {% endblock %}
 
 {% block content %}
 <div id="main">
 <h1>Relationship info</h1>
 <h3>Actions</h3>
-<a class="deletelink" onclick="delete_relationship()">Delete this relationship</a>
+<a class="deletelink" onclick="GRAPHGAMEL.delete_relationship()">Delete this relationship</a>
 <h3>Properties</h3>
 <table id="properties_table" class="properties"></table>
 <h5>Add property</h5>
     <input type="text" id="new_property_key">
     <input type="text" id="new_property_value">
-    <input type="button" value="Add new property" onClick="add_property()">
+    <input type="button" value="Add new property" onClick="GRAPHGAMEL.add_property()">
 </div>
 {% endblock %}

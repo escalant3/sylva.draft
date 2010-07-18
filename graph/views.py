@@ -55,12 +55,30 @@ def get_or_create_node(gdb, n, creation_info=False):
     return return_function(node, created, creation_info)
 
 
+def get_relationship(node1, node2, edge_type):
+    for relation in node1.relationships.all():
+        if relation.end == node2 and relation.type == edge_type:
+            return relation
+    return None
+
+
+def get_node_without_connection(graph_id, node_id):
+    gdb = get_neo4j_connection(graph_id)
+    return gdb.node[int(node_id)]
+
+
+def get_relationship_without_connection(graph_id, node1, edge_type, node2):
+    gdb = get_neo4j_connection(graph_id)
+    start_node = gdb.nodes[int(node1)]
+    end_node = gdb.nodes[int(node2)]
+    return get_relationship(start_node, end_node, edge_type)
+
+
 def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
     created = True
-    for relation in node1.relationships.all():
-        if relation.end == node2:
-            created = False
-            break
+    relation = get_relationship(node1, node2, edge_type)
+    if relation:
+        created = False
     else:
         relation = getattr(node1, edge_type)(node2)
     return return_function(relation, created, creation_info)
@@ -121,7 +139,9 @@ def editor(request, graph_id):
                                 title='Created %s' % edge_type,
                                 action_type='add',
                                 element_type='edge',
-                                element_id=rel_id,
+                                element_id=(rel_obj.start.id,
+                                            rel_obj.type,
+                                            rel_obj.end.id),
                                 text='%s(%s) %s %s(%s) relation' %
                                         (data['node_from_id'],
                                         data['node_from_type'],
@@ -133,7 +153,9 @@ def editor(request, graph_id):
                                 title='Modified %s' % edge_type,
                                 action_type='change',
                                 element_type='edge',
-                                element_id=rel_id,
+                                element_id=(rel_obj.start.id,
+                                            rel_obj.type,
+                                            rel_obj.end.id),
                                 text='%s(%s) %s %s(%s) relation' %
                                         (data['node_from_id'],
                                         data['node_from_type'],
@@ -164,7 +186,7 @@ def editor(request, graph_id):
 
 
 def node_info(request, graph_id, node_id):
-    gdb = neo4jclient.GraphDatabase(request.session["host"])
+    gdb = get_neo4j_connection(graph_id)
     node = gdb.node[int(node_id)]
     properties = simplejson.dumps(node.properties)
     relationships = node.relationships.all()
@@ -192,7 +214,7 @@ def node_info(request, graph_id, node_id):
             if not vr.relation.name in incoming:
                 incoming[vr.relation.name] = {}
             incoming[vr.relation.name][vr.node_from.name] = None
-    return render_to_response('graphgamel/info.html', {'properties': properties,
+    return render_to_response('graphgamel/node_info.html', {'properties': properties,
                                     'relationships': relationships_list,
                                     'outgoing': simplejson.dumps(outgoing),
                                     'incoming': simplejson.dumps(incoming),
@@ -200,8 +222,19 @@ def node_info(request, graph_id, node_id):
                                     'node_id': node_id})
 
 
-def relation_info(request, graph_id, relation_id):
-    pass
+def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
+    gdb = get_neo4j_connection(graph_id)
+    start_node = gdb.node[int(start_node_id)]
+    end_node = gdb.node[int(end_node_id)]
+    relation = get_relationship(start_node, end_node, edge_type)
+    if relation:
+        properties = simplejson.dumps(relation.properties)
+        return render_to_response('graphgamel/relation_info.html', {
+                                'properties': properties,
+                                'graph_id': graph_id,
+                                'start_node_id': start_node_id,
+                                'end_node_id': end_node_id,
+                                'edge_type': edge_type})
 
 
 def get_neo4j_connection(graph_id):
@@ -209,51 +242,69 @@ def get_neo4j_connection(graph_id):
     return neo4jclient.GraphDatabase(graph.neo4jgraph.host)
 
 
-def add_property(request, graph_id, node_id):
+def node_property(request, graph_id, node_id, action):
+    node = get_node_without_connection(graph_id, node_id)
+    if node:
+        if action == 'add':
+            return add_property(request, node)
+        elif action == 'modify':
+            return modify_property(request, node)
+        elif action == 'delete':
+            return delete_property(request, node)
+
+
+def relation_property(request, graph_id, start_node_id,
+                            edge_type, end_node_id, action):
+    relation = get_relationship_without_connection(graph_id, start_node_id,
+                                        edge_type, end_node_id)
+    if relation:
+        if action == 'add':
+            return add_property(request, relation)
+        elif action == 'modify':
+            return modify_property(request, relation)
+        elif action == 'delete':
+            return delete_property(request, relation)
+
+
+def add_property(request, element):
     success = False
     properties = None
     if request.method == 'GET':
-        gdb = get_neo4j_connection(graph_id)
         key = request.GET['property_key']
         value = request.GET['property_value']
         if key not in RESERVED_FIELD_NAMES:
-            n = gdb.node[int(node_id)]
-            if key not in n.properties.keys():
-                n.set(key, value)
-                properties = n.properties
+            if key not in element.properties.keys():
+                element.set(key, value)
+                properties = element.properties
                 success = True
         return HttpResponse(simplejson.dumps({'success': success,
                                             'properties': properties}))
 
 
-def modify_property(request, graph_id, node_id):
+def modify_property(request, element):
     success = False
     properties = None
     if request.method == 'GET':
-        gdb = get_neo4j_connection(graph_id)
         key = request.GET['property_key']
         value = request.GET['property_value']
         if key not in RESERVED_FIELD_NAMES:
-            n = gdb.node[int(node_id)]
-            if key in n.properties.keys():
-                n.set(key, value)
-                properties = n.properties
+            if key in element.properties.keys():
+                element.set(key, value)
+                properties = element.properties
                 success = True
         return HttpResponse(simplejson.dumps({'success': success,
                                             'properties': properties}))
 
 
-def delete_property(request, graph_id, node_id):
+def delete_property(request, element):
     success = False
     properties = None
     if request.method == 'GET':
-        gdb = get_neo4j_connection(graph_id)
         key = request.GET['property_key']
         if key not in RESERVED_FIELD_NAMES:
-            n = gdb.node[int(node_id)]
-            if key in n.properties.keys():
-                n.delete(key)
-                properties = n.properties
+            if key in element.properties.keys():
+                element.delete(key)
+                properties = element.properties
                 success = True
         return HttpResponse(simplejson.dumps({'success': success,
                                             'properties': properties}))
