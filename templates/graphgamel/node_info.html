@@ -50,12 +50,12 @@
 <table>
 {% for relation in relationships %}
     <tr>
-        <td><a href="{{ relation.start_url }}">{{ relation.start_id }}</a>
+        <td><a href="{% url graph.views.node_info graph_id relation.start_neo_id %}">{{ relation.start_id }}</a>
             ({{ relation.start_type }})</td>
         <td>{{ relation.relation_type }}</td>
-        <td><a href="{{ relation.end_url }}">{{ relation.end_id }}</a>
+        <td><a href="{% url graph.views.node_info graph_id relation.end_neo_id %}">{{ relation.end_id }}</a>
             ({{ relation.end_type }})</td>
-        <td><a href="{{ relation.relation_url }}">Go</a></td>
+        <td><a href="{% url graph.views.relation_info graph_id relation.start_neo_id relation.relation_type relation.end_neo_id %}">Open relation</a></td>
     <tr>
 {% endfor %}
 </table>

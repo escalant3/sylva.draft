@@ -194,12 +194,12 @@ def node_info(request, graph_id, node_id):
     for r in relationships:
         relation_info = {'start_id': r.start.get('id', None),
                         'start_type': r.start.get('type', None),
-                        'start_url': r.start.url,
+                        'start_neo_id': r.start.id,
                         'relation_type': r.type,
                         'relation_url': r.url,
                         'end_id': r.end.get('id', None),
                         'end_type': r.end.get('type', None),
-                        'end_url': r.end.url}
+                        'end_neo_id': r.end.id}
         relationships_list.append(relation_info)
     graph = Graph.objects.get(pk=graph_id)
     outgoing = {}
