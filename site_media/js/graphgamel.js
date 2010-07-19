@@ -4,22 +4,24 @@ var GRAPHGAMEL = {
         table.innerHTML = "";
         i = 1;
         for (var key in properties) {
-            tr = document.createElement('tr');
-            td = document.createElement('td');
-            td.appendChild(document.createTextNode(key));
-            tr.appendChild(td);
-            td = document.createElement('td');
-            td.appendChild(document.createTextNode(properties[key]));
-            tr.appendChild(td);
-            td = document.createElement('td');
-            td.innerHTML = '<a class="changelink" onClick="GRAPHGAMEL.modify_property(\'' + key + '\')">Edit</a>';
-            tr.appendChild(td);
-            td = document.createElement('td');
-            td.innerHTML = '<a class="deletelink" onClick="GRAPHGAMEL.delete_property(\'' + key + '\')">Delete</a>';
-            tr.appendChild(td);
-            tr.className = "row" + i%2;
-            table.appendChild(tr);
-            i++;
+            if (key.length > 0 && key[0] != "_") {
+                tr = document.createElement('tr');
+                td = document.createElement('td');
+                td.appendChild(document.createTextNode(key));
+                tr.appendChild(td);
+                td = document.createElement('td');
+                td.appendChild(document.createTextNode(properties[key]));
+                tr.appendChild(td);
+                td = document.createElement('td');
+                td.innerHTML = '<a class="changelink" onClick="GRAPHGAMEL.modify_property(\'' + key + '\')">Edit</a>';
+                tr.appendChild(td);
+                td = document.createElement('td');
+                td.innerHTML = '<a class="deletelink" onClick="GRAPHGAMEL.delete_property(\'' + key + '\')">Delete</a>';
+                tr.appendChild(td);
+                tr.className = "row" + i%2;
+                table.appendChild(tr);
+                i++;
+            }
         }
     },
 
@@ -91,6 +93,5 @@ var GRAPHGAMEL = {
                     });
         }
     }
-
 
 }

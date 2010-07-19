@@ -3,14 +3,14 @@ import simplejson
 
 from django.shortcuts import render_to_response, redirect, HttpResponse
 
-from graph.models import Graph
+from graph.models import Neo4jGraph, Node, Media
 
 
 RESERVED_FIELD_NAMES = ('id', 'type')
 
 
 def index(request):
-    graphs = Graph.objects.all()
+    graphs = Neo4jGraph.objects.all()
     messages = request.session.get('messages', None)
     if not messages:
         request.session['messages'] = []
@@ -39,7 +39,7 @@ def add_message(request, text,
     request.session['messages'] = request.session['messages'][:10]
 
 
-def get_or_create_node(gdb, n, creation_info=False):
+def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
     result = filter_by_property(gdb.index('id', n['id']),
                                 'type', n['type'])
@@ -85,17 +85,17 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
 
 
 def editor(request, graph_id):
-    graph = Graph.objects.get(pk=graph_id)
+    graph = Neo4jGraph.objects.get(pk=graph_id)
     schema = graph.schema
     if request.method == 'POST':
-        gdb = neo4jclient.GraphDatabase(request.session['host'])
+        gdb = neo4jclient.GraphDatabase(graph.host)
         if gdb:
             data = request.POST.copy()
             if data['mode'] == 'node':
                 n = {'id': data['node_id'], 'type': data['node_type']}
                 properties = simplejson.loads(data['node_properties'])
                 n.update(properties)
-                node, new = get_or_create_node(gdb, n, True)
+                node, new = get_or_create_node(gdb, n, graph, True)
                 if new:
                     add_message(request,
                                 title='Created %s' % data['node_id'],
@@ -125,15 +125,14 @@ def editor(request, graph_id):
                 properties = simplejson.loads(data['node_to_properties'])
                 node_to.update(properties)
                 edge_type = relation['type']
-                node1 = get_or_create_node(gdb, node_from)
-                node2 = get_or_create_node(gdb, node_to)
+                node1 = get_or_create_node(gdb, node_from, graph)
+                node2 = get_or_create_node(gdb, node_to, graph)
                 rel_obj, new = get_or_create_relationship(node1,
                                                             node2,
                                                             edge_type,
                                                             True)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
-                rel_id = rel_obj.url.split('/')[-1]
                 if new:
                     add_message(request,
                                 title='Created %s' % edge_type,
@@ -164,7 +163,7 @@ def editor(request, graph_id):
                                         data['node_to_type']))
     else:
         # Check connection
-        host = graph.neo4jgraph.host
+        host = graph.host
         try:
             gdb = neo4jclient.GraphDatabase(host)
             request.session["host"] = host
@@ -201,7 +200,7 @@ def node_info(request, graph_id, node_id):
                         'end_type': r.end.get('type', None),
                         'end_neo_id': r.end.id}
         relationships_list.append(relation_info)
-    graph = Graph.objects.get(pk=graph_id)
+    graph = Neo4jGraph.objects.get(pk=graph_id)
     outgoing = {}
     incoming = {}
     node_type = node['type']
@@ -214,12 +213,22 @@ def node_info(request, graph_id, node_id):
             if not vr.relation.name in incoming:
                 incoming[vr.relation.name] = {}
             incoming[vr.relation.name][vr.node_from.name] = None
+    media = []
+    if '_media' in node.properties:
+        relational_node = Node.objects.get(pk=node.properties['_media'])
+        media = [{'type':media.media_type, 
+                    'url': media.media_file.url}
+                    for media in relational_node.media_set.all()]
+    node_name = '%s(%s)' % (node.properties['id'],
+                            node.properties['type'])
     return render_to_response('graphgamel/node_info.html', {'properties': properties,
                                     'relationships': relationships_list,
                                     'outgoing': simplejson.dumps(outgoing),
                                     'incoming': simplejson.dumps(incoming),
                                     'graph_id': graph_id,
-                                    'node_id': node_id})
+                                    'node_id': node_id,
+                                    'media_items': media,
+                                    'node_name': node_name})
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
@@ -238,7 +247,7 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
 
 
 def get_neo4j_connection(graph_id):
-    graph = Graph.objects.get(pk=graph_id)
+    graph = Neo4jGraph.objects.get(pk=graph_id)
     return neo4jclient.GraphDatabase(graph.neo4jgraph.host)
 
 
@@ -272,7 +281,7 @@ def add_property(request, element):
     if request.method == 'GET':
         key = request.GET['property_key']
         value = request.GET['property_value']
-        if key not in RESERVED_FIELD_NAMES:
+        if key not in RESERVED_FIELD_NAMES and not key.startswith('_'):
             if key not in element.properties.keys():
                 element.set(key, value)
                 properties = element.properties
@@ -287,7 +296,7 @@ def modify_property(request, element):
     if request.method == 'GET':
         key = request.GET['property_key']
         value = request.GET['property_value']
-        if key not in RESERVED_FIELD_NAMES:
+        if key not in RESERVED_FIELD_NAMES and not key.startswith('_'):
             if key in element.properties.keys():
                 element.set(key, value)
                 properties = element.properties
@@ -301,7 +310,7 @@ def delete_property(request, element):
     properties = None
     if request.method == 'GET':
         key = request.GET['property_key']
-        if key not in RESERVED_FIELD_NAMES:
+        if key not in RESERVED_FIELD_NAMES and not key.startswith('_'):
             if key in element.properties.keys():
                 element.delete(key)
                 properties = element.properties
@@ -342,3 +351,26 @@ def delete_node(request, graph_id, node_id):
             pass
     return HttpResponse(simplejson.dumps({'success': success,
                                         'messages': messages}))
+
+
+def add_media(request, graph_id, node_id):
+    success = False
+    graph = Neo4jGraph.objects.get(pk=graph_id)
+    node = get_node_without_connection(graph, node_id)
+    if not '_media' in node.properties:
+        relational_db_node = Node(node_id=node.properties['id'],
+                                    node_type=node.properties['type'],
+                                    graph=graph)
+        relational_db_node.save()
+        node.set('_media', relational_db_node.id)
+    else:
+        relational_db_node = Node.objects.get(pk=node.properties['_media'])
+    if request.method == "POST":
+        media_type = request.POST['media_type']
+        media_file = request.FILES['media_file']
+        media = Media(node=relational_db_node,
+                    media_type=media_type,
+                    media_file=media_file)
+        media.save()
+        success = True
+    return node_info(request, graph_id, node_id)

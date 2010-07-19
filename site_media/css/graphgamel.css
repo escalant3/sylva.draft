@@ -1,0 +1,16 @@
+#info-main-content {
+    width: 400px;
+    padding: 5px;
+    float:left;
+}
+
+#info-right-content {
+    width: 600px;
+    float:right;
+    padding: 5px;
+}
+
+img.node_media {
+    width:200px;
+    height:200px;
+}

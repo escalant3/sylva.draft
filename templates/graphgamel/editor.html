@@ -136,7 +136,9 @@
     function refreshData(element, data) {
         output = "<table>";
         for (var i in data) {
-            output += "<tr><td>" + i + ":</td><td>" + data[i] + "</td></td>";
+            if (i.length > 0 && i[0] != "_") {
+                output += "<tr><td>" + i + ":</td><td>" + data[i] + "</td></td>";
+            }
         }
         output += "</table>";
         document.getElementById(element+'_properties').innerHTML = output;
