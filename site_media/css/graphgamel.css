@@ -11,6 +11,14 @@
 }
 
 img.node_media {
-    width:200px;
-    height:200px;
+    width:150px;
+    height:150px;
+}
+
+span.audio_caption {
+    font-size: large;
+}
+
+div.audio_item {
+    margin:10px;
 }

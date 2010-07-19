@@ -10,12 +10,27 @@
 </div>
 {% endblock %}
 
+
+{% block extraimports %}
+    <link rel="stylesheet" type="text/css" href="/site_media/css/graphgamel.css"/>
+    <link rel="stylesheet" type="text/css" href="/site_media/css/tango/skin.css"/>
+    <script language="javascript" src="/site_media/js/jquery-1.3.2.min.js"></script>
+    <script language="javascript" src="/site_media/js/jquery.jcarousel.min.js"></script>
+    <script language="javascript" src="/site_media/js/graphgamel.js"></script>
+{% endblock %}
+
 {% block extracode %}
 <script type="application/javascript">
 
     var SCHEMA_DATA = {outgoing: {{ outgoing|safe }},
                         incoming: {{ incoming|safe }}}
 
+    jQuery(document).ready(function() {
+        jQuery('#mycarousel').jcarousel({
+            wrap: "both",
+            scroll: 1,
+        });
+    });
 
     window.onload = function() {
         GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
@@ -80,18 +95,47 @@
             <option value="audio">Audio</option>
             <option value="video">Video</option>
         </select>
+        <input type="text" name="media_caption">
         <input type="file" name="media_file">
         <input type="submit" value="Add media">
     </form>
-    {% for item in media_items %}
-        {% ifequal item.type 'image' %}
-            <img class="node_media" src="{{ item.url }}" href="{{ item.url }}"/>
-        {% else %}{% ifequal item.type 'audio' %}
-            <br/>
+    {% if 'image' in media_items %}
+        <h5>Images</h5>
+        <ul id="mycarousel" class="jcarousel-skin-tango">
+        {% for item in media_items.image %}
+            <li>
+                <a href="{{ item.url }}">
+                    <img  class="node_media" src="{{ item.url }}" href="{{ item.url }}"/>
+                </a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if 'audio' in media_items %}
+        <h5>Audio</h5>
+        {% for item in media_items.audio %}
+            <div class="audio_item">
+            <span class="audio_caption">{{ item.caption }}</span>
             <audio src="{{ item.url }}" controls>Your browser does not support the audio element</audio>
-        {% else %}
-            <p><a class="node_media" href="{{ item.url }}">{{ item.type }}</a></p>
-        {% endifequal %}{% endifequal %}
-    {% endfor %}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% if 'document' in media_items %}
+        <h5>Documents</h5>
+        {% for item in media_items.document %}
+            <p>
+                <a href="{{ item.url }}">{{ item.caption }}</a>
+            </p>
+        {% endfor %}
+    {% endif %}
+    {% if 'video' in media_items %}
+        <h5>Videos</h5>
+        {% for item in media_items.audio %}
+            <div class="audio_item">
+            <span class="audio_caption">{{ item.caption }}</span>
+            <video src="{{ item.url }}" controls>Your browser does not support the video element</video>
+            </div>
+        {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}

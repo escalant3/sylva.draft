@@ -216,9 +216,12 @@ def node_info(request, graph_id, node_id):
     media = []
     if '_media' in node.properties:
         relational_node = Node.objects.get(pk=node.properties['_media'])
-        media = [{'type':media.media_type, 
-                    'url': media.media_file.url}
-                    for media in relational_node.media_set.all()]
+        media_items = {}
+        for media in relational_node.media_set.all():
+            if media.media_type not in media_items:
+                media_items[media.media_type] = []
+            media_items[media.media_type].append({'url': media.media_file.url,
+                                                'caption': media.media_caption})
     node_name = '%s(%s)' % (node.properties['id'],
                             node.properties['type'])
     return render_to_response('graphgamel/node_info.html', {'properties': properties,
@@ -227,7 +230,7 @@ def node_info(request, graph_id, node_id):
                                     'incoming': simplejson.dumps(incoming),
                                     'graph_id': graph_id,
                                     'node_id': node_id,
-                                    'media_items': media,
+                                    'media_items': media_items,
                                     'node_name': node_name})
 
 
@@ -367,10 +370,12 @@ def add_media(request, graph_id, node_id):
         relational_db_node = Node.objects.get(pk=node.properties['_media'])
     if request.method == "POST":
         media_type = request.POST['media_type']
+        media_caption = request.POST['media_caption']
         media_file = request.FILES['media_file']
         media = Media(node=relational_db_node,
                     media_type=media_type,
+                    media_caption=media_caption,
                     media_file=media_file)
         media.save()
         success = True
-    return node_info(request, graph_id, node_id)
+    return redirect(node_info, graph_id, node_id)

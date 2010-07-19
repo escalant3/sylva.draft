@@ -35,6 +35,7 @@ class Media(models.Model):
                     ('video', 'Video'),
                     ('document', 'Document'))
     node = models.ForeignKey(Node)
+    media_caption = models.CharField(max_length=150)
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPES)
     media_file = models.FileField(upload_to='nodes_media')
 
