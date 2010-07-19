@@ -45,3 +45,6 @@ class Media(models.Model):
                                                 self.media_type,
                                                 self.media_file)
 
+    class Meta:
+        verbose_name_plural = "Media files"
+

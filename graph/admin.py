@@ -8,6 +8,7 @@ class MediaInline(admin.TabularInline):
 
 class NodeAdmin(admin.ModelAdmin):
     fields = ['node_id', 'node_type']
+    list_filter = ['graph']
     inlines = [MediaInline]
 
 admin.site.register(Neo4jGraph)
