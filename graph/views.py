@@ -357,7 +357,6 @@ def delete_node(request, graph_id, node_id):
 
 
 def add_media(request, graph_id, node_id):
-    success = False
     graph = Neo4jGraph.objects.get(pk=graph_id)
     node = get_node_without_connection(graph, node_id)
     if not '_media' in node.properties:
@@ -377,5 +376,17 @@ def add_media(request, graph_id, node_id):
                     media_caption=media_caption,
                     media_file=media_file)
         media.save()
-        success = True
+    return redirect(node_info, graph_id, node_id)
+
+
+def create_raw_relationship(request, graph_id, node_id):
+    if request.method == "GET":
+        gdb = get_neo4j_connection(graph_id)
+        start_node = gdb.nodes[int(node_id)]
+        end_node = gdb.nodes[int(request.GET['destination'])]
+        edge_type = request.GET['edge_type']
+        if (request.GET['reversed']):
+            start_node, end_node = end_node, start_node
+        if not get_relationship(start_node, end_node, edge_type):
+            getattr(start_node, edge_type)(end_node)
     return redirect(node_info, graph_id, node_id)

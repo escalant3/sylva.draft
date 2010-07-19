@@ -92,6 +92,37 @@ var GRAPHGAMEL = {
                     success: function() {console.log('Success');}
                     });
         }
+    },
+
+    'search_for_new_relationship': function(element) {
+        create_new_relation = false;
+        data = {};
+        relation_type = document.getElementById(element+'_relation').value;
+        $.ajax({url: location.href + "search_node",
+                dataType: "json",
+                data: {node_id: document.getElementById(element+'_node_id').value,
+                        node_type: document.getElementById(element+'_node_type').value},
+                success: function(response, success, results) {
+                    if (response.results.length == 1) {
+                        properties = response.results[0].properties;
+                        info = "A node with the following information has been found:\n\n";
+                        for (var key in properties) {
+                            info += key + ": " + properties[key] + "\n";
+                        }
+                        info += "\nDo you want to create a " + relation_type + " link with it?";
+                        if (confirm(info)) {
+                            destination = response.results[0].neo_id;
+                            edge_type = relation_type;
+                            if (element == "in") {
+                                reversed = true;
+                            } else {
+                                reversed = false;
+                            }
+                            self.location = location.href + "create_raw_relationship?reversed="+ reversed + "&destination="+ destination +"&edge_type="+edge_type;
+                        }
+                    }
+                }
+        });
     }
 
 }
