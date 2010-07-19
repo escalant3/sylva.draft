@@ -1,5 +1,5 @@
 #info-main-content {
-    width: 400px;
+    width: 600px;
     padding: 5px;
     float:left;
 }
@@ -15,8 +15,8 @@ img.node_media {
     height:150px;
 }
 
-span.audio_caption {
-    font-size: large;
+td.audio_caption {
+    vertical-align: middle;
 }
 
 div.audio_item {

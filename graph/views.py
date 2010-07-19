@@ -213,10 +213,9 @@ def node_info(request, graph_id, node_id):
             if not vr.relation.name in incoming:
                 incoming[vr.relation.name] = {}
             incoming[vr.relation.name][vr.node_from.name] = None
-    media = []
+    media_items = {}
     if '_media' in node.properties:
         relational_node = Node.objects.get(pk=node.properties['_media'])
-        media_items = {}
         for media in relational_node.media_set.all():
             if media.media_type not in media_items:
                 media_items[media.media_type] = []
