@@ -145,5 +145,8 @@
         {% endfor %}
         </table>
     {% endif %}
+    {% if media_items.meta.id %}
+    <a href="/admin/graph/node/{{ media_items.meta.id }}/" class="changelink">Edit multimedia files in admin panel</a>
+    {% endif %}
 </div>
 {% endblock %}

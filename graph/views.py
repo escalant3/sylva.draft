@@ -216,6 +216,7 @@ def node_info(request, graph_id, node_id):
     media_items = {}
     if '_media' in node.properties:
         relational_node = Node.objects.get(pk=node.properties['_media'])
+        media_items['meta'] = {'id': node.properties['_media']}
         for media in relational_node.media_set.all():
             if media.media_type not in media_items:
                 media_items[media.media_type] = []
