@@ -37,19 +37,23 @@
 
 
     window.onload = function() {
-        GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
-        GRAPHGAMEL.populate_select(document.getElementById('out_relation'),
-                        SCHEMA_DATA.outgoing);
-        if (document.getElementById('out_relation').value != "") {
-            GRAPHGAMEL.populate_select(document.getElementById('out_node_type'),
-                        SCHEMA_DATA.outgoing[document.getElementById('out_relation').value]);
-        }
-        GRAPHGAMEL.populate_select(document.getElementById('in_relation'),
-                        SCHEMA_DATA.incoming);
-        if (document.getElementById('in_relation').value != "") {
-            GRAPHGAMEL.populate_select(document.getElementById('in_node_type'),
-                        SCHEMA_DATA.incoming[document.getElementById('in_relation').value]);
-        }
+        {% if user.is_authenticated %}
+            GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }}, true);
+            GRAPHGAMEL.populate_select(document.getElementById('out_relation'),
+                            SCHEMA_DATA.outgoing);
+            if (document.getElementById('out_relation').value != "") {
+                GRAPHGAMEL.populate_select(document.getElementById('out_node_type'),
+                            SCHEMA_DATA.outgoing[document.getElementById('out_relation').value]);
+            }
+            GRAPHGAMEL.populate_select(document.getElementById('in_relation'),
+                            SCHEMA_DATA.incoming);
+            if (document.getElementById('in_relation').value != "") {
+                GRAPHGAMEL.populate_select(document.getElementById('in_node_type'),
+                            SCHEMA_DATA.incoming[document.getElementById('in_relation').value]);
+            }
+        {% else %}
+            GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
+        {% endif %}
     }
 </script>
 {% endblock %}
@@ -57,14 +61,22 @@
 {% block content %}
 <h1>Node {{ node_name }} info</h1>
 <div id="info-main-content">
-<h3>Actions</h3>
-<a class="deletelink" onclick="GRAPHGAMEL.delete_node()">Delete this node</a>
+{% if user.is_authenticated %}
+    <h3>Actions</h3>
+    <a class="deletelink" onclick="GRAPHGAMEL.delete_node()">Delete this node</a>
+    <br/>
+    {% if media_items.meta.id %}
+    <a href="/admin/graph/node/{{ media_items.meta.id }}/" class="changelink">Edit multimedia files in admin panel</a>
+    {% endif %}
+{% endif %}
 <h3>Properties</h3>
 <table id="properties_table" class="properties"></table>
-<h5>Add property</h5>
-    <input type="text" id="new_property_key">
-    <input type="text" id="new_property_value">
-    <input type="button" value="Add new property" onClick="GRAPHGAMEL.add_property()">
+{% if user.is_authenticated %}
+    <h5>Add property</h5>
+        <input type="text" id="new_property_key">
+        <input type="text" id="new_property_value">
+        <input type="button" value="Add new property" onClick="GRAPHGAMEL.add_property()">
+{% endif %}
 <h3>Relationships</h3>
 <table>
 {% for relation in relationships %}
@@ -78,6 +90,7 @@
     <tr>
 {% endfor %}
 </table>
+{% if user.is_authenticated %}
 <h5>Add outgoing relationship</h5>
 <select id="out_relation" name="out_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out').value])"></select>
 <select id="out_node_type" name="out_node_type"></select>
@@ -88,9 +101,11 @@
 <select id="in_node_type" name="in_node_type"></select>
 <input id="in_node_id" name="in_node_id">
 <input type="button" value="Search node" onclick="GRAPHGAMEL.search_for_new_relationship('in');">
+{% endif %}
 </div>
 <div id="info-right-content">
     <h3>Media</h3>
+    {% if user.is_authenticated %}
     <h5>Add media</h5>
     <form method="POST" enctype="multipart/form-data" action="./add_media/">
         <select id="media_type" name="media_type">
@@ -103,6 +118,7 @@
         <input type="file" name="media_file">
         <input type="submit" value="Add media">
     </form>
+    {% endif %}
     {% if 'image' in media_items %}
         <h5>Images</h5>
         <ul id="mycarousel" class="jcarousel-skin-tango gallery">
@@ -144,9 +160,6 @@
             </tr>
         {% endfor %}
         </table>
-    {% endif %}
-    {% if media_items.meta.id %}
-    <a href="/admin/graph/node/{{ media_items.meta.id }}/" class="changelink">Edit multimedia files in admin panel</a>
     {% endif %}
 </div>
 {% endblock %}

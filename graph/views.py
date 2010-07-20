@@ -1,7 +1,12 @@
 import neo4jclient
 import simplejson
 
-from django.shortcuts import render_to_response, redirect, HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import (render_to_response,
+                                redirect,
+                                HttpResponse,
+                                HttpResponseRedirect)
+from django.template import RequestContext
 
 from graph.models import Neo4jGraph, Node, Media
 
@@ -15,8 +20,9 @@ def index(request):
     if not messages:
         request.session['messages'] = []
         messages = []
-    return render_to_response('graphgamel/index.html', {
-                        'graph_list': graphs})
+    return render_to_response('graphgamel/index.html',
+                        RequestContext(request, {
+                        'graph_list': graphs}))
 
 
 def return_function(obj, value, show_info):
@@ -84,6 +90,7 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
     return return_function(relation, created, creation_info)
 
 
+@login_required
 def editor(request, graph_id):
     graph = Neo4jGraph.objects.get(pk=graph_id)
     schema = graph.schema
@@ -175,13 +182,14 @@ def editor(request, graph_id):
         request.session['node_types'] = node_types
     form_structure = request.session['form_structure']
     node_types = request.session['node_types']
-    messages = request.session['messages']
-    return render_to_response('graphgamel/editor.html', {
+    messages = request.session.get('messages', [])
+    return render_to_response('graphgamel/editor.html',
+                        RequestContext(request, {
                         'schema': schema,
                         'history_list': messages,
                         'form_structure': form_structure,
                         'node_types': node_types,
-                        'graph_id': graph_id})
+                        'graph_id': graph_id}))
 
 
 def node_info(request, graph_id, node_id):
@@ -224,14 +232,16 @@ def node_info(request, graph_id, node_id):
                                                 'caption': media.media_caption})
     node_name = '%s(%s)' % (node.properties['id'],
                             node.properties['type'])
-    return render_to_response('graphgamel/node_info.html', {'properties': properties,
+    return render_to_response('graphgamel/node_info.html',
+                                    RequestContext(request, {
+                                    'properties': properties,
                                     'relationships': relationships_list,
                                     'outgoing': simplejson.dumps(outgoing),
                                     'incoming': simplejson.dumps(incoming),
                                     'graph_id': graph_id,
                                     'node_id': node_id,
                                     'media_items': media_items,
-                                    'node_name': node_name})
+                                    'node_name': node_name}))
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
@@ -241,12 +251,13 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
     relation = get_relationship(start_node, end_node, edge_type)
     if relation:
         properties = simplejson.dumps(relation.properties)
-        return render_to_response('graphgamel/relation_info.html', {
+        return render_to_response('graphgamel/relation_info.html',
+                                RequestContext(request, {
                                 'properties': properties,
                                 'graph_id': graph_id,
                                 'start_node_id': start_node_id,
                                 'end_node_id': end_node_id,
-                                'edge_type': edge_type})
+                                'edge_type': edge_type}))
 
 
 def get_neo4j_connection(graph_id):
@@ -325,7 +336,7 @@ def delete_property(request, element):
 def search_node(request, graph_id):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
-        node_id = request.GET.get('node_id', None)
+        node_id = request.GET.get('node_id', '')
         try:
             result = gdb.index('id', node_id)
         except neo4jclient.NotFoundError:
@@ -339,7 +350,7 @@ def search_node(request, graph_id):
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
-            return search_results(graph_id, response, node_id)
+            return search_results(request, graph_id, response, node_id)
 
 
 def filter_by_property(nodes, prop, value):
@@ -398,11 +409,12 @@ def create_raw_relationship(request, graph_id, node_id):
     return redirect(node_info, graph_id, node_id)
 
 
-def search_results(graph_id, results, search_string):
-    if len(results) == -1:
-        return redirect(node_info, graph_id, results[0].id)
+def search_results(request, graph_id, results, search_string):
+    if len(results) == 1:
+        return redirect(node_info, graph_id, results[0]['neo_id'])
     else:
-        return render_to_response('graphgamel/result_list.html', {
+        return render_to_response('graphgamel/result_list.html',
+                                    RequestContext(request, {
                                     'graph_id': graph_id,
                                     'result_list': results,
-                                    'search_string': search_string})
+                                    'search_string': search_string}))

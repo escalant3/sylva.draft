@@ -1,5 +1,5 @@
 var GRAPHGAMEL = {
-    'populate_table': function(table_id, properties) {
+    'populate_table': function(table_id, properties, controls) {
         table = document.getElementById('properties_table');
         table.innerHTML = "";
         i = 1;
@@ -12,12 +12,14 @@ var GRAPHGAMEL = {
                 td = document.createElement('td');
                 td.appendChild(document.createTextNode(properties[key]));
                 tr.appendChild(td);
-                td = document.createElement('td');
-                td.innerHTML = '<a class="changelink" onClick="GRAPHGAMEL.modify_property(\'' + key + '\')">Edit</a>';
-                tr.appendChild(td);
-                td = document.createElement('td');
-                td.innerHTML = '<a class="deletelink" onClick="GRAPHGAMEL.delete_property(\'' + key + '\')">Delete</a>';
-                tr.appendChild(td);
+                if (controls) {
+                    td = document.createElement('td');
+                    td.innerHTML = '<a class="changelink" onClick="GRAPHGAMEL.modify_property(\'' + key + '\')">Edit</a>';
+                    tr.appendChild(td);
+                    td = document.createElement('td');
+                    td.innerHTML = '<a class="deletelink" onClick="GRAPHGAMEL.delete_property(\'' + key + '\')">Delete</a>';
+                    tr.appendChild(td);
+                }
                 tr.className = "row" + i%2;
                 table.appendChild(tr);
                 i++;

@@ -1,5 +1,6 @@
 {% extends "admin/change_list.html" %}
 
+{% load adminmedia %}
 {% load i18n %}
 
 {% block title %}Graphgamel{% endblock %}
@@ -29,10 +30,15 @@
 {% for graph in graph_list %}
     <ul>
         <li>
-            <a class="changelink" href="{% url graph.views.editor graph.id %}">
-                {{ graph.name }}: {{ graph.description }}
-            </a>
+            <h3>{{ graph.name }}: {{ graph.description }}</h3>
+            <ul>
+            <li><a class="changelink" href="{% url graph.views.editor graph.id %}">Edit graph</a></li>
+            <li><a href="{% url graph.views.search_node graph.id %}">
+                Browse data
+            </a></li>
+            </ul>
         </li>
     </ul>
 {% endfor %}
+
 {% endblock %}
