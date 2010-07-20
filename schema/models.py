@@ -1,17 +1,25 @@
+import re
+
+from django.core.exceptions import ValidationError
 from django.db import models
 
 # Create your models here.
 
 
+def is_alphanumeric(value):
+    if not re.match(r'^\w+$', value):
+        raise ValidationError(u'%s is an invalid identifier' % value)
+
+
 class NodeType(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, validators=[is_alphanumeric])
 
     def __unicode__(self):
         return self.name
 
 
 class EdgeType(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, validators=[is_alphanumeric])
 
     def __unicode__(self):
         return self.name
@@ -55,7 +63,7 @@ class Schema(models.Model):
         return form_structure
 
     def get_node_types(self):
-        node_types = set();
+        node_types = set()
         for vr in self.valid_relations.all():
             if vr.node_from.name not in node_types:
                 node_types.add(vr.node_from.name)
