@@ -22,3 +22,10 @@ td.audio_caption {
 div.audio_item {
     margin:10px;
 }
+
+form.search_box {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background: #EDF3FE;
+    width: 520px;
+}

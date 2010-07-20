@@ -1,0 +1,33 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a>&rsaquo;
+    <a href="{% url graph.views.editor graph_id %}">Editor</a>&rsaquo;
+    <span>Result list</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Search results</h1>
+<form class="search_box" action="{% url graph.views.search_node graph_id %}" method="get">
+    <label for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="80" name="node_id" value="{{ search_string }}" id="searchbar" />
+    <input type="submit" value="Search" />
+</form>
+{% if result_list %}
+    {% for result in result_list %}
+        <ul>
+            <li>
+                <a class="changelink" href="{% url graph.views.node_info graph_id result.neo_id %}">
+                    {{ result.properties.id }} ({{ result.properties.type }})
+                </a>
+            </li>
+        </ul>
+    {% endfor %}
+{% else %}
+    No results found
+{% endif %}
+{% endblock %}

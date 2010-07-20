@@ -326,14 +326,20 @@ def search_node(request, graph_id):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
         node_id = request.GET.get('node_id', None)
-        result = gdb.index('id', node_id)
+        try:
+            result = gdb.index('id', node_id)
+        except neo4jclient.NotFoundError:
+            result = []
         if 'node_type' in request.GET:
             node_type = request.GET['node_type']
             result = [r for r in result if node_type == r.properties['type']]
         response = [{'url': r.url,
                     'neo_id': r.id,
                     'properties': r.properties} for r in result]
-        return HttpResponse(simplejson.dumps({'results': response}))
+        if request.is_ajax():
+            return HttpResponse(simplejson.dumps({'results': response}))
+        else:
+            return search_results(graph_id, response, node_id)
 
 
 def filter_by_property(nodes, prop, value):
@@ -390,3 +396,13 @@ def create_raw_relationship(request, graph_id, node_id):
         if not get_relationship(start_node, end_node, edge_type):
             getattr(start_node, edge_type)(end_node)
     return redirect(node_info, graph_id, node_id)
+
+
+def search_results(graph_id, results, search_string):
+    if len(results) == -1:
+        return redirect(node_info, graph_id, results[0].id)
+    else:
+        return render_to_response('graphgamel/result_list.html', {
+                                    'graph_id': graph_id,
+                                    'result_list': results,
+                                    'search_string': search_string})

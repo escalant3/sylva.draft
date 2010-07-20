@@ -1,5 +1,6 @@
 {% extends "graphgamel/index.html" %}
 
+{% load adminmedia %}
 {% load i18n %}
 
 {% block branding %}
@@ -244,6 +245,13 @@ Schema: {{ schema }}
 </table>
 </div>
 <div id="content-related">
+    <div class="module" id="search-module">
+        <form action="search_node" method="get">
+            <label for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
+            <input type="text" size="20" name="node_id" id="searchbar" />
+            <input type="submit" value="Search" />
+        </form>
+    </div>
     <div class="module" id="recent-actions-module">
         <h2>Recent Actions</h2>
         <h3>My Actions</h3>
