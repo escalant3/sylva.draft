@@ -8,10 +8,11 @@
 {% block branding %}
 <h1 id="site-name">Graphgamel</h1>
 <div id="user-tools">
-{% if user.is_active and user.is_staff %}
+{% if user.is_active %}
     {% trans 'Welcome,' %}
     <strong>{% firstof user.first_name user.username %}</strong>.
     {% block userlinks %}
+        <a href="/admin/">Admin</a> /
         {% url admin:password_change as password_change_url %}
         {% if password_change_url %}
             <a href="{{ password_change_url }}">
