@@ -36,6 +36,37 @@
     });
 
 
+    function search_for_new_relationship(element) {
+        create_new_relation = false;
+        data = {};
+        relation_type = document.getElementById(element+'_relation').value;
+        $.ajax({url: "{% url graph.views.search_node graph_id %}",
+                dataType: "json",
+                data: {node_id: document.getElementById(element+'_node_id').value,
+                        node_type: document.getElementById(element+'_node_type').value},
+                success: function(response, success, results) {
+                    if (response.results.length == 1) {
+                        properties = response.results[0].properties;
+                        info = "A node with the following information has been found:\n\n";
+                        for (var key in properties) {
+                            info += key + ": " + properties[key] + "\n";
+                        }
+                        info += "\nDo you want to create a " + relation_type + " link with it?";
+                        if (confirm(info)) {
+                            destination = response.results[0].neo_id;
+                            edge_type = relation_type;
+                            if (element == "in") {
+                                reversed = true;
+                            } else {
+                                reversed = false;
+                            }
+                            self.location = location.href + "create_raw_relationship?reversed="+ reversed + "&destination="+ destination +"&edge_type="+edge_type;
+                        }
+                    }
+                }
+        });
+    }
+
     function load_media(element, media_type, address) {
         /* Hack while browsers implement HTML5 "preload" attribute succesfully */
         parent = element.parentNode;
@@ -108,12 +139,12 @@
 <select id="out_relation" name="out_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out').value])"></select>
 <select id="out_node_type" name="out_node_type"></select>
 <input id="out_node_id" name="out_node_id">
-<input type="button" value="Search node" onclick="GRAPHGAMEL.search_for_new_relationship('out');">
+<input type="button" value="Search node" onclick="search_for_new_relationship('out');">
 <h5>Add incoming relationship</h5>
 <select id="in_relation" name="in_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('in_node_type'), SCHEMA_DATA['incoming'][document.getElementById('in_relation').value])"></select>
 <select id="in_node_type" name="in_node_type"></select>
 <input id="in_node_id" name="in_node_id">
-<input type="button" value="Search node" onclick="GRAPHGAMEL.search_for_new_relationship('in');">
+<input type="button" value="Search node" onclick="search_for_new_relationship('in');">
 {% endif %}
 </div>
 <div id="info-right-content">
