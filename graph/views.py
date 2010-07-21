@@ -37,6 +37,8 @@ def add_message(request, text,
                 element_id='',
                 element_type='',
                 action_type=''):
+    if 'messages' not in request.session:
+        request.session['messages'] = []
     request.session['messages'].insert(0, {'title': title,
                                             'element_id': element_id,
                                             'element_type': element_type,
