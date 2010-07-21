@@ -262,7 +262,10 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
 
 def get_neo4j_connection(graph_id):
     graph = Neo4jGraph.objects.get(pk=graph_id)
-    return neo4jclient.GraphDatabase(graph.neo4jgraph.host)
+    try:
+        return neo4jclient.GraphDatabase(graph.host)
+    except:
+        return None
 
 
 def node_property(request, graph_id, node_id, action):
@@ -336,6 +339,8 @@ def delete_property(request, element):
 def search_node(request, graph_id):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
+        if not gdb:
+            return redirect(index)
         node_id = request.GET.get('node_id', '')
         try:
             result = gdb.index('id', node_id)
