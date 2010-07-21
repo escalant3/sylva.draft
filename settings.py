@@ -86,7 +86,7 @@ INSTALLED_APPS = (
     'graphgamel.graph',
 )
 
-LOGIN_REDIRECT_URL = '/graphgamel/'
+LOGIN_REDIRECT_URL = '/'
 
 try:
     from local_settings import *
