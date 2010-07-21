@@ -36,6 +36,19 @@
     });
 
 
+    function load_media(element, media_type, address) {
+        /* Hack while browsers implement HTML5 "preload" attribute succesfully */
+        parent = element.parentNode;
+        el = document.createElement(media_type);
+        el.src = address;
+        el.controls = true;
+        error_msg = "Your browser does not support the " + media_type + "element";
+        el.appendChild(document.createTextNode(error_msg));
+        parent.appendChild(el);
+        parent.removeChild(element);
+    }
+
+
     window.onload = function() {
         {% if user.is_authenticated %}
             GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }}, true);
@@ -145,7 +158,7 @@
         {% for item in media_items.audio %}
         <tr class="audio_item">
             <td class="audio_caption">{{ item.caption }}</td>
-            <td><audio src="{{ item.url }}" controls>Your browser does not support the audio element</audio></td>
+            <td><img src="/site_media/images/media_player.png" onclick="load_media(this, 'audio', '{{ item.url }}')"></td>
         </tr>
         {% endfor %}
         </table>
@@ -156,7 +169,7 @@
         {% for item in media_items.video %}
             <tr class="audio_item">
             <td class="audio_caption">{{ item.caption }}</td>
-            <td><video src="{{ item.url }}" controls>Your browser does not support the video element</video></td>
+            <td><img src="/site_media/images/media_player.png" onclick="load_media(this, 'video', '{{ item.url }}')"></td>
             </tr>
         {% endfor %}
         </table>
