@@ -6,6 +6,8 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = path.dirname(path.abspath(__file__))
+PROJECT_NAME = 'graphgamel'
+SESSION_COOKIE_NAME = '%s-sessionid' % PROJECT_NAME
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
