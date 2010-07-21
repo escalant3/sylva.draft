@@ -12,7 +12,7 @@
     {% trans 'Welcome,' %}
     <strong>{% firstof user.first_name user.username %}</strong>.
     {% block userlinks %}
-        <a href="/admin/">Admin</a> /
+        <a href="{% url admin:index %}">Admin</a> /
         {% url admin:password_change as password_change_url %}
         {% if password_change_url %}
             <a href="{{ password_change_url }}">
@@ -20,10 +20,10 @@
             <a href="{{ root_path }}password_change/">
         {% endif %}
         {% trans 'Change password' %}</a> /
-        <a href="/accounts/logout/">{% trans 'Log out' %}</a>
+        <a href="{% url django.contrib.auth.views.logout %}?next={% url graph.views.index %}">{% trans 'Log out' %}</a>
     {% endblock %}
 {% else %}
-    <a href="/accounts/login/">{% trans 'Log in' %}</a>
+    <a href="{% url django.contrib.auth.views.login %}?next={% url graph.views.index %}">{% trans 'Log in' %}</a>
 {% endif %}
 </div>
 {% endblock %}

@@ -12,6 +12,6 @@ urlpatterns = patterns('',
         {'document_root': site_media}),
     (r'^admin/', include(admin.site.urls)),
     (r'^accounts/login/$', login),
-    (r'^accounts/logout/$', logout, {'next_page': '/'}),
+    (r'^accounts/logout/$', logout),
     (r'^', include('graph.urls')),
 )

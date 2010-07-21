@@ -79,7 +79,7 @@
     <a class="deletelink" onclick="GRAPHGAMEL.delete_node()">Delete this node</a>
     <br/>
     {% if media_items.meta.id %}
-    <a href="/admin/graph/node/{{ media_items.meta.id }}/" class="changelink">Edit multimedia files in admin panel</a>
+    <a href="{% url admin:index %}graph/node/{{ media_items.meta.id }}/" class="changelink">Edit multimedia files in admin panel</a>
     {% endif %}
 {% endif %}
 <h3>Properties</h3>
