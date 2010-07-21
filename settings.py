@@ -85,3 +85,5 @@ INSTALLED_APPS = (
     'graphgamel.schema',
     'graphgamel.graph',
 )
+
+LOGIN_REDIRECT_URL = '/graphgamel/'

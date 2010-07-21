@@ -7,6 +7,24 @@
 
 {% block branding %}
 <h1 id="site-name">Graphgamel</h1>
+<div id="user-tools">
+{% if user.is_active and user.is_staff %}
+    {% trans 'Welcome,' %}
+    <strong>{% firstof user.first_name user.username %}</strong>.
+    {% block userlinks %}
+        {% url admin:password_change as password_change_url %}
+        {% if password_change_url %}
+            <a href="{{ password_change_url }}">
+        {% else %}
+            <a href="{{ root_path }}password_change/">
+        {% endif %}
+        {% trans 'Change password' %}</a> /
+        <a href="/accounts/logout/">{% trans 'Log out' %}</a>
+    {% endblock %}
+{% else %}
+    <a href="/accounts/login/">{% trans 'Log in' %}</a>
+{% endif %}
+</div>
 {% endblock %}
 
 {% block extrahead %}
