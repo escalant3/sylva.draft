@@ -10,7 +10,7 @@ site_media = os.path.join(os.path.dirname(__file__), 'site_media')
 
 urlpatterns = patterns('',
     # Example:
-    (r'^graphgamel/', include('graph.urls')),
+    (r'^', include('graph.urls')),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:

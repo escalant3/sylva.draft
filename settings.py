@@ -87,3 +87,8 @@ INSTALLED_APPS = (
 )
 
 LOGIN_REDIRECT_URL = '/graphgamel/'
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
