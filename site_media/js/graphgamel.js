@@ -39,6 +39,8 @@ var GRAPHGAMEL = {
                 success: function(response){
                             if (response['success']) {
                                 GRAPHGAMEL.populate_table('properties_table', response['properties']);
+                                document.getElementById('new_property_key').value = "";
+                                document.getElementById('new_property_value').value = "";
                             } else {
                                 alert('Unable to add property')
                             }
