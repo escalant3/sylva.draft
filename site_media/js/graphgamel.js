@@ -1,5 +1,6 @@
 var GRAPHGAMEL = {
-    'populate_table': function(table_id, properties, controls) {
+    'authenticated': false,
+    'populate_table': function(table_id, properties) {
         table = document.getElementById('properties_table');
         table.innerHTML = "";
         i = 1;
@@ -12,7 +13,7 @@ var GRAPHGAMEL = {
                 td = document.createElement('td');
                 td.appendChild(document.createTextNode(properties[key]));
                 tr.appendChild(td);
-                if (controls) {
+                if (this.authenticated) {
                     td = document.createElement('td');
                     td.innerHTML = '<a class="changelink" onClick="GRAPHGAMEL.modify_property(\'' + key + '\')">Edit</a>';
                     tr.appendChild(td);

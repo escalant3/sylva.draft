@@ -82,7 +82,7 @@
 
     window.onload = function() {
         {% if user.is_authenticated %}
-            GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }}, true);
+            GRAPHGAMEL.authenticated = true;
             GRAPHGAMEL.populate_select(document.getElementById('out_relation'),
                             SCHEMA_DATA.outgoing);
             if (document.getElementById('out_relation').value != "") {
@@ -96,8 +96,9 @@
                             SCHEMA_DATA.incoming[document.getElementById('in_relation').value]);
             }
         {% else %}
-            GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
+            GRAPHGAMEL.authenticated = false;
         {% endif %}
+        GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
     }
 </script>
 {% endblock %}
