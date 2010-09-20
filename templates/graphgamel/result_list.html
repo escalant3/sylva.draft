@@ -6,12 +6,19 @@
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a>&rsaquo;
     <a href="{% url graph.views.editor graph_id %}">Editor</a>&rsaquo;
-    <span>Result list</span>
+    <span>Browser</span>
 </div>
 {% endblock %}
 
 {% block content %}
-<h1>Search results</h1>
+<h1>Browser</h1>
+<h3>Browse nodes by type</h3>
+<ul>
+{% for node_type in node_types %}
+    <p><a href="{% url graph.views.search_nodes_by_field graph_id 'type' node_type %}">{{ node_type }}</a></p>
+{% endfor %}
+</ul>
+<h3>Search by id</h3>
 <form class="search_box" action="{% url graph.views.search_node graph_id %}" method="get">
     <label for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
     <input type="text" size="80" name="node_id" value="{{ search_string }}" id="searchbar" />

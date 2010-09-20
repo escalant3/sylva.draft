@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns
+from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('',
     (r'(\d+)/node/(\d+)/$', 'graph.views.node_info'),
@@ -25,6 +25,7 @@ urlpatterns = patterns('',
     (r'(\d+)/relation/(\d+)/(\w+)/(\d+)/delete_property/$',
         'graph.views.relation_property',
         {'action': 'delete'}),
+    (r'(\d+)/search_nodes_by_field/(\w+)/(\w+)/$', 'graph.views.search_nodes_by_field'),
     (r'(\d+)/search_node/$', 'graph.views.search_node'),
     (r'^$', 'graph.views.index'),
     (r'(\d+)/$', 'graph.views.editor'),

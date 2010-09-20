@@ -338,14 +338,17 @@ def delete_property(request, element):
                                             'properties': properties}))
 
 
-def search_node(request, graph_id):
+def search_node(request, graph_id, node_field='', field_value=''):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
         if not gdb:
             return redirect(index)
         node_id = request.GET.get('node_id', '')
         try:
-            result = gdb.index('id', node_id)
+            if node_field and field_value:
+                result = gdb.index(node_field, field_value)
+            else:
+                result = gdb.index('id', node_id)
         except neo4jclient.NotFoundError:
             result = []
         if 'node_type' in request.GET:
@@ -358,6 +361,10 @@ def search_node(request, graph_id):
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
             return search_results(request, graph_id, response, node_id)
+
+
+def search_nodes_by_field(request, graph_id, node_field, field_value):
+    return search_node(request, graph_id, node_field, field_value)
 
 
 def filter_by_property(nodes, prop, value):
@@ -420,8 +427,10 @@ def search_results(request, graph_id, results, search_string):
     if len(results) == 1:
         return redirect(node_info, graph_id, results[0]['neo_id'])
     else:
+        graph = Neo4jGraph.objects.get(pk=graph_id)
         return render_to_response('graphgamel/result_list.html',
                                     RequestContext(request, {
                                     'graph_id': graph_id,
+                                    'node_types': graph.schema.get_node_types(),
                                     'result_list': results,
                                     'search_string': search_string}))
