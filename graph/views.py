@@ -8,7 +8,7 @@ from django.shortcuts import (render_to_response,
                                 HttpResponseRedirect)
 from django.template import RequestContext
 
-from graph.models import Neo4jGraph, Node, Media
+from graph.models import Neo4jGraph, Node, Media, GraphIndex
 
 
 RESERVED_FIELD_NAMES = ('id', 'type')
@@ -60,6 +60,10 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
         gdb.add_to_index('id', n['id'], node)
         gdb.add_to_index('type', n['type'], node)
         created = True
+        graph_index = GraphIndex(graph=graph,
+                                node_id=n['id'],
+                                node_type=n['type'])
+        graph.graphindex_set.add(graph_index)
     return return_function(node, created, creation_info)
 
 
@@ -434,3 +438,16 @@ def search_results(request, graph_id, results, search_string):
                                     'node_types': graph.schema.get_node_types(),
                                     'result_list': results,
                                     'search_string': search_string}))
+
+
+def get_autocompletion_objects(request, graph_id):
+    if request.method == 'GET':
+        graph = Neo4jGraph.objects.get(pk=graph_id)
+        node_type = request.GET.get('node_type', '')
+        if node_type:
+            results = [r.node_id
+                        for r in graph.graphindex_set.filter(node_type=node_type)]
+        else:
+            results = ['%s (%s)' % (r.node_id, r.node_type)
+                        for r in graph.graphindex_set.all()]
+        return HttpResponse(simplejson.dumps(results))

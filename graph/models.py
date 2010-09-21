@@ -48,3 +48,12 @@ class Media(models.Model):
     class Meta:
         verbose_name_plural = "Media files"
 
+class GraphIndex(models.Model):
+    graph = models.ForeignKey(Graph)
+    node_id = models.CharField(max_length=150)
+    node_type = models.CharField(max_length=150)
+
+    def __unicode__(self):
+        return 'GraphIndex: (%s, %s, %s)' % (self.graph.name,
+                                            self.node_id,
+                                            self.node_type)

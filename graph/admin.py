@@ -1,4 +1,4 @@
-from graph.models import Neo4jGraph, Node, Media
+from graph.models import Neo4jGraph, Node, Media, GraphIndex
 from django.contrib import admin
 
 
@@ -13,3 +13,4 @@ class NodeAdmin(admin.ModelAdmin):
 
 admin.site.register(Neo4jGraph)
 admin.site.register(Node, NodeAdmin)
+admin.site.register(GraphIndex)

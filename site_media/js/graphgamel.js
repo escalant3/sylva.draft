@@ -97,6 +97,17 @@ var GRAPHGAMEL = {
                     success: function() {console.log('Success');}
                     });
         }
+    },
+
+    'get_autocompletion_objects': function(type_field, value_field) {
+        $.ajax({url: location.href + "get_autocompletion_objects",
+            data: {node_type: document.getElementById(type_field).value},
+            dataType: "json",
+            success: function(response) {
+                $("input#"+value_field).flushCache();
+                $("#"+value_field).autocomplete(response);
+            }
+        });
     }
 
 }

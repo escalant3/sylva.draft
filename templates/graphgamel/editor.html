@@ -145,6 +145,11 @@
         document.getElementById(element+'_properties').innerHTML = output;
     }
 
+    function refreshSelect(element) {
+        loadProperties(element);
+        GRAPHGAMEL.get_autocompletion_objects(element+"_type", element+"_id");
+    }
+
     window.onload = function() {
         initSelects();
         initProperties();
@@ -153,6 +158,9 @@
         document.getElementById('node_to_properties_form').style.display = 'none';
         document.getElementById('node_properties_form').style.display = 'none';
         document.getElementById("node_editor").style.display = "none";
+        GRAPHGAMEL.get_autocompletion_objects("node_type", "node_id");
+        GRAPHGAMEL.get_autocompletion_objects("node_from_type", "node_from_id");
+        GRAPHGAMEL.get_autocompletion_objects("node_to_type", "node_to_id");
     }
 </script>
 {% endblock %}
@@ -162,7 +170,7 @@
 <div id="content-main">
 <h3>Add isolated node</h3>
 <form action="." method="POST">
-    <select id="node_type" name="node_type" onChange="loadProperties('node');"></select>
+    <select id="node_type" name="node_type" onChange="refreshSelect('node'); "></select>
     <input id="node_id" name="node_id" type="text" onChange="loadProperties('node');"/>
     <input type="hidden" name="mode" value="node"/>
     <input id="node_properties_hidden" name="node_properties" type="hidden" value="{}"/>
@@ -189,12 +197,12 @@
 <h3>Add relation</h3>
 Schema: {{ schema }}
 <form action="." method="POST">
-    <select id="node_from_type" name="node_from_type" onchange="updateSelect(1);updateSelect(2);loadProperties('node_from');">
+    <select id="node_from_type" name="node_from_type" onchange="updateSelect(1);updateSelect(2);refreshSelect('node_from');">
     </select>
     <input id="node_from_id" name="node_from_id" type="text" onchange="loadProperties('node_from');"/>
     <select id="relation_type" name="relation_type" onchange="updateSelect(2);loadProperties('relation');">
     </select>
-    <select id="node_to_type" name="node_to_type" onchange="loadProperties('node_to');">
+    <select id="node_to_type" name="node_to_type" onchange="refreshSelect('node_to');">
     </select>
     <input id="node_to_id" name="node_to_id" type="text" onchange="loadProperties('node_to');"/>
     <input id="node_from_properties_hidden" name="node_from_properties" type="hidden" value="{}"/>
