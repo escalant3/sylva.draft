@@ -342,12 +342,12 @@ def delete_property(request, element):
                                             'properties': properties}))
 
 
-def search_node(request, graph_id, node_field='', field_value=''):
+def search_node(request, graph_id, node_field='', _field_value=''):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
         if not gdb:
             return redirect(index)
-        field_value = request.GET.get('field_value', '')
+        field_value = request.GET.get('field_value', _field_value)
         if not node_field:
             node_field = 'id'
         try:
