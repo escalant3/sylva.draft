@@ -100,7 +100,9 @@ var GRAPHGAMEL = {
     },
 
     'get_autocompletion_objects': function(type_field, value_field) {
-        $.ajax({url: location.href + "get_autocompletion_objects",
+        graph_id = location.pathname.split("/")[1];
+        url = "/" + graph_id + "/get_autocompletion_objects";
+        $.ajax({url: url,
             data: {node_type: document.getElementById(type_field).value},
             dataType: "json",
             success: function(response) {

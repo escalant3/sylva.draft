@@ -161,6 +161,7 @@
         GRAPHGAMEL.get_autocompletion_objects("node_type", "node_id");
         GRAPHGAMEL.get_autocompletion_objects("node_from_type", "node_from_id");
         GRAPHGAMEL.get_autocompletion_objects("node_to_type", "node_to_id");
+        GRAPHGAMEL.get_autocompletion_objects("searchbar", "searchbar");
     }
 </script>
 {% endblock %}
@@ -256,7 +257,7 @@ Schema: {{ schema }}
     <div class="module" id="search-module">
         <form action="search_node" method="get">
             <label for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
-            <input type="text" size="20" name="node_id" id="searchbar" />
+            <input type="text" size="20" name="field_value" id="searchbar" />
             <input type="submit" value="Search" />
         </form>
     </div>
