@@ -1,7 +1,7 @@
 var GRAPHGAMEL = {
     'authenticated': false,
     'populate_table': function(table_id, properties) {
-        table = document.getElementById('properties_table');
+        table = document.getElementById(table_id);
         table.innerHTML = "";
         i = 1;
         for (var key in properties) {

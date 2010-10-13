@@ -257,12 +257,16 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
     relation = get_relationship(start_node, end_node, edge_type)
     if relation:
         properties = simplejson.dumps(relation.properties)
+        start_node_properties = simplejson.dumps(relation.start.properties)
+        end_node_properties = simplejson.dumps(relation.end.properties)
         return render_to_response('graphgamel/relation_info.html',
                                 RequestContext(request, {
                                 'properties': properties,
                                 'graph_id': graph_id,
                                 'start_node_id': start_node_id,
                                 'end_node_id': end_node_id,
+                                'start_node_properties': start_node_properties,
+                                'end_node_properties': end_node_properties,
                                 'edge_type': edge_type}))
 
 
