@@ -13,6 +13,11 @@
 {% block extracode %}
 <script type="application/javascript">
     window.onload = function() {
+        {% if user.is_authenticated %}
+            GRAPHGAMEL.authenticated = true;
+        {% else %}
+            GRAPHGAMEL.authenticated = false;
+        {% endif %}
         GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
         GRAPHGAMEL.populate_table('start_node_properties_table', {{ start_node_properties|safe }});
         GRAPHGAMEL.populate_table('end_node_properties_table', {{ end_node_properties|safe }});
