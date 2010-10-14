@@ -70,3 +70,27 @@ class Schema(models.Model):
             if vr.node_to.name not in node_types:
                 node_types.add(vr.node_to.name)
         return list(node_types)
+
+
+class NodeDefaultProperty(models.Model):
+    key = models.CharField(max_length=30)
+    value = models.CharField(max_length=100, blank=True)
+    node = models.ForeignKey(NodeType)
+
+    def __unicode__(self):
+        return "%s: %s" % (self.key, self.value)
+
+    class Meta:
+        verbose_name_plural = "Default Node Properties"
+
+
+class EdgeDefaultProperty(models.Model):
+    key = models.CharField(max_length=30)
+    value = models.CharField(max_length=100, blank=True)
+    edge = models.ForeignKey(EdgeType)
+
+    def __unicode__(self):
+        return "%s: %s" % (self.key, self.value)
+
+    class Meta:
+        verbose_name_plural = "Default Edge Properties"

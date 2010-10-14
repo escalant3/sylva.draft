@@ -8,7 +8,8 @@ from django.shortcuts import (render_to_response,
                                 HttpResponseRedirect)
 from django.template import RequestContext
 
-from graph.models import Neo4jGraph, Node, Media, GraphIndex
+from graph.models import Neo4jGraph, Node, Media, GraphIndex, \
+                        NodeType, EdgeType
 
 
 RESERVED_FIELD_NAMES = ('id', 'type')
@@ -57,7 +58,15 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
         for key, value in n.iteritems():
             node.set(key, value)
     else:
-        node = gdb.node(**n)
+        node_properties = {}
+        node_type_obj = NodeType.objects.filter(name=n['type'])
+        if node_type_obj:
+            default_properties = node_type_obj[0].nodedefaultproperty_set.all()
+            for dp in default_properties:
+                node_properties[dp.key] = dp.value
+        for key, value in n.items():
+            node_properties[key] = value
+        node = gdb.node(**node_properties)
         gdb.add_to_index('id', n['id'], node)
         gdb.add_to_index('type', n['type'], node)
         created = True
@@ -145,6 +154,13 @@ def editor(request, graph_id):
                                                             node2,
                                                             edge_type,
                                                             True)
+                if new:
+                    edge_type_obj = EdgeType.objects.filter(
+                                        name=data['relation_type'])
+                    if edge_type_obj:
+                        default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
+                        for dp in default_properties:
+                            rel_obj.set(dp.key, dp.value)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
                 if new:
