@@ -50,6 +50,9 @@
 
 {% block content %}
 <h1>Available Graphs</h1>
+{% if error_message %}
+    <p class="errornote">Error: {{ error_message }}</p>
+{% endif %}
 {% for graph in graph_list %}
     <ul>
         <li>

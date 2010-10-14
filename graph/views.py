@@ -14,7 +14,7 @@ from graph.models import Neo4jGraph, Node, Media, GraphIndex
 RESERVED_FIELD_NAMES = ('id', 'type')
 
 
-def index(request):
+def index(request, error=''):
     graphs = Neo4jGraph.objects.all()
     messages = request.session.get('messages', None)
     if not messages:
@@ -22,7 +22,8 @@ def index(request):
         messages = []
     return render_to_response('graphgamel/index.html',
                         RequestContext(request, {
-                        'graph_list': graphs}))
+                        'graph_list': graphs,
+                        'error_message': error}))
 
 
 def return_function(obj, value, show_info):
@@ -181,7 +182,8 @@ def editor(request, graph_id):
             gdb = neo4jclient.GraphDatabase(host)
             request.session["host"] = host
         except:
-            return redirect(index)
+            error_message = "The host %s is not available" % host
+            return index(request, error_message)
         form_structure = simplejson.dumps(schema.get_dictionaries())
         node_types = simplejson.dumps(schema.get_node_types())
         request.session['form_structure'] = form_structure
@@ -346,12 +348,14 @@ def delete_property(request, element):
                                             'properties': properties}))
 
 
-def search_node(request, graph_id, node_field='', _field_value=''):
+def search_node(request, graph_id, node_field='', field_value=''):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
         if not gdb:
-            return redirect(index)
-        field_value = request.GET.get('field_value', _field_value)
+            graph = Neo4jGraph.objects.get(pk=graph_id)
+            host = graph.host
+            error_message = "The host %s is not available" % host
+            return index(request, error_message)
         if not node_field:
             node_field = 'id'
         try:
@@ -365,9 +369,8 @@ def search_node(request, graph_id, node_field='', _field_value=''):
                 result = []
         except neo4jclient.NotFoundError:
             result = []
-        if 'node_type' in request.GET:
-            node_type = request.GET['node_type']
-            result = [r for r in result if node_type == r.properties['type']]
+        if field_value:
+            result = [r for r in result if field_value == r.properties['type']]
         response = [{'url': r.url,
                     'neo_id': r.id,
                     'properties': r.properties} for r in result]
