@@ -94,7 +94,7 @@ var GRAPHGAMEL = {
         if (window.confirm("This will delete the node and all its relationships. Are you sure?")) {
             $.ajax({url: location.href + "delete_node",
                     dataType: "json",
-                    success: function() {console.log('Success');}
+                    success: function() {}
                     });
         }
     },
