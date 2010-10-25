@@ -8,8 +8,7 @@ from django.shortcuts import (render_to_response,
                                 HttpResponseRedirect)
 from django.template import RequestContext
 
-from graph.models import Neo4jGraph, Node, Media, GraphIndex, \
-                        NodeType, EdgeType
+from graph.models import Neo4jGraph, Node, Media, GraphIndex
 
 
 RESERVED_FIELD_NAMES = ('id', 'type')
@@ -58,15 +57,7 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
         for key, value in n.iteritems():
             node.set(key, value)
     else:
-        node_properties = {}
-        node_type_obj = NodeType.objects.filter(name=n['type'])
-        if node_type_obj:
-            default_properties = node_type_obj[0].nodedefaultproperty_set.all()
-            for dp in default_properties:
-                node_properties[dp.key] = dp.value
-        for key, value in n.items():
-            node_properties[key] = value
-        node = gdb.node(**node_properties)
+        node = gdb.node(**n)
         gdb.add_to_index('id', n['id'], node)
         gdb.add_to_index('type', n['type'], node)
         created = True
@@ -154,13 +145,6 @@ def editor(request, graph_id):
                                                             node2,
                                                             edge_type,
                                                             True)
-                if new:
-                    edge_type_obj = EdgeType.objects.filter(
-                                        name=data['relation_type'])
-                    if edge_type_obj:
-                        default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
-                        for dp in default_properties:
-                            rel_obj.set(dp.key, dp.value)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
                 if new:
@@ -207,12 +191,14 @@ def editor(request, graph_id):
     form_structure = request.session['form_structure']
     node_types = request.session['node_types']
     messages = request.session.get('messages', [])
+    json_graph = schema.get_json_schema_graph()
     return render_to_response('graphgamel/editor.html',
                         RequestContext(request, {
                         'schema': schema,
                         'history_list': messages,
                         'form_structure': form_structure,
                         'node_types': node_types,
+                        'json_graph': json_graph,
                         'graph_id': graph_id}))
 
 
@@ -364,7 +350,7 @@ def delete_property(request, element):
                                             'properties': properties}))
 
 
-def search_node(request, graph_id, node_field='', field_value=''):
+def search_node(request, graph_id, node_field='', _field_value=''):
     if request.method == 'GET':
         gdb = get_neo4j_connection(graph_id)
         if not gdb:
@@ -372,11 +358,10 @@ def search_node(request, graph_id, node_field='', field_value=''):
             host = graph.host
             error_message = "The host %s is not available" % host
             return index(request, error_message)
+        field_value = request.GET.get('field_value', _field_value)
         if not node_field:
             node_field = 'id'
         try:
-            if not field_value:
-                field_value = request.GET.get('field_value', '')
             if field_value:
                 result = gdb.index(node_field, field_value)
                 # Strings including node_type

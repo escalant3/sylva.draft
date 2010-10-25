@@ -14,6 +14,13 @@
 </div>
 {% endblock %}
 
+{% block extraimports %}
+    {{ block.super }}
+    <script language="javascript" src="/site_media/js/raphael-min.js"></script>
+    <script language="javascript" src="/site_media/js/graph-algorithms.js"></script>
+    <script language="javascript" src="/site_media/js/graph-canvas.js"></script>
+{% endblock %}
+
 {% block extracode %}
 <script type="application/javascript">
 
@@ -23,6 +30,8 @@
     var relation_json = {};
     var node_to_json = {};
     var node_json = {};
+    var gdata = eval({{ json_graph|safe }});
+    var raphael;
 
     function updateSelect(step) {
     second_select = document.getElementById('relation_type');
@@ -78,6 +87,7 @@
         id_cell = document.getElementById(element+'_properties_id');
         if (label == "node") {
             field_value = document.getElementById(element+'_id').value;
+            console.log(field_value);
             node_type = document.getElementById(element+'_type').value;
             if (node_id) {
                 // Check if node exists
@@ -162,6 +172,13 @@
         GRAPHGAMEL.get_autocompletion_objects("node_from_type", "node_from_id");
         GRAPHGAMEL.get_autocompletion_objects("node_to_type", "node_to_id");
         GRAPHGAMEL.get_autocompletion_objects("searchbar", "searchbar");
+        raphael = new RaphaelGraph(gdata);
+        raphael.set_size(600,200);
+        raphael.events_enabled = false;
+        raphael.draw("random");
+        raphael.draw("spring");
+        raphael.default_node_color = "#E4E4E4";
+        raphael.toggle_labels("ID");
     }
 </script>
 {% endblock %}
@@ -197,6 +214,7 @@
 </div>
 <h3>Add relation</h3>
 Schema: {{ schema }}
+<div id="canvas"> </div> 
 <form action="." method="POST">
     <select id="node_from_type" name="node_from_type" onchange="updateSelect(1);updateSelect(2);refreshSelect('node_from');">
     </select>
