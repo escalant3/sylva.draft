@@ -1,4 +1,5 @@
 import re
+import simplejson
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -71,6 +72,22 @@ class Schema(models.Model):
                 node_types.add(vr.node_to.name)
         return list(node_types)
 
+    def get_json_schema_graph(self):
+        nodes = {}
+        node_types = self.get_node_types()
+        for node_type in node_types:
+            nodes[node_type] = {'ID': node_type}
+        edges = {}
+        counter = 0
+        valid_relations = self.get_dictionaries()
+        for node_from_key in valid_relations:
+            for relation_key in valid_relations[node_from_key]:
+                for node_to_key in valid_relations[node_from_key][relation_key]:
+                    edges[counter] = {'node1': node_from_key,
+                                        'node2': node_to_key,
+                                        'ID': relation_key}
+                    counter += 1
+        return simplejson.dumps({'nodes': nodes, 'edges': edges})
 
 class NodeDefaultProperty(models.Model):
     key = models.CharField(max_length=30)
