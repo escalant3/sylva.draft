@@ -86,6 +86,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'graphgamel.schema',
     'graphgamel.graph',
+    'file_importer',
 )
 
 try:
