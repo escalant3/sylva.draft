@@ -6,6 +6,7 @@ from django.shortcuts import (render_to_response,
                                 redirect,
                                 HttpResponse,
                                 HttpResponseRedirect)
+from django.template import defaultfilters
 from django.template import RequestContext
 
 from graph.models import Neo4jGraph, Node, Media, GraphIndex, \
@@ -51,6 +52,7 @@ def add_message(request, text,
 
 def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
+    n['id'] = defaultfilters.slugify(n['id'])
     result = filter_by_property(gdb.index('id', n['id']),
                                 'type', n['type'])
     if len(result) == 1:
