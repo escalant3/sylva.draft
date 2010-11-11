@@ -31,14 +31,17 @@ class Command(BaseCommand):
             f.close()
             data = simplejson.loads(json_data)
             for node in data['nodes']:
-                get_or_create_node(gdb, node, graph)
+                try:
+                    get_or_create_node(gdb, node, graph)
+                except:
+                    print 'There was a problem creating one node: %s' % node
             for node1, node2, edge_type in data['edges']:
                 try:
                     neonode1 = get_or_create_node(gdb, node1, graph)
                     neonode2 = get_or_create_node(gdb, node2, graph)
                     get_or_create_relationship(neonode1, neonode2, edge_type)
                 except:
-                    print "There was a proble with (%s,%s,%s)" % (node1,
+                    print "There was a problem with (%s,%s,%s)" % (node1,
                                                                     node2,
                                                                     edge_type)
             print "Done."
