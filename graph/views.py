@@ -52,7 +52,7 @@ def add_message(request, text,
 
 def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
-    n['id'] = defaultfilters.slugify(n['id'])
+    n['id'] = defaultfilters.slugify(n['id'])[:150]
     result = filter_by_property(gdb.index('id', n['id']),
                                 'type', n['type'])
     if len(result) == 1:
