@@ -3,6 +3,7 @@ import simplejson
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from random import randint
 
 # Create your models here.
 
@@ -88,6 +89,16 @@ class Schema(models.Model):
                                         'ID': relation_key}
                     counter += 1
         return simplejson.dumps({'nodes': nodes, 'edges': edges})
+
+    def get_node_visual_data(self):
+        visual_data = {}
+        node_types = self.get_node_types()
+        for node in node_types:
+            color = ('#%x' % randint(0, 16777216)).replace(' ', '0')
+            visual_data[node] = {"color": color,
+                                "size": "1.0",
+                                "label": node}
+        return visual_data
 
 class NodeDefaultProperty(models.Model):
     key = models.CharField(max_length=30)

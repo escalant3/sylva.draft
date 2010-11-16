@@ -1,0 +1,203 @@
+{% extends "graphgamel/graphview/base.html" %}
+
+{% block javascript_imports %}
+<script language="javascript" src="/site_media/js/menu-controls.js"></script>
+<script language="javascript" src="/site_media/js/raphael-min.js"></script>
+<script language="javascript" src="/site_media/js/graph-algorithms.js"></script>
+<script language="javascript" src="/site_media/js/graph-canvas.js"></script>
+{% endblock %}
+
+{% block javascript %}
+    <script type="text/javascript" charset="utf-8"> 
+        var selected_node;
+        var selected_edge;
+        var terminal;
+        var gdata = eval({{ json_graph|safe }});
+        var raphael;
+
+        function delete_node(response) {
+            raphael.delete_node(selected_node);
+        }
+
+        function delete_edge() {}
+
+        function expand_node() {
+            function fsuccess(response) {
+                new_graph = eval(response['new_gdata']);
+                for (var node in new_graph.nodes) {
+                    gdata.nodes[node] = new_graph.nodes[node];
+                }
+                counter = 0;
+                for (var edge_id in gdata.edges) {
+                    counter += 1;
+                }
+                for (var edge_id in new_graph.edges) {
+                    edge_index = counter + parseInt(edge_id);
+                    gdata.edges[edge_index.toString()] = new_graph.edges[edge_id];
+                }
+                raphael.draw("circular");
+            }
+            function ferror(response) {
+                alert('ERROR expanding node');
+            }
+            if (raphael.multiselection) {
+                raphael.multiselection = false;
+            } else {
+                url = "{% url graph.views.expand_node graph_id %}";
+            }
+            node_type = gdata['nodes'][selected_node]['type'];
+            $.ajax({url: url,
+                    type:"GET",
+                    dataType:"json",
+                    data: {'node_id': selected_node,
+                            'node_type': node_type},
+                    success: fsuccess,
+                    error: ferror});
+        }
+
+        function toggle_nodes(node_types) {}
+
+        function multi_select() {
+            if (!raphael.multiselection) {
+                raphael.multiselection_table = []
+                raphael.multiselection_table.push(selected_node);
+                raphael.multiselection = true;
+            } else {
+                raphael.multiselection = false;
+            }
+        }
+        
+        function refresh_labels() {
+            new_label_field = document.getElementById('label_field_id').value;
+            raphael.toggle_labels(new_label_field);
+        }
+
+        function resize_canvas() {
+            width = parseInt(document.getElementById('width_value').value);
+            height = parseInt(document.getElementById('height_value').value);
+            document.getElementById('canvas').style.width = width;
+            document.getElementById('canvas').style.height = height;
+            raphael.set_size(width, height);
+        }
+    </script> 
+{% endblock %}
+
+{% block raphael %}
+    <script type="text/javascript" charset="utf-8">
+        window.onload = function () {
+            raphael = new RaphaelGraph(gdata);
+            raphael.draw("circular");
+            terminalWidget = document.getElementById('query');
+            terminalWidget.onkeydown = onKeyDown;
+            MenuControl.render_controls('.menu');
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    {% include "graphgamel/graphview/menu.html" %}
+    <div id="content">
+        <div id="canvas"> </div>
+        <div id="info">
+            {% block extra_controls %}{% endblock %}
+        </div>
+        <div id="floating_menus">
+            <div id="floating_multinode_menu" class="menu" onClick="MenuControl.toggle('floating_multinode_menu')">
+                    <button id="delete_node" onclick="delete_node()">Delete selected nodes</button>
+                    <button id="expand_node" onclick="expand_node()">Expand selected nodes</button>
+                    <button id="multiselect_node" onclick="multi_select()">Cancel multiselection</button>
+            </div>
+            <div id="element_info_menu" class="menu">
+                <div id="floating_node_menu">
+                    <button id="delete_node" class="control" onclick="delete_node()">Del.</button>
+                    <button id="expand_node" class="control" onclick="expand_node()">Exp.</button>
+                    <button id="multiselect_node" class="control" onclick="multi_select()">Multisel</button>
+                </div>
+                <div id="floating_edge_menu">
+                    <button id="delete_edge" class="control" onclick="delete_edge()">Delete edge</button>
+                </div>
+                <div id="infoTable" class="infoTable"></div>
+                
+            </div>
+            <div id="topics_menu" class="menu">
+                {% for key, style in node_style_list %}
+                    <input type="checkbox" onclick="toggle_nodes('{{ key }}')" 
+                        {% if style.show %}checked{% endif %}>
+                            <span style="color:{{ style.color }}">
+                                {{ style.label }}
+                            </span><br>
+                {% endfor %}
+            </div>
+            <div id="labels_menu" class="menu">
+                <input type="text" id="label_field_id"/>
+                <input type="checkbox" onClick="refresh_labels()"/>
+            </div>
+            <div id="layouts_menu" class="menu">
+                    <select id="layout_type">
+                        <option value="spring">Spring layout</option>
+                        <option value="circular">Circular layout</option>
+                        <option value="ARF">ARF layout</option>
+                        <option value="shell">Shell layout</option>
+                        <option value="random">Random layout</option>
+                    </select>
+                    <input type="button" value="Relayout" onclick="raphael.draw(getElementById('layout_type').value);"/>
+            </div>
+            <div id="options_menu" class="menu">
+                <table>
+                    <tr>
+                        <td>
+                            Width:
+                        </td>
+                        <td>
+                            <input id="width_value" type="text" value="800" size="5"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Height:
+                        </td>
+                        <td>
+                            <input id="height_value" type="text" value="800" size="5"/>
+                        </td>
+                        <td>
+                            <input type="button" value="Resize" onclick="resize_canvas()"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% include "graphgamel/graphview/actions.html" %}
+            <div id="dataset_info_menu" class="menu">
+                <table class="dataset">
+                    <tr>
+                        <td>Name: </td>
+                        <td>{{ dataset.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Description: </td>
+                        <td>{{ dataset.description }}</td>
+                    </tr>
+                    {% for key, value in metadata_list %}
+                        <tr>
+                            <td>
+                                {{ key }}
+                            </td>
+                            <td>
+                                {{ value }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block bottombar %}
+<div id="query_menu" class="menu query_menu">
+    <form action="." method="post">
+        <input id="query" name="query" type="text" size="60"/>
+        <input id="btn_query" type="submit" value="Execute"/>
+        <input id="cncl_query" type="button" value="Cancel" onClick="toggle('query')"/>
+    </form>
+</div>
+{% endblock %}
