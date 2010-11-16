@@ -55,7 +55,9 @@
                     error: ferror});
         }
 
-        function toggle_nodes(node_types) {}
+        function toggle_nodes(node_type) {
+            raphael.toggle_nodes(node_type);
+        }
 
         function multi_select() {
             if (!raphael.multiselection) {
@@ -122,7 +124,7 @@
             <div id="topics_menu" class="menu">
                 {% for key, style in node_style_list %}
                     <input type="checkbox" onclick="toggle_nodes('{{ key }}')" 
-                        {% if style.show %}checked{% endif %}>
+                        checked>
                             <span style="color:{{ style.color }}">
                                 {{ style.label }}
                             </span><br>
