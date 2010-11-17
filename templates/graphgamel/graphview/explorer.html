@@ -15,11 +15,11 @@
         var gdata = eval({{ json_graph|safe }});
         var raphael;
 
-        function delete_node(response) {
+        function delete_node() {
             raphael.delete_node(selected_node);
         }
 
-        function delete_edge() {}
+        function delete_edge() {raphael.delete_edge(selected_edge);}
 
         function expand_node() {
             function fsuccess(response) {

@@ -136,7 +136,8 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
     if (this.events_enabled) {
         e.node.onclick = function (event) {
             selected_node = null;
-            selected_edge = edge.ID;
+            console.log(edge);
+            selected_edge = [edge.node1, edge.node2];
             MenuControl.toggle('element_info_menu');
             info_html = raphael.info_as_table(edge);
             xpos = event.clientX;
@@ -207,20 +208,6 @@ RaphaelGraph.prototype.toggle_labels = function toggle_labels(label_field) {
     raphael_object.render()
 }
 
-RaphaelGraph.prototype.remove_node = function remove_node(node) {
-    node_edges = this.elements[node]["edges"];
-    for (var i in node_edges) {
-        node_edges[i].remove();
-    }
-    this.elements[node]["object"].remove();
-}
-
-RaphaelGraph.prototype.remove_edge = function remove_edge(node1, node2) {
-    this.elements[node1]["edges"][node2].remove();
-    delete this.elements[node1]["edges"][node2];
-    delete this.elements[node2]["edges"][node1];
-}
-
 RaphaelGraph.prototype.update = function update(_data) {
     GraphLayout.random_layout(_data.nodes, this.width, this.height);
     for (var i in _data.nodes) {
@@ -245,6 +232,20 @@ RaphaelGraph.prototype.delete_node = function delete_node(selected_node) {
         if (edges[e].node1 == selected_node || edges[e].node2 == selected_node) {
             delete edges[e];
         }
+    }
+    this.render();
+}
+
+RaphaelGraph.prototype.delete_edge = function delete_edge(selected_edge) {
+    node1 = selected_edge[0];
+    node2 = selected_edge[1];
+    for (var edge_id in this.data.edges) {
+        edge = this.data.edges[edge_id];
+        if ((edge.node1 == node1 && edge.node2 == node2) ||
+            (edge.node1 == node2 && edge.node2 == node1)) {
+                delete this.data.edges[edge_id];
+                break;
+            }
     }
     this.render();
 }
