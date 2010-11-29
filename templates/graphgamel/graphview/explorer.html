@@ -16,7 +16,13 @@
         var raphael;
 
         function delete_node() {
-            raphael.delete_node(selected_node);
+            if (raphael.multiselection) {
+                for(var node_id in raphael.multiselection_table) {
+                    raphael.delete_node(raphael.multiselection_table[node_id]);
+                }
+            } else {
+                raphael.delete_node(selected_node);
+            }
         }
 
         function delete_edge() {raphael.delete_edge(selected_edge);}
@@ -40,19 +46,28 @@
             function ferror(response) {
                 alert('ERROR expanding node');
             }
-            if (raphael.multiselection) {
-                raphael.multiselection = false;
-            } else {
+            function execute(node_id) {
                 url = "{% url graph.views.expand_node graph_id %}";
-            }
-            node_type = gdata['nodes'][selected_node]['type'];
-            $.ajax({url: url,
+                node_type = gdata['nodes'][selected_node]['type'];
+                $.ajax({url: url,
                     type:"GET",
                     dataType:"json",
-                    data: {'node_id': selected_node,
-                            'node_type': node_type},
+                    data: {'node_id': node_id,
+                    'node_type': node_type},
                     success: fsuccess,
                     error: ferror});
+            }
+
+            if (raphael.multiselection) {
+                raphael.multiselection = false;
+                for(var node_id in raphael.multiselection_table) {
+                    execute(raphael.multiselection_table[node_id]);
+                }
+            } else {
+                execute(selected_node);
+             
+            }
+            
         }
 
         function toggle_nodes(node_type) {

@@ -136,7 +136,6 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
     if (this.events_enabled) {
         e.node.onclick = function (event) {
             selected_node = null;
-            console.log(edge);
             selected_edge = [edge.node1, edge.node2];
             MenuControl.toggle('element_info_menu');
             info_html = raphael.info_as_table(edge);

@@ -77,7 +77,7 @@ class Schema(models.Model):
         nodes = {}
         node_types = self.get_node_types()
         for node_type in node_types:
-            nodes[node_type] = {'ID': node_type}
+            nodes[node_type] = {'id': node_type}
         edges = {}
         counter = 0
         valid_relations = self.get_dictionaries()
@@ -86,7 +86,7 @@ class Schema(models.Model):
                 for node_to_key in valid_relations[node_from_key][relation_key]:
                     edges[counter] = {'node1': node_from_key,
                                         'node2': node_to_key,
-                                        'ID': relation_key}
+                                        'id': relation_key}
                     counter += 1
         return simplejson.dumps({'nodes': nodes, 'edges': edges})
 
