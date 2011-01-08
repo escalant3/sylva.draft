@@ -6,7 +6,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = path.dirname(path.abspath(__file__))
-PROJECT_NAME = 'graphgamel'
+PROJECT_NAME = 'sylva'
 SESSION_COOKIE_NAME = '%s-sessionid' % PROJECT_NAME
 
 ADMINS = (
@@ -69,7 +69,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
-ROOT_URLCONF = 'graphgamel.urls'
+ROOT_URLCONF = 'sylva.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -84,8 +84,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'graphgamel.schema',
-    'graphgamel.graph',
+    'sylva.schema',
+    'sylva.graph',
     'file_importer',
 )
 
