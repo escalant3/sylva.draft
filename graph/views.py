@@ -237,18 +237,8 @@ def node_info(request, graph_id, node_id):
                         'end_neo_id': r.end.id}
         relationships_list.append(relation_info)
     graph = Neo4jGraph.objects.get(pk=graph_id)
-    outgoing = {}
-    incoming = {}
     node_type = node['type']
-    for vr in graph.schema.valid_relations.all():
-        if vr.node_from.name == node_type:
-            if not vr.relation.name in outgoing:
-                outgoing[vr.relation.name] = {}
-            outgoing[vr.relation.name][vr.node_to.name] = None
-        if vr.node_to.name == node_type:
-            if not vr.relation.name in incoming:
-                incoming[vr.relation.name] = {}
-            incoming[vr.relation.name][vr.node_from.name] = None
+    outgoing, incoming = graph.schema.get_incoming_and_outgoing(node_type)
     media_items = {}
     if '_media' in node.properties:
         relational_node = Node.objects.get(pk=node.properties['_media'])

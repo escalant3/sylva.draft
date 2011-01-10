@@ -22,7 +22,7 @@ class Schema(models.Model):
 
     def get_dictionaries(self):
         form_structure = {}
-        valid_relations = ValidRelation.objects.all()
+        valid_relations = ValidRelation.objects.filter(schema=self)
         from_nodes = set([vr.node_from for vr in valid_relations])
         for node in from_nodes:
             form_structure[node] = {}
@@ -39,6 +39,21 @@ class Schema(models.Model):
         for node_obj in from_nodes:
             form_structure.pop(node_obj)
         return form_structure
+
+    def get_incoming_and_outgoing(self, node_type):
+        outgoing = {}
+        incoming = {}
+        for vr in ValidRelation.objects.filter(schema=self):
+            if vr.node_from.name == node_type:
+                if not vr.relation.name in outgoing:
+                    outgoing[vr.relation.name] = {}
+                outgoing[vr.relation.name][vr.node_to.name] = None
+            if vr.node_to.name == node_type:
+                if not vr.relation.name in incoming:
+                    incoming[vr.relation.name] = {}
+                incoming[vr.relation.name][vr.node_from.name] = None
+        return outgoing, incoming
+
 
     def get_node_types(self):
         node_types = set()
