@@ -13,49 +13,25 @@ def is_alphanumeric(value):
         raise ValidationError(u'%s is an invalid identifier' % value)
 
 
-class NodeType(models.Model):
-    name = models.CharField(max_length=30, validators=[is_alphanumeric])
-
-    def __unicode__(self):
-        return self.name
-
-
-class EdgeType(models.Model):
-    name = models.CharField(max_length=30, validators=[is_alphanumeric])
-
-    def __unicode__(self):
-        return self.name
-
-
-class ValidRelation(models.Model):
-    node_from = models.ForeignKey(NodeType, related_name='node_from')
-    relation = models.ForeignKey(EdgeType)
-    node_to = models.ForeignKey(NodeType, related_name='node_to')
-
-    def __unicode__(self):
-        return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
-
-
 class Schema(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=100)
-    valid_relations = models.ManyToManyField(ValidRelation)
 
     def __unicode__(self):
         return self.name
 
     def get_dictionaries(self):
         form_structure = {}
-        valid_relations = self.valid_relations.all()
+        valid_relations = ValidRelation.objects.all()
         from_nodes = set([vr.node_from for vr in valid_relations])
         for node in from_nodes:
             form_structure[node] = {}
             form_structure[node.name] = {}
             relations = set([r.relation for r in \
-                                self.valid_relations.filter(node_from=node)])
+                                valid_relations.filter(node_from=node)])
             for relation in relations:
                 form_structure[node.name][relation.name] = {}
-                to_nodes = [r.node_to.name for r in self.valid_relations.filter(
+                to_nodes = [r.node_to.name for r in valid_relations.filter(
                                                         node_from=node,
                                                         relation=relation)]
                 for to_node in to_nodes:
@@ -66,7 +42,7 @@ class Schema(models.Model):
 
     def get_node_types(self):
         node_types = set()
-        for vr in self.valid_relations.all():
+        for vr in ValidRelation.objects.all():
             if vr.node_from.name not in node_types:
                 node_types.add(vr.node_from.name)
             if vr.node_to.name not in node_types:
@@ -99,6 +75,33 @@ class Schema(models.Model):
                                 "size": "1.0",
                                 "label": node}
         return visual_data
+
+
+class NodeType(models.Model):
+    name = models.CharField(max_length=30, validators=[is_alphanumeric])
+    schema = models.ForeignKey(Schema)
+
+    def __unicode__(self):
+        return self.name
+
+
+class EdgeType(models.Model):
+    name = models.CharField(max_length=30, validators=[is_alphanumeric])
+    schema = models.ForeignKey(Schema)
+
+    def __unicode__(self):
+        return self.name
+
+
+class ValidRelation(models.Model):
+    node_from = models.ForeignKey(NodeType, related_name='node_from')
+    relation = models.ForeignKey(EdgeType)
+    node_to = models.ForeignKey(NodeType, related_name='node_to')
+    schema = models.ForeignKey(Schema)
+
+    def __unicode__(self):
+        return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
+
 
 class NodeDefaultProperty(models.Model):
     key = models.CharField(max_length=30)
