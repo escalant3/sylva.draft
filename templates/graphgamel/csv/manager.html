@@ -1,0 +1,166 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Sylva</h1>
+{% endblock %}
+
+{% block extracode %}
+<script type="application/javascript">
+var data = eval({{ json_data|safe }});
+var valid_relations = eval({{ valid_relations|safe }});
+function selectAll() {
+    boxes = document.getElementsByClassName('csv_selector');
+    for(var i in boxes) {
+        boxes[i].checked = true;
+    }
+}
+
+function deselectAll() {
+    boxes = document.getElementsByClassName('csv_selector');
+    for(var i in boxes) {
+        boxes[i].checked = false;
+    }
+}
+
+function commitData() {
+    rows = document.getElementsByClassName('csv_selector');
+    columns = document.getElementsByClassName('column_selector');
+    fields = document.getElementsByClassName('field_selector');
+    graph_data = {};
+    extra_fields = {}
+    new_nodes = [];
+    new_relationships = [];
+    // Checks node types and extra fields declared in header
+    for(j=0;j<columns.length;j++) {
+        item_id = "column_" + j;
+        extra_field_id = "field_" + j;
+        if (columns[item_id].value != "null") {
+            graph_data[j] = columns[item_id].value;
+        } else if (fields[extra_field_id].value != "null") {
+            extra_fields[j] = [fields[extra_field_id].value, document.getElementById('key_'+j).value];
+        }
+    }
+    // Checks rows data...
+    for(i=0;i<rows.length;i++) {
+        if (rows[i].checked) {
+            // Creating nodes from the header declarations
+            for(var j in graph_data) {
+                if (data[i][j] != "")
+                    node_info = {"type":graph_data[j], "id":data[i][j]};
+                    // Searching additional fields for the node
+                    for(var k in extra_fields) {
+                        if ((extra_fields[k][0] == graph_data[j]) && (data[i][k] != "")) {
+                            node_info[extra_fields[k][1]] = data[i][k];
+                        }
+                    } 
+
+                    new_nodes.push(node_info);
+            }
+            // Searching relations between the fields of the row
+            for(k=0;k<valid_relations.length;k++) {
+                for(var j in graph_data) {
+                    if ((graph_data[j] == valid_relations[k].node_from) && (data[i][j] != "")) {
+                        for(var l in graph_data) {
+                            if ((graph_data[l] == valid_relations[k].node_to) && (data[i][l] != "")) {
+                                new_relationships.push({"node_from": data[i][j],
+                                        "node_from_type": graph_data[j],
+                                        "relation": valid_relations[k].relation,
+                                        "node_to": data[i][l],
+                                        "node_to_type": graph_data[l],});
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+        }
+    }
+    // Creates the nodes in Sylva server
+    total = new_relationships.length;
+    for(i=0;i<new_nodes.length;i++) {
+        $.ajax({url: "{% url graph.views.add_node_ajax graph_id %}", 
+            data: {json_node: JSON.stringify(new_nodes[i])},
+            dataType: "json",
+            async: false,
+            success: function(response) {
+                document.getElementById('progress_bar').innerHTML= "Exported " + i + " nodes of " + total;
+            }
+        });
+    }
+    // Creates the relationships in Sylva server
+    total = new_relationships.length;
+    for(i=0;i<new_relationships.length;i++) {
+        $.ajax({url: "{% url graph.views.add_relationship_ajax graph_id %}", 
+            data: {json_relation: JSON.stringify(new_relationships[i])},
+            dataType: "json",
+            async: false,
+            success: function(response) {
+                document.getElementById('progress_bar').innerHTML= "Exported " + i + " relationships of " + total;
+            }
+        });
+    }
+    document.getElementById('progress_bar').innerHTML= "Exportation finished";
+    
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% if rows %}
+    <button onClick="selectAll()">Select all</button>
+    <button onClick="deselectAll()">Deselect all</button>
+    <button onClick="commitData()">Commit data</button>
+    <p id="progress_bar"/>
+{% endif %}
+<table>
+    <th>
+    {% for item in len %}
+        <td><select class="column_selector" id="column_{{ item }}">
+            <option value="null">- - - -</option>
+            {% for node_type in node_types %}
+                <option value="{{ node_type }}">{{ node_type }}</option>
+            {% endfor %}
+        </select></td>
+    {% endfor %}
+    </th>
+    <tr>
+    <td></td>
+    {% for item in len %}
+        <td>
+            <table>
+             <tr>
+              <td>
+               <select class="field_selector" id="field_{{ item }}">
+                <option value="null">- - - -</option>
+                {% for node_type in node_types %}
+                    <option value="{{ node_type }}">{{ node_type }}</option>
+                {% endfor %}
+               </select>
+              </td>
+             </tr>
+             <tr>
+              <td>
+               <input type="text" id="key_{{ item }}" size="4"/>
+              </td>
+             </tr>
+            </table>
+        </td>
+    {% endfor %}
+    </tr>
+    {% for row in rows %}
+    <tr>
+        <td><input id="row_{{ forloop.counter0 }}"
+                    class="csv_selector"
+                    type="checkbox"></td>
+        {% for csv_field in row %}
+            <td>{{ csv_field }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -66,5 +66,12 @@
         </li>
     </ul>
 {% endfor %}
-
+{% if user.is_superuser %}
+<h1>Sylva Management</h1>
+    <ul>
+        <li>
+            <a href="{% url graph.views.import_manager %}">CSV Importer Manager</a>
+        </li>
+    </ul>
+{% endif %}
 {% endblock %}

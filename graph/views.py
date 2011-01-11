@@ -1,3 +1,4 @@
+import csv
 import neo4jclient
 import simplejson
 
@@ -9,8 +10,10 @@ from django.shortcuts import (render_to_response,
 from django.template import defaultfilters
 from django.template import RequestContext
 
+from graph.forms import UploadCSVForm
 from graph.models import Neo4jGraph, Node, Media, GraphIndex, \
                     NodeType, EdgeType
+from schema.models import ValidRelation
 
 
 RESERVED_FIELD_NAMES = ('id', 'type')
@@ -52,31 +55,41 @@ def add_message(request, text,
 
 def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
-    n['id'] = defaultfilters.slugify(n['id'])[:150]
-    result = filter_by_property(gdb.index('id', n['id']),
+    slug_id = defaultfilters.slugify(n['id'])[:150]
+    result = filter_by_property(gdb.index('id', slug_id),
                                 'type', n['type'])
     if len(result) == 1:
         node = result[0]
         for key, value in n.iteritems():
             node.set(key, value)
     else:
-        node_properties = {}
-        node_type_obj = NodeType.objects.filter(name=n['type'])
-        if node_type_obj:
-            default_properties = node_type_obj[0].nodedefaultproperty_set.all()
-            for dp in default_properties:
-                node_properties[dp.key] = dp.value
-        for key, value in n.items():
-            node_properties[key] = value
-        node = gdb.node(**node_properties)
-        gdb.add_to_index('id', n['id'], node)
-        gdb.add_to_index('type', n['type'], node)
+        node = create_node(gdb, n, graph)
         created = True
-        graph_index = GraphIndex(graph=graph,
-                                node_id=n['id'],
-                                node_type=n['type'])
-        graph.graphindex_set.add(graph_index)
     return return_function(node, created, creation_info)
+
+
+def create_node(gdb, n, graph):
+    original_id = n['id']
+    n['id'] = defaultfilters.slugify(n['id'])[:150]
+    node_properties = {}
+    if original_id != n['id']:
+        node_properties['ID'] = original_id
+    node_type_obj = NodeType.objects.filter(name=n['type'])
+    if node_type_obj:
+        default_properties = node_type_obj[0].nodedefaultproperty_set.all()
+        for dp in default_properties:
+            node_properties[dp.key] = dp.value
+    for key, value in n.items():
+        node_properties[key] = value
+    node = gdb.node(**node_properties)
+    gdb.add_to_index('id', n['id'], node)
+    gdb.add_to_index('type', n['type'], node)
+
+    graph_index = GraphIndex(graph=graph,
+                            node_id=n['id'],
+                            node_type=n['type'])
+    graph.graphindex_set.add(graph_index)
+    return node
 
 
 def get_relationship(node1, node2, edge_type):
@@ -539,3 +552,72 @@ def expand_node(request, graph_id):
     response_dictionary = {'success': True,
                             'new_gdata': new_graph}
     return HttpResponse(simplejson.dumps(response_dictionary))
+
+
+def handle_csv_file(uploaded_file):
+    csv_info = csv.reader(uploaded_file)
+    return list(csv_info)
+
+
+def import_manager(request):
+    if request.method == 'POST':
+        form = UploadCSVForm(request.POST, request.FILES)
+        if form.is_valid():
+            graph_id = int(request.POST['graph'])
+            graph = Neo4jGraph.objects.get(pk=graph_id)
+            try:
+                rows = handle_csv_file(request.FILES['csv_file'])
+                row_length = len(rows[0])
+            except:
+                pass #TODO Print a helpful message
+            node_types = graph.schema.get_node_types()
+            valid_relations = []
+            for vr in ValidRelation.objects.filter(schema=graph.schema):
+                valid_relations.append({'node_from': vr.node_from.name,
+                                        'relation': vr.relation.name,
+                                        'node_to': vr.node_to.name})
+            return render_to_response('graphgamel/csv/manager.html', {'rows':rows,
+                        'json_data': simplejson.dumps(rows),
+                        'len': range(row_length),
+                        'graph_id': graph_id,
+                        'node_types': node_types,
+                        'valid_relations':simplejson.dumps(valid_relations)})
+    else:
+        form = UploadCSVForm()
+    return render_to_response('graphgamel/csv/upload.html', {'form': form})
+
+
+def add_node_ajax(request, graph_id):
+    if request.method == 'GET':
+        graph = Neo4jGraph.objects.get(pk=int(graph_id))
+        gdb = neo4jclient.GraphDatabase(graph.host)
+        node = simplejson.loads(request.GET['json_node'])
+        new_node = create_node(gdb, node, graph)
+        if new_node:
+            success = True
+        else:
+            success = False
+        return HttpResponse(simplejson.dumps({'success':success}))
+
+
+def add_relationship_ajax(request, graph_id):
+    if request.method == 'GET':
+        graph = Neo4jGraph.objects.get(pk=int(graph_id))
+        gdb = neo4jclient.GraphDatabase(graph.host)
+        relation_info = simplejson.loads(request.GET['json_relation'])
+        node_from = {}
+        node_to = {}
+        node_from['id'] = relation_info['node_from']
+        node_from['type'] = relation_info['node_from_type']
+        node_to['id'] = relation_info['node_to']
+        node_to['type'] = relation_info['node_to_type']
+        node1 = get_or_create_node(gdb, node_from, graph)
+        node2 = get_or_create_node(gdb, node_to, graph)
+        rel_obj = get_or_create_relationship(node1,
+                                            node2,
+                                            relation_info['relation'])
+        if rel_obj:
+            success = True
+        else:
+            success = False
+        return HttpResponse(simplejson.dumps({'success':success}))

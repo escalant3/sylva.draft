@@ -33,4 +33,7 @@ urlpatterns = patterns('',
     (r'^$', 'graph.views.index'),
     (r'(\d+)/$', 'graph.views.editor'),
     (r'(\d+)/search_results/$', 'graph.views.search_results'),
+    (r'import_manager/$', 'graph.views.import_manager'),
+    (r'(\d+)/add_node_ajax/$', 'graph.views.add_node_ajax'),
+    (r'(\d+)/add_relationship_ajax/$', 'graph.views.add_relationship_ajax'),
 )

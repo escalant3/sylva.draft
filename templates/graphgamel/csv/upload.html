@@ -1,0 +1,19 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Sylva</h1>
+{% endblock %}
+
+{% block content %}
+{% if form.is_multipart %}
+    <form enctype="multipart/form-data" method="post" action="{% url graph.views.import_manager %}">
+{% else %}
+    <form method="post" action="{% url graph.views.import_manager %}">
+{% endif %}
+{{ form }}
+<input type="submit" value="Commit"/>
+</form>
+{% endblock %}

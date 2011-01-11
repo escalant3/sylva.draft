@@ -57,7 +57,7 @@ class Schema(models.Model):
 
     def get_node_types(self):
         node_types = set()
-        for vr in ValidRelation.objects.all():
+        for vr in ValidRelation.objects.filter(schema=self):
             if vr.node_from.name not in node_types:
                 node_types.add(vr.node_from.name)
             if vr.node_to.name not in node_types:
