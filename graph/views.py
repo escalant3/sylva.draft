@@ -60,6 +60,7 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
                                 'type', n['type'])
     if len(result) == 1:
         node = result[0]
+        n['id'] = slug_id
         for key, value in n.iteritems():
             node.set(key, value)
     else:
@@ -84,7 +85,6 @@ def create_node(gdb, n, graph):
     node = gdb.node(**node_properties)
     gdb.add_to_index('id', n['id'], node)
     gdb.add_to_index('type', n['type'], node)
-
     graph_index = GraphIndex(graph=graph,
                             node_id=n['id'],
                             node_type=n['type'])
@@ -592,7 +592,11 @@ def add_node_ajax(request, graph_id):
         graph = Neo4jGraph.objects.get(pk=int(graph_id))
         gdb = neo4jclient.GraphDatabase(graph.host)
         node = simplejson.loads(request.GET['json_node'])
-        new_node = create_node(gdb, node, graph)
+        collapse = simplejson.loads(request.GET['collapse'])
+        if collapse:
+            new_node = get_or_create_node(gdb, node, graph)
+        else:
+            new_node = create_node(gdb, node, graph, collapse)
         if new_node:
             success = True
         else:

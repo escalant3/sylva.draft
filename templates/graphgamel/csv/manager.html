@@ -31,7 +31,8 @@ function commitData() {
     fields = document.getElementsByClassName('field_selector');
     graph_data = {};
     extra_fields = {}
-    new_nodes = [];
+    new_nodes_to_collapse = [];
+    new_nodes_to_duplicate = []
     new_relationships = [];
     // Checks node types and extra fields declared in header
     for(j=0;j<columns.length;j++) {
@@ -56,8 +57,11 @@ function commitData() {
                             node_info[extra_fields[k][1]] = data[i][k];
                         }
                     } 
-
-                    new_nodes.push(node_info);
+                    collapse = document.getElementById('collapse_'+j);
+                    if (collapse.checked)
+                        new_nodes_to_collapse.push(node_info);
+                    else
+                        new_nodes_to_duplicate.push(node_info);
             }
             // Searching relations between the fields of the row
             for(k=0;k<valid_relations.length;k++) {
@@ -81,14 +85,27 @@ function commitData() {
         }
     }
     // Creates the nodes in Sylva server
-    total = new_relationships.length;
-    for(i=0;i<new_nodes.length;i++) {
+    total = new_nodes_to_collapse.length;
+    for(i=0;i<new_nodes_to_collapse.length;i++) {
         $.ajax({url: "{% url graph.views.add_node_ajax graph_id %}", 
-            data: {json_node: JSON.stringify(new_nodes[i])},
+            data: {json_node: JSON.stringify(new_nodes_to_collapse[i]),
+                    collapse: true},
             dataType: "json",
             async: false,
             success: function(response) {
-                document.getElementById('progress_bar').innerHTML= "Exported " + i + " nodes of " + total;
+                document.getElementById('progress_bar').innerHTML= "Exported " + i + " collapsable nodes of " + total;
+            }
+        });
+    }
+    total = new_nodes_to_duplicate.length;
+    for(i=0;i<new_nodes_to_duplicate.length;i++) {
+        $.ajax({url: "{% url graph.views.add_node_ajax graph_id %}", 
+            data: {json_node: JSON.stringify(new_nodes_to_duplicate[i]),
+                    collapse: false},
+            dataType: "json",
+            async: false,
+            success: function(response) {
+                document.getElementById('progress_bar').innerHTML= "Exported " + i + " regular nodes of " + total;
             }
         });
     }
@@ -118,7 +135,8 @@ function commitData() {
     <p id="progress_bar"/>
 {% endif %}
 <table>
-    <th>
+    <tr>
+    <td></td>
     {% for item in len %}
         <td><select class="column_selector" id="column_{{ item }}">
             <option value="null">- - - -</option>
@@ -127,28 +145,34 @@ function commitData() {
             {% endfor %}
         </select></td>
     {% endfor %}
-    </th>
+    </tr>
     <tr>
     <td></td>
     {% for item in len %}
         <td>
-            <table>
-             <tr>
-              <td>
-               <select class="field_selector" id="field_{{ item }}">
+            <input id="collapse_{{ forloop.counter0 }}"
+                    class="collapse_selector"
+                    type="checkbox" checked>
+        </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    <td></td>
+    {% for item in len %}
+        <td><select class="field_selector" id="field_{{ item }}">
                 <option value="null">- - - -</option>
                 {% for node_type in node_types %}
                     <option value="{{ node_type }}">{{ node_type }}</option>
                 {% endfor %}
-               </select>
-              </td>
-             </tr>
-             <tr>
-              <td>
-               <input type="text" id="key_{{ item }}" size="4"/>
-              </td>
-             </tr>
-            </table>
+            </select>
+        </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    <td></td>
+    {% for item in len %}
+        <td>
+            <input type="text" id="key_{{ item }}" size="4"/>
         </td>
     {% endfor %}
     </tr>
