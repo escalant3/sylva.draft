@@ -11,19 +11,6 @@
 <script type="application/javascript">
 var data = eval({{ json_data|safe }});
 var valid_relations = eval({{ valid_relations|safe }});
-function selectAll() {
-    boxes = document.getElementsByClassName('csv_selector');
-    for(var i in boxes) {
-        boxes[i].checked = true;
-    }
-}
-
-function deselectAll() {
-    boxes = document.getElementsByClassName('csv_selector');
-    for(var i in boxes) {
-        boxes[i].checked = false;
-    }
-}
 
 function commitData() {
     rows = document.getElementsByClassName('csv_selector');
@@ -129,8 +116,8 @@ function commitData() {
 
 {% block content %}
 {% if rows %}
-    <button onClick="selectAll()">Select all</button>
-    <button onClick="deselectAll()">Deselect all</button>
+    <button onClick="$('.csv_selector').attr('checked',true);">Select all</button>
+    <button onClick="$('.csv_selector').attr('checked',false);">Deselect all</button>
     <button onClick="commitData()">Commit data</button>
     <p id="progress_bar"/>
 {% endif %}
