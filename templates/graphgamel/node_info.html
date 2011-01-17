@@ -128,6 +128,9 @@
         <input type="button" value="Add new property" onClick="GRAPHGAMEL.add_property()">
 {% endif %}
 <h3>Relationships</h3>
+Showing page {{ pagination.page }} of {{ pagination.total }}
+<a href="{% url graph.views.node_info graph_id node_id pagination.previous %}">Previous</a> | 
+<a href="{% url graph.views.node_info graph_id node_id pagination.next %}">Next</a>
 <table>
 {% for relation in relationships %}
     <tr>

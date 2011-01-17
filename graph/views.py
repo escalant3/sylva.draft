@@ -17,6 +17,7 @@ from schema.models import ValidRelation
 
 
 RESERVED_FIELD_NAMES = ('id', 'type')
+RELATIONS_PER_PAGE = 20
 
 
 def index(request, error=''):
@@ -233,13 +234,21 @@ def editor(request, graph_id):
                         'graph_id': graph_id}))
 
 
-def node_info(request, graph_id, node_id):
+def node_info(request, graph_id, node_id, page=0):
+    page = int(page)
     gdb = get_neo4j_connection(graph_id)
     node = gdb.node[int(node_id)]
     properties = simplejson.dumps(node.properties)
     relationships = node.relationships.all()
     relationships_list = []
-    for r in relationships:
+    total_pages = len(relationships)/RELATIONS_PER_PAGE
+    pagination = {'page': page,
+                    'start': page*RELATIONS_PER_PAGE,
+                    'end': (page+1)*RELATIONS_PER_PAGE,
+                    'total': total_pages,
+                    'previous': max(0, page-1),
+                    'next': min(total_pages, page+1)}
+    for r in relationships[pagination['start']:pagination['end']]:
         relation_info = {'start_id': r.start.get('id', None),
                         'start_type': r.start.get('type', None),
                         'start_neo_id': r.start.id,
@@ -272,7 +281,8 @@ def node_info(request, graph_id, node_id):
                                     'graph_id': graph_id,
                                     'node_id': node_id,
                                     'media_items': media_items,
-                                    'node_name': node_name}))
+                                    'node_name': node_name,
+                                    'pagination': pagination}))
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
