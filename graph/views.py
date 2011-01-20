@@ -591,6 +591,7 @@ def import_manager(request):
                         'len': range(row_length),
                         'graph_id': graph_id,
                         'node_types': node_types,
+                        'relations': valid_relations,
                         'valid_relations':simplejson.dumps(valid_relations)})
     else:
         form = UploadCSVForm()
@@ -625,13 +626,17 @@ def add_relationship_ajax(request, graph_id):
         node_from['type'] = relation_info['node_from_type']
         node_to['id'] = relation_info['node_to']
         node_to['type'] = relation_info['node_to_type']
+        relation_data = relation_info['data']
         node1 = get_or_create_node(gdb, node_from, graph)
         node2 = get_or_create_node(gdb, node_to, graph)
         rel_obj = get_or_create_relationship(node1,
                                             node2,
                                             relation_info['relation'])
         if rel_obj:
+            for key, value in relation_data.iteritems():
+                rel_obj.set(key, value)
             success = True
+
         else:
             success = False
         return HttpResponse(simplejson.dumps({'success':success}))

@@ -16,10 +16,12 @@ function commitData() {
     rows = document.getElementsByClassName('csv_selector');
     columns = document.getElementsByClassName('column_selector');
     fields = document.getElementsByClassName('field_selector');
+    rfields = document.getElementsByClassName('rfield_selector');
     directions = document.getElementsByClassName('direction_selector');
     graph_data = {};
     direction_data = {};
     extra_fields = {}
+    rextra_fields = [];
     new_nodes_to_collapse = [];
     new_nodes_to_duplicate = []
     new_relationships = [];
@@ -28,11 +30,16 @@ function commitData() {
         item_id = "column_" + j;
         direction_id = "direction_" + j;
         extra_field_id = "field_" + j;
+        rextra_field_id = "rfield_" + j;
         if (columns[item_id].value != "null") {
             graph_data[j] = columns[item_id].value;
             direction_data[j] = directions[direction_id].value;
         } else if (fields[extra_field_id].value != "null") {
             extra_fields[j] = [fields[extra_field_id].value, document.getElementById('key_'+j).value];
+        }
+        if (rfields[rextra_field_id].value != "null") {
+            rextra_fields.push([rfields[rextra_field_id].value,
+                                document.getElementById('rkey_'+j).value, j]);
         }
     }
     // Checks rows data...
@@ -44,7 +51,7 @@ function commitData() {
                     node_info = {"type":graph_data[j], "id":data[i][j]};
                     // Searching additional fields for the node
                     for(var k in extra_fields) {
-                        if ((extra_fields[k][0] == graph_data[j]) && (data[i][k] != "")) {
+                        if ((extra_fields[k][0] == j) && (data[i][k] != "")) {
                             node_info[extra_fields[k][1]] = data[i][k];
                         }
                     } 
@@ -62,11 +69,21 @@ function commitData() {
                         for(var l in graph_data) {
                             if ((graph_data[l] == valid_relations[k].node_to) && (data[i][l] != "") 
                                 && (direction_data[l] != "start")) {
+                                relation_data = {};
+                                for(m=0;m<rextra_fields.length;m++) {
+                                    vr_id = rextra_fields[m][0];
+                                    if (data[i][rextra_fields[m][2]] != "" && valid_relations[vr_id]['node_from'] == graph_data[j] &&
+                                    valid_relations[vr_id]['relation'] == valid_relations[k].relation &&
+                                    valid_relations[vr_id]['node_to'] == graph_data[l]) {
+                                        relation_data[rextra_fields[m][1]] = data[i][rextra_fields[m][2]];
+                                    }
+                                }
                                 new_relationships.push({"node_from": data[i][j],
                                         "node_from_type": graph_data[j],
                                         "relation": valid_relations[k].relation,
                                         "node_to": data[i][l],
-                                        "node_to_type": graph_data[l],});
+                                        "node_to_type": graph_data[l],
+                                        "data": relation_data});
                                 break;
                             }
                         }
@@ -128,6 +145,11 @@ function commitData() {
     <p id="progress_bar"/>
 {% endif %}
 <table>
+    <th>
+    {% for item in len %}
+        <td>{{ item }}</td>
+    {% endfor %}
+    </th>
     <tr>
     <td></td>
     {% for item in len %}
@@ -164,8 +186,8 @@ function commitData() {
     {% for item in len %}
         <td><select class="field_selector" id="field_{{ item }}">
                 <option value="null">- - - -</option>
-                {% for node_type in node_types %}
-                    <option value="{{ node_type }}">{{ node_type }}</option>
+                {% for item in len %}
+                    <option value="{{ item }}">{{ item }}</option>
                 {% endfor %}
             </select>
         </td>
@@ -176,6 +198,26 @@ function commitData() {
     {% for item in len %}
         <td>
             <input type="text" id="key_{{ item }}" size="4"/>
+        </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    <td></td>
+    {% for item in len %}
+        <td><select class="rfield_selector" id="rfield_{{ item }}">
+                <option value="null">- - - -</option>
+                {% for r in relations %}
+                    <option value="{{ forloop.counter0 }}">{{ r.node_from }} {{ r.relation }} {{ r.node_to }}</option>
+                {% endfor %}
+            </select>
+        </td>
+    {% endfor %}
+    </tr>
+    <tr>
+    <td></td>
+    {% for item in len %}
+        <td>
+            <input type="text" id="rkey_{{ item }}" size="4"/>
         </td>
     {% endfor %}
     </tr>
