@@ -16,7 +16,9 @@ function commitData() {
     rows = document.getElementsByClassName('csv_selector');
     columns = document.getElementsByClassName('column_selector');
     fields = document.getElementsByClassName('field_selector');
+    directions = document.getElementsByClassName('direction_selector');
     graph_data = {};
+    direction_data = {};
     extra_fields = {}
     new_nodes_to_collapse = [];
     new_nodes_to_duplicate = []
@@ -24,9 +26,11 @@ function commitData() {
     // Checks node types and extra fields declared in header
     for(j=0;j<columns.length;j++) {
         item_id = "column_" + j;
+        direction_id = "direction_" + j;
         extra_field_id = "field_" + j;
         if (columns[item_id].value != "null") {
             graph_data[j] = columns[item_id].value;
+            direction_data[j] = directions[direction_id].value;
         } else if (fields[extra_field_id].value != "null") {
             extra_fields[j] = [fields[extra_field_id].value, document.getElementById('key_'+j).value];
         }
@@ -53,9 +57,11 @@ function commitData() {
             // Searching relations between the fields of the row
             for(k=0;k<valid_relations.length;k++) {
                 for(var j in graph_data) {
-                    if ((graph_data[j] == valid_relations[k].node_from) && (data[i][j] != "")) {
+                    if ((graph_data[j] == valid_relations[k].node_from) && (data[i][j] != "") 
+                        && (direction_data[j] != "end")) {
                         for(var l in graph_data) {
-                            if ((graph_data[l] == valid_relations[k].node_to) && (data[i][l] != "")) {
+                            if ((graph_data[l] == valid_relations[k].node_to) && (data[i][l] != "") 
+                                && (direction_data[l] != "start")) {
                                 new_relationships.push({"node_from": data[i][j],
                                         "node_from_type": graph_data[j],
                                         "relation": valid_relations[k].relation,
@@ -130,6 +136,16 @@ function commitData() {
             {% for node_type in node_types %}
                 <option value="{{ node_type }}">{{ node_type }}</option>
             {% endfor %}
+        </select></td>
+    {% endfor %}
+    </tr>
+    <tr>
+    <td></td>
+    {% for item in len %}
+        <td><select class="direction_selector" id="direction_{{ item }}">
+            <option value="null">- - - -</option>
+            <option value="start">Start</option>
+            <option value="end">End</option>
         </select></td>
     {% endfor %}
     </tr>
