@@ -4,6 +4,7 @@ function RaphaelGraph(_data) {
     this.paper = Raphael("canvas", this.width, this.height);
     this.data = _data;
     this.elements = {};
+    this.labels = {};
     raphael_object = this;
     this.paper.raphael_object = this;
 }
@@ -105,22 +106,23 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
             node_dragged._xpos = x;
             node_dragged._ypos = y;
             edges = raphael.elements[node.id].edges;
-            for (var node_id in edges) {
-                edges[node_id].remove();
-                edge = {};
-                edge.node1 = node.id;
-                edge.node2 = node_id;
-                raphael.draw_edge(edge, false);
-            }
+            for (var relation_id in edges) {
+                for (var node_id in edges[relation_id]) {
+                    edges[relation_id][node_id].remove();
+                    edge = {};
+                    edge.node1 = node.id;
+                    edge.node2 = node_id;
+                    edge.id = relation_id;
+                    raphael.draw_edge(edge);
+                }
+           }
+           //raphael.elements[node.id]["label"].remove();
+           raphael.draw_label(node_dragged);
+ 
         }
         c.drag(move, up);
     }
-    if (this.show_labels == true) {
-        var t = this.paper.text(node._xpos-this.NODE_SIZE,
-                                node._ypos-this.NODE_SIZE,
-                                node[this.node_label_field]);
-        t.attr({fill:this.font_color});
-    }
+    this.draw_label(node);
 };
 
 RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
@@ -129,8 +131,12 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
     string_path = "M" + node1._xpos + " " + node1._ypos + 
                     "L" + node2._xpos + " " + node2._ypos;
     var e = this.paper.path(string_path);
-    this.elements[edge.node1]["edges"][edge.node2] = e;
-    this.elements[edge.node2]["edges"][edge.node1] = e;
+    if (this.elements[edge.node1]["edges"][edge.id] == undefined) 
+        this.elements[edge.node1]["edges"][edge.id] = {};
+    if (this.elements[edge.node2]["edges"][edge.id] == undefined) 
+        this.elements[edge.node2]["edges"][edge.id] = {};
+    this.elements[edge.node1]["edges"][edge.id][edge.node2] = e;
+    this.elements[edge.node2]["edges"][edge.id][edge.node1] = e;
     raphael = this;
 
     if (this.events_enabled) {
@@ -153,12 +159,29 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
         e.toBack();
     }
     if (this.show_labels == true) {
+        if (this.labels[edge.node1+edge.id+edge.node2] != undefined)
+            this.labels[edge.node1+edge.id+edge.node2].remove();
         central_point_x = (node1._xpos + node2._xpos)/2;
         central_point_y = (node1._ypos + node2._ypos)/2;
         var t = this.paper.text(central_point_x,
                                 central_point_y,
                                 edge[this.edge_label_field]);
+        
+        this.labels[edge.node1+edge.id+edge.node2] = t;
+        this.labels[edge.node2+edge.id+edge.node1] = t;
         t.attr({fill:this.font_color});
+    }
+};
+
+RaphaelGraph.prototype.draw_label = function draw_label(node) {
+    if (this.show_labels == true) {
+        var t = this.paper.text(node._xpos-this.NODE_SIZE,
+                                node._ypos-this.NODE_SIZE,
+                                node[this.node_label_field]);
+        t.attr({fill:this.font_color});
+        if (this.labels[node.id] != undefined) 
+            this.labels[node.id].remove();
+        this.labels[node.id] = t;
     }
 };
 
