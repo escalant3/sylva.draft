@@ -28,7 +28,7 @@
 </ul>
 <h3>Search by id</h3>
 <form class="search_box" action="{% url graph.views.search_node graph_id %}" method="get">
-    <label for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
+    <label class="search_label" for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
     <input type="text" size="80" name="field_value" value="{{ search_string }}" id="searchbar" />
     <input type="submit" value="Search" />
 </form>

@@ -26,6 +26,11 @@ div.audio_item {
 form.search_box {
     margin-top: 20px;
     margin-bottom: 20px;
+    padding: 10px;
     background: #EDF3FE;
-    width: 520px;
+    width: 680px;
+}
+
+label.search_label {
+    vertical-align: middle;
 }
