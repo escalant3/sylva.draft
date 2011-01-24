@@ -12,6 +12,16 @@
 var data = eval({{ json_data|safe }});
 var valid_relations = eval({{ valid_relations|safe }});
 
+function start_log() {
+    document.getElementById('rows_canvas').innerHTML= "IMPORTATION LOG:<br/>";
+}
+
+function log_error(data_type, error_data) {
+    jerror_data = JSON.stringify(error_data);
+    document.getElementById('rows_canvas').innerHTML+= "Could not export " + data_type +
+                                                    " with value " + jerror_data + "<br>";
+}
+
 function commitData() {
     rows = document.getElementsByClassName('csv_selector');
     columns = document.getElementsByClassName('column_selector');
@@ -43,6 +53,7 @@ function commitData() {
         }
     }
     // Checks rows data...
+    document.getElementById('progress_bar').innerHTML= "Creating nodes information..."
     for(i=0;i<rows.length;i++) {
         if (rows[i].checked) {
             // Creating nodes from the header declarations
@@ -62,6 +73,7 @@ function commitData() {
                         new_nodes_to_duplicate.push(node_info);
             }
             // Searching relations between the fields of the row
+            document.getElementById('progress_bar').innerHTML= "Creating relationships information..."
             for(k=0;k<valid_relations.length;k++) {
                 for(var j in graph_data) {
                     if ((graph_data[j] == valid_relations[k].node_from) && (data[i][j] != "") 
@@ -94,7 +106,10 @@ function commitData() {
 
         }
     }
+
+    start_log();    
     // Creates the nodes in Sylva server
+
     total = new_nodes_to_collapse.length;
     for(i=0;i<new_nodes_to_collapse.length;i++) {
         $.ajax({url: "{% url graph.views.add_node_ajax graph_id %}", 
@@ -103,7 +118,10 @@ function commitData() {
             dataType: "json",
             async: false,
             success: function(response) {
-                document.getElementById('progress_bar').innerHTML= "Exported " + i + " collapsable nodes of " + total;
+                document.getElementById('progress_bar').innerHTML= "Processed " + i + " collapsable nodes of " + total;
+            },
+            error: function(response) {
+                log_error("node", new_nodes_to_collapse[i]);
             }
         });
     }
@@ -115,8 +133,12 @@ function commitData() {
             dataType: "json",
             async: false,
             success: function(response) {
-                document.getElementById('progress_bar').innerHTML= "Exported " + i + " regular nodes of " + total;
+                document.getElementById('progress_bar').innerHTML= "Processed " + i + " regular nodes of " + total;
+            },
+            error: function(response) {
+                log_error("node", new_nodes_to_duplicate[i]);
             }
+
         });
     }
     // Creates the relationships in Sylva server
@@ -127,8 +149,12 @@ function commitData() {
             dataType: "json",
             async: false,
             success: function(response) {
-                document.getElementById('progress_bar').innerHTML= "Exported " + i + " relationships of " + total;
+                document.getElementById('progress_bar').innerHTML= "Processed " + i + " relationships of " + total;
+            },
+            error: function(response) {
+                log_error("relationship", new_relationships[i]);
             }
+
         });
     }
     document.getElementById('progress_bar').innerHTML= "Exportation finished";
@@ -144,6 +170,7 @@ function commitData() {
     <button onClick="commitData()">Commit data</button>
     <p id="progress_bar"/>
 {% endif %}
+<div id="rows_canvas">
 <table>
     <th>
     {% for item in len %}
@@ -232,4 +259,5 @@ function commitData() {
     </tr>
     {% endfor %}
 </table>
+</div>
 {% endblock %}
