@@ -38,8 +38,21 @@
                     counter += 1;
                 }
                 for (var edge_id in new_graph.edges) {
-                    edge_index = counter + parseInt(edge_id);
-                    gdata.edges[edge_index.toString()] = new_graph.edges[edge_id];
+                    edge_exists = false;
+                    for (var old_edge_id in gdata.edges) {
+                        if ((gdata.edges[old_edge_id].id == new_graph.edges[edge_id].id) &&
+                            (gdata.edges[old_edge_id].node1 == new_graph.edges[edge_id].node1) &&
+                            (gdata.edges[old_edge_id].node2 == new_graph.edges[edge_id].node2)) {
+                                edge_exists = true;
+                                break;
+                            }
+                    }
+                    if (edge_exists) 
+                        continue;
+                    else {
+                        edge_index = counter + parseInt(edge_id);
+                        gdata.edges[edge_index.toString()] = new_graph.edges[edge_id];
+                    }
                 }
                 raphael.draw("circular");
             }
