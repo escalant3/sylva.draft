@@ -21,6 +21,7 @@ RaphaelGraph.prototype.multiselection_table = [];
 RaphaelGraph.prototype.events_enabled = true;
 RaphaelGraph.prototype.default_node_color = "#f00";
 RaphaelGraph.prototype.font_color = "#000";
+RaphaelGraph.prototype.dragging = false;
 
 RaphaelGraph.prototype.draw = function draw(layout) {
     nodes = this.data.nodes;
@@ -72,13 +73,17 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
             selected_node = node.id;
             selected_edge = null;
             info_html = raphael.info_as_table(node);
-            if (!raphael.multiselection) {
-                MenuControl.toggle('element_info_menu');
-                raphael.show_node_action_box(node._xpos + raphael.XMARGIN,
-                                    node._ypos + raphael.YMARGIN);
-            } else {
-                raphael.multiselection_table.push(selected_node);
-                raphael.show_node_multiselection_box();
+            if (raphael.dragging) 
+                raphael.dragging = false;
+            else {
+                if (!raphael.dragging && !raphael.multiselection) {
+                    MenuControl.toggle('element_info_menu');
+                    raphael.show_node_action_box(node._xpos + raphael.XMARGIN,
+                                        node._ypos + raphael.YMARGIN);
+                } else {
+                    raphael.multiselection_table.push(selected_node);
+                    raphael.show_node_multiselection_box();
+                };
             };
         };
         c.node.onmouseover = function () {
@@ -89,12 +94,13 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
         };
 
         function move(dx, dy) {
+            raphael.dragging = true;
             this.update(dx - (this.dx || 0), dy - (this.dy || 0));
             this.dx = dx;
             this.dy = dy;
         }
 
-        function up() {
+        function down() {
             this.dx = this.dy = 0;
         }
 
@@ -116,11 +122,10 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
                     raphael.draw_edge(edge);
                 }
            }
-           //raphael.elements[node.id]["label"].remove();
            raphael.draw_label(node_dragged);
  
         }
-        c.drag(move, up);
+        c.drag(move, down);
     }
     this.draw_label(node);
 };
