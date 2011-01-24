@@ -34,3 +34,14 @@ form.search_box {
 label.search_label {
     vertical-align: middle;
 }
+
+div.instructions {
+    width:700px;
+    text-align: justify;
+    font-size: 16px;
+    padding-bottom: 40px;
+}
+
+div.hidden {
+    display: none;
+}

@@ -4,13 +4,62 @@
 {% load i18n %}
 
 {% block branding %}
-<h1 id="site-name">Sylva</h1>
+<h1 id="site-name">Sylva: Importation Manager</h1>
 {% endblock %}
 
 {% block extracode %}
 <script type="application/javascript">
 var data = eval({{ json_data|safe }});
 var valid_relations = eval({{ valid_relations|safe }});
+var step = 0;
+
+function manager(step) {
+    function configure_trs(showing_list, hidden_list, blocked_list) {
+        for(i=0;i<showing_list.length;i++) {
+            tr_element = document.getElementById(showing_list[i]);
+            tr_element.style.display = "";
+            tr_element.style.disabled = false;
+        }
+        for(i=0;i<hidden_list.length;i++) {
+            tr_element = document.getElementById(hidden_list[i]);
+            tr_element.style.display = "none";
+        }
+        for(i=0;i<blocked_list.length;i++) {
+            $('.'+blocked_list[i]).attr('disabled', true);
+        }
+
+    }
+    document.getElementById('instructions').innerHTML = document.getElementById('instructions_'+step).innerHTML;
+    switch (step) {
+        case 0: // Data rows selection
+            configure_trs([],["numbers_tr", "types_tr", "direction_tr", "collapse_tr",
+                   "field1_tr", "field2_tr", "rfield1_tr", "rfield2_tr"], []);
+            break;
+        case 1: // Node generator type selection
+            configure_trs(["types_tr"],["numbers_tr", "direction_tr", "collapse_tr",
+                   "field1_tr", "field2_tr", "rfield1_tr", "rfield2_tr"], []);
+            break;
+        case 2:
+            configure_trs(["direction_tr"], ["numbers_tr", "collapse_tr", "field1_tr",
+                    "field2_tr", "rfield1_tr", "rfield2_tr"], ["column_selector"]);
+            break;
+        case 3:
+            configure_trs(["collapse_tr"],["numbers_tr", "field1_tr", "field2_tr",
+                    "rfield1_tr", "rfield2_tr"], ["column_selector", "direction_selector"]);
+            break;
+        case 4:
+            configure_trs(["numbers_tr", "field1_tr", "field2_tr"], ["rfield1_tr",
+                    "rfield2_tr"], ["column_selector", "direction_selector",
+                    "collapse_selector"]);
+            break;
+        case 5:
+            configure_trs(["rfield1_tr", "rfield2_tr"], ["numbers_tr"], ["column_selector", "direction_selector",
+                    "collapse_selector", "field_selector", "tfield_selector"]);
+            document.getElementById('finish').disabled = false;
+            document.getElementById('next').disabled = true;
+            break;
+    }
+}
 
 function start_log() {
     document.getElementById('rows_canvas').innerHTML= "IMPORTATION LOG:<br/>";
@@ -23,6 +72,8 @@ function log_error(data_type, error_data) {
 }
 
 function commitData() {
+    document.getElementById('manager_buttons').style.display = "none";
+    document.getElementById('instructions').style.display = "none";
     rows = document.getElementsByClassName('csv_selector');
     columns = document.getElementsByClassName('column_selector');
     fields = document.getElementsByClassName('field_selector');
@@ -160,24 +211,44 @@ function commitData() {
     document.getElementById('progress_bar').innerHTML= "Exportation finished";
     
 }
+
+function start_configuration() {
+    document.getElementById('selection_buttons').style.display = "none";
+    document.getElementById('manager_buttons').style.display = "";
+    step++;
+    manager(step);
+}
+
+window.onload = function() {
+    manager(step);
+    document.getElementById('manager_buttons').style.display = "none";
+}
 </script>
 {% endblock %}
 
 {% block content %}
+<div id="instructions" class="instructions"></div>
 {% if rows %}
-    <button onClick="$('.csv_selector').attr('checked',true);">Select all</button>
-    <button onClick="$('.csv_selector').attr('checked',false);">Deselect all</button>
-    <button onClick="commitData()">Commit data</button>
+    <div id="selection_buttons">
+        <button id="sall" onClick="$('.csv_selector').attr('checked',true);">Select all</button>
+        <button id="dsall" onClick="$('.csv_selector').attr('checked',false);">Deselect all</button>
+        <button id="startbtn" onClick="start_configuration();">Next</button>
+    </div>
+    <div id="manager_buttons">
+        <button id="next" onClick="step++;manager(step);">Next</button>
+        <button id="finish" disabled="true" onClick="commitData()">Finish</button>
+    </div>
     <p id="progress_bar"/>
 {% endif %}
 <div id="rows_canvas">
 <table>
-    <th>
+    <tr id="numbers_tr">
+    <td></td>
     {% for item in len %}
         <td>{{ item }}</td>
     {% endfor %}
-    </th>
-    <tr>
+    </tr>
+    <tr id="types_tr">
     <td></td>
     {% for item in len %}
         <td><select class="column_selector" id="column_{{ item }}">
@@ -188,7 +259,7 @@ function commitData() {
         </select></td>
     {% endfor %}
     </tr>
-    <tr>
+    <tr id="direction_tr">
     <td></td>
     {% for item in len %}
         <td><select class="direction_selector" id="direction_{{ item }}">
@@ -198,7 +269,7 @@ function commitData() {
         </select></td>
     {% endfor %}
     </tr>
-    <tr>
+    <tr id="collapse_tr">
     <td></td>
     {% for item in len %}
         <td>
@@ -208,7 +279,7 @@ function commitData() {
         </td>
     {% endfor %}
     </tr>
-    <tr>
+    <tr id="field1_tr">
     <td></td>
     {% for item in len %}
         <td><select class="field_selector" id="field_{{ item }}">
@@ -220,15 +291,15 @@ function commitData() {
         </td>
     {% endfor %}
     </tr>
-    <tr>
+    <tr id="field2_tr">
     <td></td>
     {% for item in len %}
         <td>
-            <input type="text" id="key_{{ item }}" size="4"/>
+            <input type="text" id="key_{{ item }}" size="4" class="tfield_selector"/>
         </td>
     {% endfor %}
     </tr>
-    <tr>
+    <tr id="rfield1_tr">
     <td></td>
     {% for item in len %}
         <td><select class="rfield_selector" id="rfield_{{ item }}">
@@ -240,7 +311,7 @@ function commitData() {
         </td>
     {% endfor %}
     </tr>
-    <tr>
+    <tr id="rfield2_tr">
     <td></td>
     {% for item in len %}
         <td>
@@ -259,5 +330,53 @@ function commitData() {
     </tr>
     {% endfor %}
 </table>
+</div>
+<div id="instructions_0" class="hidden">
+<p>You should see below all the data included in your CSV file in a tabular 
+distribution. Select the rows you wish to import. You can also use the 
+<strong>Select/Deselect All</strong> buttons.</p> 
+<p>Press <strong>Next</strong> when you are done.</p>
+</div>
+<div id="instructions_1" class="hidden">
+<p>Now, you have to choose which columns of your CSV file are going to 
+generate new nodes in the graph database. You just need to select the
+type that a column generates and leave the rest in blank (- - - -).</p>
+<p>You shouldn't choose the same type in more than two columns.</p>
+<p>Press <strong>Next</strong> when you are done.</p>
+</div>
+<div id="instructions_2" class="hidden">
+<p>As you may know, Sylva graph databases are directed. This means that
+relationships between elements are from one node to another and not in
+the reverse way unless it is explicitly specified.</p>
+<p>Sylva Importer will try to find every possible relation between your
+fields but if you want to declare some of them as "Only Start" or 
+"Only End" you can do it by selecting the correct option in the following
+controls.</p>
+<p>Press <strong>Next</strong> when you are done.</p>
+</div>
+<div id="instructions_3" class="hidden">
+<p>By default, Sylva will recognize common values in your columns and it will
+generate the node once. If you want to avoid this behaviour for one of 
+your columns, just uncheck the desired control.</p>
+<p>Press <strong>Next</strong> when you are done.</p>
+</div>
+<div id="instructions_4" class="hidden">
+<p>You may want to use some of the remaining columns to create fields of the
+nodes created.</p>
+<p>A little number has appeared over each of the columns. If you want to associate
+a column with another, just select the number of the index in the selector and enter
+a name in the text input. This name will be the key of the property that will be 
+generated in the node.</p>
+<p>Press <strong>Next</strong> when you are done.</p>
+</div>
+<div id="instructions_5" class="hidden">
+<p>As well as node properties, you may want to create relationship properties. Similar 
+to the previous step, select the desired relationship type in the selector and enter
+below the key of the property that will be generated.</p>
+<p>Press <strong>Finish</strong> to start the importation process. Depending of the 
+number of rows this process can take a long time.</p>
+</div>
+<div id="instructions_6" class="hidden">
+Help 6
 </div>
 {% endblock %}
