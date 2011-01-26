@@ -1,6 +1,6 @@
 function RaphaelGraph(_data) {
-    this.width = window.innerWidth * 0.85;
-    this.height = window.innerHeight * 0.95;
+    this.width = Math.min(window.innerWidth * 0.85, 1200);
+    this.height = Math.min(window.innerHeight * 0.95, 800);
     this.paper = Raphael("canvas", this.width, this.height);
     this.data = _data;
     this.elements = {};
