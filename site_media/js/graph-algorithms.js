@@ -20,9 +20,9 @@ var GraphLayout = {
     for(i=0;i<2*Math.PI;i=i+step) {
         points.push(i);
     }
-    scale_x = width/2;
+    scale_x = width/2 - this.margin;
     offset_x = width/2;
-    scale_y = height/2;
+    scale_y = height/2 - this.margin;
     offset_y = height/2;
     for(var i in nodes) {
         point = points.pop()
@@ -108,7 +108,7 @@ var GraphLayout = {
 
 /* Returns a number between 0 and n */
 'rand' : function(n) {
-    return (Math.floor(Math.random( ) * n + 1 ));
+    return (Math.floor(this.margin + Math.random( ) * (n-this.margin) + 1 ));
 },
 
 /* Returns the distance between two nodes */

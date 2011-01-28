@@ -7,6 +7,9 @@ function RaphaelGraph(_data) {
     this.labels = {};
     raphael_object = this;
     this.paper.raphael_object = this;
+    counter = 0;
+    for (var node in _data.nodes) counter++;
+    this.number_of_nodes = counter;
 }
 
 RaphaelGraph.prototype.NODE_SIZE = 10;
@@ -24,6 +27,8 @@ RaphaelGraph.prototype.font_color = "#000";
 RaphaelGraph.prototype.dragging = false;
 
 RaphaelGraph.prototype.draw = function draw(layout) {
+    this.NODE_SIZE = (this.width / 8) / this.number_of_nodes;
+    GraphLayout.margin = this.NODE_SIZE;
     nodes = this.data.nodes;
     edges = this.data.edges;
     width = this.width - 2 * this.NODE_SIZE;
