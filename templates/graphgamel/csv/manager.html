@@ -4,7 +4,7 @@
 {% load i18n %}
 
 {% block branding %}
-<h1 id="site-name">Sylva: Importation Manager</h1>
+<h1 id="site-name">Sylva: Import Manager</h1>
 {% endblock %}
 
 {% block extracode %}
@@ -67,7 +67,7 @@ function start_log() {
 
 function log_error(data_type, error_data) {
     jerror_data = JSON.stringify(error_data);
-    document.getElementById('rows_canvas').innerHTML+= "Could not export " + data_type +
+    document.getElementById('rows_canvas').innerHTML+= "Could not import " + data_type +
                                                     " with value " + jerror_data + "<br>";
 }
 
@@ -208,7 +208,7 @@ function commitData() {
 
         });
     }
-    document.getElementById('progress_bar').innerHTML= "Exportation finished";
+    document.getElementById('progress_bar').innerHTML= "Import finished";
     
 }
 
