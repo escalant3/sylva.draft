@@ -116,7 +116,7 @@
     <script type="text/javascript" charset="utf-8">
         window.onload = function () {
             raphael = new RaphaelGraph(gdata);
-            raphael.draw("circular");
+            raphael.draw("random");
             terminalWidget = document.getElementById('query');
             terminalWidget.onkeydown = onKeyDown;
             MenuControl.render_controls('.menu');
@@ -127,6 +127,7 @@
 {% block content %}
     {% include "graphgamel/graphview/menu.html" %}
     <div id="content">
+        <div id="explorer_menu"></div>
         <div id="canvas"> </div>
         <div id="info">
             {% block extra_controls %}{% endblock %}
