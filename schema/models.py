@@ -1,6 +1,7 @@
 import re
 import simplejson
 
+from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models
 from random import randint
@@ -16,6 +17,8 @@ def is_alphanumeric(value):
 class Schema(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=100)
+    allowed_users = models.ManyToManyField(User, blank=True)
+    allowed_groups = models.ManyToManyField(Group, blank=True)
 
     def __unicode__(self):
         return self.name
@@ -93,16 +96,16 @@ class Schema(models.Model):
 
 
 class NodeType(models.Model):
-    name = models.CharField(max_length=30, validators=[is_alphanumeric])
-    schema = models.ForeignKey(Schema)
+    name = models.CharField(max_length=30, unique=True,
+                            validators=[is_alphanumeric])
 
     def __unicode__(self):
         return self.name
 
 
 class EdgeType(models.Model):
-    name = models.CharField(max_length=30, validators=[is_alphanumeric])
-    schema = models.ForeignKey(Schema)
+    name = models.CharField(max_length=30, unique=True,
+                            validators=[is_alphanumeric])
 
     def __unicode__(self):
         return self.name
@@ -113,6 +116,8 @@ class ValidRelation(models.Model):
     relation = models.ForeignKey(EdgeType)
     node_to = models.ForeignKey(NodeType, related_name='node_to')
     schema = models.ForeignKey(Schema)
+    allowed_users = models.ManyToManyField(User, blank=True)
+    allowed_groups = models.ManyToManyField(Group, blank=True)
 
     def __unicode__(self):
         return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
