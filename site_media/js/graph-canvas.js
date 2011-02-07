@@ -1,5 +1,5 @@
 function RaphaelGraph(_data) {
-    this.width = Math.min(window.innerWidth * 0.85, 1200);
+    this.width = Math.min(window.innerWidth * 0.75, 1600);
     this.height = Math.min(window.innerHeight * 0.95, 800);
     this.paper = Raphael("canvas", this.width, this.height);
     this.data = _data;
@@ -8,8 +8,8 @@ function RaphaelGraph(_data) {
     raphael_object = this;
     this.paper.raphael_object = this;
     counter = 0;
-    for (var node in _data.nodes) counter++;
-    this.number_of_nodes = counter;
+    this.info_box = undefined;
+    this.showing_info_box = false;
 }
 
 RaphaelGraph.prototype.NODE_SIZE = 10;
@@ -27,7 +27,9 @@ RaphaelGraph.prototype.font_color = "#000";
 RaphaelGraph.prototype.dragging = false;
 
 RaphaelGraph.prototype.draw = function draw(layout) {
-    this.NODE_SIZE = (this.width / 8) / this.number_of_nodes;
+    for (var node in this.data.nodes) counter++;
+    this.number_of_nodes = counter;
+    this.NODE_SIZE = (this.width / 5) / this.number_of_nodes;
     GraphLayout.margin = this.NODE_SIZE;
     nodes = this.data.nodes;
     edges = this.data.edges;
@@ -44,6 +46,12 @@ RaphaelGraph.prototype.draw = function draw(layout) {
 
 RaphaelGraph.prototype.render = function render() {
     this.paper.clear();
+    this.canvas = this.paper.rect(5,5,this.width-10,this.height-10,50);
+    this.canvas.attr({"fill":"#EBEBEB",
+                "stroke-width":5,
+                "stroke":"#C0D4EE",
+                "opacity":0.50});
+
     this.elements = {};
     for (var node in this.data.nodes) {
         node_dict = this.data.nodes[node];
@@ -60,6 +68,7 @@ RaphaelGraph.prototype.render = function render() {
             this.draw_edge(edge);
         }
     };
+    this.canvas.toBack();
 }
 
 RaphaelGraph.prototype.draw_node = function draw_node(node) {
@@ -75,20 +84,22 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
     c.attr("stroke-width",this.NODE_SIZE/20);
     raphael = this;
     if (this.events_enabled) {
-        c.node.onclick = function() {
+        c.node.onclick = function(position) {
             selected_node = node.id;
             selected_edge = null;
             info_html = raphael.info_as_table(node);
-            if (raphael.dragging) 
+            if (raphael.dragging) {
                 raphael.dragging = false;
-            else {
+                raphael.canvas.toBack();
+            } else {
                 if (!raphael.dragging && !raphael.multiselection) {
-                    MenuControl.toggle('element_info_menu');
-                    raphael.show_node_action_box(node._xpos + raphael.XMARGIN,
-                                        node._ypos + raphael.YMARGIN);
+                    //MenuControl.toggle('element_info_menu');
+                    raphael.show_node_action_box(position.clientX + raphael.XMARGIN,
+                                        position.clientY + raphael.YMARGIN);
                 } else {
+                    raphael.enable_selection(node.id);
                     raphael.multiselection_table.push(selected_node);
-                    raphael.show_node_multiselection_box();
+                    //raphael.show_node_multiselection_box();
                 };
             };
         };
@@ -142,7 +153,8 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
     string_path = "M" + node1._xpos + " " + node1._ypos + 
                     "L" + node2._xpos + " " + node2._ypos;
     var e = this.paper.path(string_path);
-    e.attr("stroke-width", this.NODE_SIZE/12);
+    e.attr({"stroke-width": this.NODE_SIZE/12,
+            "stroke": "#000000"});
     if (this.elements[edge.node1]["edges"][edge.id] == undefined) 
         this.elements[edge.node1]["edges"][edge.id] = {};
     if (this.elements[edge.node2]["edges"][edge.id] == undefined) 
@@ -155,8 +167,8 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
         e.node.onclick = function (event) {
             selected_node = null;
             selected_edge = [edge.node1, edge.node2];
-            MenuControl.toggle('element_info_menu');
-            info_html = raphael.info_as_table(edge);
+            //MenuControl.toggle('element_info_menu');
+            //info_html = raphael.info_as_table(edge);
             xpos = event.clientX;
             ypos = event.clientY;
             raphael.show_edge_action_box(xpos, ypos);
@@ -182,6 +194,9 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
         this.labels[edge.node1+edge.id+edge.node2] = t;
         this.labels[edge.node2+edge.id+edge.node1] = t;
         t.attr({fill:this.font_color});
+    } else {
+        this.labels[edge.node1+edge.id+edge.node2] = undefined;
+        this.labels[edge.node2+edge.id+edge.node1] = undefined;
     }
 };
 
@@ -192,15 +207,77 @@ RaphaelGraph.prototype.draw_label = function draw_label(node) {
                                 node[this.node_label_field]);
         t.attr({fill:this.font_color});
         if (this.labels[node.id] != undefined) 
-            this.labels[node.id].remove();
+             this.labels[node.id].remove();
         this.labels[node.id] = t;
+    } else {
+        this.labels[node.id] = undefined;
     }
 };
 
 RaphaelGraph.prototype.show_node_action_box = function show_node_action_box(xpos, ypos) {
-    document.getElementById('floating_node_menu').style.display='block';
-    document.getElementById('floating_edge_menu').style.display='none';
+    if (this.showing_info_box)
+        this.info_box.remove();
+    raphael = this;
+    this.info_box = this.paper.set();
+    this.showing_info_box = true;
+    xpos = xpos-RaphaelMenu.width;
+    r = this.paper.rect(xpos, ypos, 20, 20, 10);
+    r.attr({"stroke":"#ADF1DA",
+                "stroke-width":5,
+                "opacity":0.75,
+                "fill":"#000"});
+    r.animate({"width":160, "height":200}, 200);
+    r.node.onclick = function() {raphael.info_box.remove();};
+    this.info_box.push(r);
+    buttons = ["Delete", "Expand", "Multiselection"];
+    functions = [delete_node, expand_node, multi_select];
+    xpos += 20;
+    for(i=0;i<buttons.length;i++)
+        this.create_button(this.info_box, xpos, ypos+20+i*60, buttons[i],
+        functions[i]);
+
+    // Info box dragging
+    function move(dx, dy) {
+        raphael.info_box.update(dx - (this.dx || 0), dy - (this.dy || 0));
+        this.dx = dx;
+        this.dy = dy;
+    }
+
+    function down() {
+        this.dx = this.dy = 0;
+    }
+
+    raphael.info_box.update = function (dx, dy) {
+        x = raphael.info_box.attr("cx") + dx;
+        y = raphael.info_box.attr("cy") + dy;
+        raphael.info_box.attr({cx: x, cy: y});
+    }
+    raphael.info_box.drag(move, down);
 };
+
+RaphaelGraph.prototype.create_button = function(set, x, y, label, f) {
+    var button = this.paper.set()
+    raphael = this;
+    var r = this.paper.rect(x,y,1,1,10);
+    r.attr({"stroke":"#ADF1DA",
+            "stroke-width":1,
+            "opacity":0.75,
+            "fill":"#fff"});
+    r.animate({"width":120, "height":40}, 300);
+    r.node.onmouseover = function() {r.attr({"fill":"yellow"})};
+    r.node.onmouseout = function() {r.attr({"fill":"white"})};
+    r.node.onclick = function() {raphael.showing_info_box=false;
+                                f();};
+    var t = this.paper.text(x+55,y+20,label).attr({"font-size":18,
+                                         "fill": "black",
+                                        "stroke-width":0.5,
+                                        "stroke":"white"});
+    t.node.onmouseover = r.node.onmouseover;
+    t.node.onmouseout = r.node.onmouseout;
+    t.node.onclick = r.node.onclick;
+    set.push(r);
+    set.push(t);
+}
 
 RaphaelGraph.prototype.show_edge_action_box = function show_edge_action_box(xpos, ypos) {
     document.getElementById('floating_edge_menu').style.display='block';
@@ -298,3 +375,14 @@ RaphaelGraph.prototype.toggle_nodes = function toggle_nodes(node_type) {
     }
     raphael.render();
 }
+
+RaphaelGraph.prototype.enable_selection = function enable_selection(node_id){
+    c = this.elements[node_id]["object"];
+    c.attr("stroke-width", this.NODE_SIZE/5);
+}
+
+RaphaelGraph.prototype.disable_selection = function disable_selection(node_id){
+    c = this.elements[node_id]["object"];
+    c.attr("stroke-width", this.NODE_SIZE/20);
+}
+
