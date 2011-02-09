@@ -80,7 +80,7 @@ RaphaelGraph.prototype.refresh_styles = function() {
 RaphaelGraph.prototype.draw = function draw(layout) {
     for (var node in this.data.nodes) counter++;
     this.number_of_nodes = counter;
-    this.NODE_SIZE = (this.width / 5) / this.number_of_nodes;
+    this.NODE_SIZE = Math.max((this.width / 5) / this.number_of_nodes, 1);
     this.refresh_styles();
     GraphLayout.margin = this.NODE_SIZE;
     nodes = this.data.nodes;
@@ -254,8 +254,9 @@ RaphaelGraph.prototype.draw_label = function draw_label(node) {
         var t = this.paper.text(node._xpos, node._ypos, node[this.node_label_field]);
         t.attr({"fill": this.style.fontColor,
                 "font-size": this.style.fontSize});
-        if (this.labels[node.id] != undefined) 
-             this.labels[node.id].remove();
+        if (this.labels[node.id] != undefined) {
+            this.labels[node.id].remove();
+        }
         this.labels[node.id] = t;
     } else {
         this.labels[node.id] = undefined;
