@@ -125,6 +125,7 @@
         window.onload = function () {
             raphael = new RaphaelGraph(gdata);
             raphael.draw("random");
+            raphael.toggle_labels("id");
             terminalWidget = document.getElementById('query');
             terminalWidget.onkeydown = onKeyDown;
             MenuControl.render_controls('.menu');

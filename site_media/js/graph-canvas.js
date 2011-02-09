@@ -22,14 +22,66 @@ RaphaelGraph.prototype.node_label_field = "";
 RaphaelGraph.prototype.multiselection = false;
 RaphaelGraph.prototype.multiselection_table = [];
 RaphaelGraph.prototype.events_enabled = true;
-RaphaelGraph.prototype.default_node_color = "#f00";
-RaphaelGraph.prototype.font_color = "#000";
 RaphaelGraph.prototype.dragging = false;
+RaphaelGraph.prototype.style = {
+    //Canvas properties
+    "canvasColor": "EBEBEB",
+    "canvasStrokeWidth": 5,
+    "canvasStroke": "#C0D4EE",
+    "canvasOpacity": 0.5,
+    //Font properties
+    "fontColor": "black",
+    "fontSize": 14,
+    //Node properties
+    "defaultNodeColor": "#f00",
+    "nodeStrokeColor": "black",
+    "overNodeStrokeColor": "red",
+    "nodeStrokeWidth": 2,           //Overwritten by refresh_style
+    "selectedNodeStrokeWidth": 5,   //Overwritten by refresh_style
+    //Edge properties
+    "edgeStrokeWidth": 2,           //Overwritten by refresh_style
+    "edgeStrokeColor": "#9F9191",
+    "overEdgeStrokeColor": "red",
+    //Floating window (fw) properties
+    "fwStrokeColor": "#ADF1DA",
+    "fwStrokeWidth": 5,
+    "fwOpacity": 0.75,
+    "fwColor": "#000",
+    "fwAngle": 10,
+    "fwInitialWidth": 20,
+    "fwInitialHeight": 20,
+    "fwFinalWidth": 160,
+    "fwFinalHeight": 200,
+    "fwAnimationTime": 200,
+    //Floating window button (fwbtn) properties
+    "fwbtnStrokeColor": "ADF1DA",
+    "fwbtnStrokeWidth": 1,
+    "fwbtnOpacity": 0.75,
+    "fwbtnColor": "#FFF",
+    "fwbtnWidth": 120,
+    "fwbtnHeight": 40,
+    "fwbtnAngle": 10,
+    "fwbtnAnimationTime": 50,
+    "fwbtnFontSize": 18,
+    "fwbtnFontColor": "black",
+    "fwbtnFontStrokeColor": "white",
+    "fwbtnFontStrokeWidth": 0.5,
+};
+
+
+RaphaelGraph.prototype.refresh_styles = function() {
+    dinamic_styles = [["nodeStrokeWidth", this.NODE_SIZE/40],
+                        ["selectedNodeStrokeWidth", this.NODE_SIZE/5],
+                        ["edgeStrokeWidth", this.NODE_SIZE/24]];
+    for(i=0;i<dinamic_styles.length;i++)
+        this.style[dinamic_styles[i][0]] = dinamic_styles[i][1];
+}
 
 RaphaelGraph.prototype.draw = function draw(layout) {
     for (var node in this.data.nodes) counter++;
     this.number_of_nodes = counter;
     this.NODE_SIZE = (this.width / 5) / this.number_of_nodes;
+    this.refresh_styles();
     GraphLayout.margin = this.NODE_SIZE;
     nodes = this.data.nodes;
     edges = this.data.edges;
@@ -47,10 +99,10 @@ RaphaelGraph.prototype.draw = function draw(layout) {
 RaphaelGraph.prototype.render = function render() {
     this.paper.clear();
     this.canvas = this.paper.rect(5,5,this.width-10,this.height-10,50);
-    this.canvas.attr({"fill":"#EBEBEB",
-                "stroke-width":5,
-                "stroke":"#C0D4EE",
-                "opacity":0.50});
+    this.canvas.attr({"fill": this.style.canvasColor,
+                "stroke-width": this.style.canvasStrokeWidth,
+                "stroke": this.style.canvasStroke,
+                "opacity": this.style.canvasOpacity});
 
     this.elements = {};
     for (var node in this.data.nodes) {
@@ -79,9 +131,9 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
     if (node.hasOwnProperty("color")) {
         c.attr("fill", node["color"]);
     } else {
-        c.attr("fill", this.default_node_color);
+        c.attr("fill", this.style.defaultNodeColor);
     }
-    c.attr("stroke-width",this.NODE_SIZE/20);
+    c.attr("stroke-width",this.style.nodeStrokeWidth);
     raphael = this;
     if (this.events_enabled) {
         c.node.onclick = function(position) {
@@ -93,21 +145,19 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
                 raphael.canvas.toBack();
             } else {
                 if (!raphael.dragging && !raphael.multiselection) {
-                    //MenuControl.toggle('element_info_menu');
                     raphael.show_node_action_box(position.clientX + raphael.XMARGIN,
                                         position.clientY + raphael.YMARGIN);
                 } else {
                     raphael.enable_selection(node.id);
                     raphael.multiselection_table.push(selected_node);
-                    //raphael.show_node_multiselection_box();
                 };
             };
         };
         c.node.onmouseover = function () {
-            c.attr("stroke","red");
+            c.attr("stroke", raphael.style.overNodeStrokeColor);
         };
         c.node.onmouseout = function () {
-            c.attr("stroke","black");
+            c.attr("stroke", raphael.style.nodeStrokeColor);
         };
 
         function move(dx, dy) {
@@ -153,8 +203,8 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
     string_path = "M" + node1._xpos + " " + node1._ypos + 
                     "L" + node2._xpos + " " + node2._ypos;
     var e = this.paper.path(string_path);
-    e.attr({"stroke-width": this.NODE_SIZE/12,
-            "stroke": "#000000"});
+    e.attr({"stroke-width": this.style.edgeStrokeWidth,
+            "stroke": this.style.edgeStrokeColor});
     if (this.elements[edge.node1]["edges"][edge.id] == undefined) 
         this.elements[edge.node1]["edges"][edge.id] = {};
     if (this.elements[edge.node2]["edges"][edge.id] == undefined) 
@@ -167,19 +217,17 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
         e.node.onclick = function (event) {
             selected_node = null;
             selected_edge = [edge.node1, edge.node2];
-            //MenuControl.toggle('element_info_menu');
-            //info_html = raphael.info_as_table(edge);
             xpos = event.clientX;
             ypos = event.clientY;
             raphael.show_edge_action_box(xpos, ypos);
         }
         e.node.onmouseover = function () {
-            e.attr("stroke", "red");
+            e.attr("stroke", raphael.style.overEdgeStrokeColor);
         };
         e.node.onmouseout = function () {
-            e.attr("stroke", "black");
+            e.attr("stroke", raphael.style.edgeStrokeColor);
         };
-        e.attr("stroke", "black");
+        e.attr("stroke", raphael.style.edgeStrokeColor);
         e.toBack();
     }
     if (this.show_labels == true) {
@@ -193,7 +241,8 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
         
         this.labels[edge.node1+edge.id+edge.node2] = t;
         this.labels[edge.node2+edge.id+edge.node1] = t;
-        t.attr({fill:this.font_color});
+        t.attr({"fill": this.style.fontColor,
+                "font-size": this.style.fontSize});
     } else {
         this.labels[edge.node1+edge.id+edge.node2] = undefined;
         this.labels[edge.node2+edge.id+edge.node1] = undefined;
@@ -202,10 +251,9 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
 
 RaphaelGraph.prototype.draw_label = function draw_label(node) {
     if (this.show_labels == true) {
-        var t = this.paper.text(node._xpos-this.NODE_SIZE,
-                                node._ypos-this.NODE_SIZE,
-                                node[this.node_label_field]);
-        t.attr({fill:this.font_color});
+        var t = this.paper.text(node._xpos, node._ypos, node[this.node_label_field]);
+        t.attr({"fill": this.style.fontColor,
+                "font-size": this.style.fontSize});
         if (this.labels[node.id] != undefined) 
              this.labels[node.id].remove();
         this.labels[node.id] = t;
@@ -221,14 +269,27 @@ RaphaelGraph.prototype.show_node_action_box = function show_node_action_box(xpos
     this.info_box = this.paper.set();
     this.showing_info_box = true;
     xpos = xpos-RaphaelMenu.width;
-    r = this.paper.rect(xpos, ypos, 20, 20, 10);
-    r.attr({"stroke":"#ADF1DA",
-                "stroke-width":5,
-                "opacity":0.75,
-                "fill":"#000"});
-    r.animate({"width":160, "height":200}, 200);
+    r = this.paper.rect(xpos, ypos,
+                        raphael.style.fwInitialWidth,
+                        raphael.style.fwInitialHeight,
+                        raphael.style.fwAngle);
+    r.attr({"stroke": raphael.style.fwStrokeColor,
+                "stroke-width": raphael.style.fwStrokeWidth,
+                "opacity": raphael.style.fwOpacity,
+                "fill": raphael.style.fwColor});
+    r.animate({"width":raphael.style.fwFinalWidth,
+                "height":raphael.style.fwFinalHeight},
+            raphael.style.fwAnimationTime);
     r.node.onclick = function() {raphael.info_box.remove();};
+    //Close Window Button
+    closeButtonX = raphael.style.fwFinalWidth + xpos - 10;
+    closeButtonY = ypos + 10;
+    closeButton = this.paper.circle(closeButtonX, closeButtonY, 4);
+    closeButton.node.onclick = function() {closeButton.remove();
+                                            raphael.info_box.remove();};
+    closeButton.attr({"fill": "red"});
     this.info_box.push(r);
+    this.info_box.push(closeButton);
     buttons = ["Delete", "Expand", "Multiselection"];
     functions = [delete_node, expand_node, multi_select];
     xpos += 20;
@@ -248,9 +309,10 @@ RaphaelGraph.prototype.show_node_action_box = function show_node_action_box(xpos
     }
 
     raphael.info_box.update = function (dx, dy) {
-        x = raphael.info_box.attr("cx") + dx;
-        y = raphael.info_box.attr("cy") + dy;
-        raphael.info_box.attr({cx: x, cy: y});
+        for(var i in raphael.info_box.items) {
+            raphael.info_box[i].attr.cx = raphael.info_box[i].attr.cx + dx;
+            raphael.info_box[i].attr.cy = raphael.info_box[i].attr.cy + dy;
+        }
     }
     raphael.info_box.drag(move, down);
 };
@@ -258,20 +320,23 @@ RaphaelGraph.prototype.show_node_action_box = function show_node_action_box(xpos
 RaphaelGraph.prototype.create_button = function(set, x, y, label, f) {
     var button = this.paper.set()
     raphael = this;
-    var r = this.paper.rect(x,y,1,1,10);
-    r.attr({"stroke":"#ADF1DA",
-            "stroke-width":1,
-            "opacity":0.75,
-            "fill":"#fff"});
-    r.animate({"width":120, "height":40}, 300);
+    var r = this.paper.rect(x,y,1,1,raphael.style.fwbtnAngle);
+    r.attr({"stroke": raphael.style.fwbtnStrokeColor,
+            "stroke-width": raphael.style.fwbtnStrokeWidth,
+            "opacity": raphael.style.fwbtnOpacity,
+            "fill": raphael.style.fwbtnColor});
+    r.animate({"width": raphael.style.fwbtnWidth,
+                "height": raphael.style.fwbtnHeight},
+                raphael.style.fwbtnAnimationTime);
     r.node.onmouseover = function() {r.attr({"fill":"yellow"})};
     r.node.onmouseout = function() {r.attr({"fill":"white"})};
     r.node.onclick = function() {raphael.showing_info_box=false;
                                 f();};
-    var t = this.paper.text(x+55,y+20,label).attr({"font-size":18,
-                                         "fill": "black",
-                                        "stroke-width":0.5,
-                                        "stroke":"white"});
+    var t = this.paper.text(x+55,y+20,label).attr({
+                        "font-size": raphael.style.fwbtnFontSize,
+                        "fill": raphael.style.fwbtnFontColor,
+                        "stroke-width": raphael.style.fwbtnFontStrokeWidth,
+                        "stroke": raphael.style.fwbtnFontStrokeColor});
     t.node.onmouseover = r.node.onmouseover;
     t.node.onmouseout = r.node.onmouseout;
     t.node.onclick = r.node.onclick;
@@ -283,12 +348,6 @@ RaphaelGraph.prototype.show_edge_action_box = function show_edge_action_box(xpos
     document.getElementById('floating_edge_menu').style.display='block';
     document.getElementById('floating_node_menu').style.display='none';
 };
-
-RaphaelGraph.prototype.show_node_multiselection_box = function show_node_multiselection_box() {
-    document.getElementById('floating_multinode_menu').style.top = "10px";
-    document.getElementById('floating_multinode_menu').style.left = "10px";
-    document.getElementById('floating_multinode_menu').style.display = "block";
-}
 
 RaphaelGraph.prototype.info_as_table = function info_as_table(element) {
     html_table = "<table>";
@@ -335,6 +394,7 @@ RaphaelGraph.prototype.set_size = function set_size(width, height) {
     this.height = height;
     this.paper.setSize(width, height);
     this.NODE_SIZE = (this.width / 8) / this.number_of_nodes;
+    this.refresh_styles();
 }
 
 RaphaelGraph.prototype.delete_node = function delete_node(selected_node) {
@@ -378,11 +438,11 @@ RaphaelGraph.prototype.toggle_nodes = function toggle_nodes(node_type) {
 
 RaphaelGraph.prototype.enable_selection = function enable_selection(node_id){
     c = this.elements[node_id]["object"];
-    c.attr("stroke-width", this.NODE_SIZE/5);
+    c.attr("stroke-width", this.style.selectedNodeStrokeWidth);
 }
 
 RaphaelGraph.prototype.disable_selection = function disable_selection(node_id){
     c = this.elements[node_id]["object"];
-    c.attr("stroke-width", this.NODE_SIZE/20);
+    c.attr("stroke-width", this.style.nodeStrokeWidth);
 }
 
