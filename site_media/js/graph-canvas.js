@@ -7,7 +7,6 @@ function RaphaelGraph(_data) {
     this.labels = {};
     raphael_object = this;
     this.paper.raphael_object = this;
-    counter = 0;
     this.info_box = undefined;
     this.showing_info_box = false;
 }
@@ -17,8 +16,8 @@ RaphaelGraph.prototype.NODE_ANIMATION_TIME = 250;
 RaphaelGraph.prototype.XMARGIN = 5;
 RaphaelGraph.prototype.YMARGIN = 5;
 RaphaelGraph.prototype.show_labels = false;
-RaphaelGraph.prototype.node_label_field = "";
-RaphaelGraph.prototype.node_label_field = "";
+RaphaelGraph.prototype.node_label_field = "id";
+RaphaelGraph.prototype.node_label_field = "id";
 RaphaelGraph.prototype.multiselection = false;
 RaphaelGraph.prototype.multiselection_table = [];
 RaphaelGraph.prototype.events_enabled = true;
@@ -78,6 +77,7 @@ RaphaelGraph.prototype.refresh_styles = function() {
 }
 
 RaphaelGraph.prototype.draw = function draw(layout) {
+    counter = 0;
     for (var node in this.data.nodes) counter++;
     this.number_of_nodes = counter;
     this.NODE_SIZE = Math.max((this.width / 5) / this.number_of_nodes, 1);
@@ -89,9 +89,9 @@ RaphaelGraph.prototype.draw = function draw(layout) {
     height = this.height - 2 * this.NODE_SIZE;
     switch (layout) {
         case "random": GraphLayout.random_layout(nodes, width, height);break;
-        case "spring": GraphLayout.spring_layout(nodes,edges,25,width,height);break;
+        case "spring": GraphLayout.spring_layout(nodes,edges,1,width,height);break;
         case "circular": GraphLayout.circular_layout(nodes, width, height);break;
-        case "ARF": GraphLayout.ARF_layout(nodes,edges,25,width,height);break;
+        case "ARF": GraphLayout.ARF_layout(nodes,edges,1,width,height);break;
     }
     this.render();
 }
