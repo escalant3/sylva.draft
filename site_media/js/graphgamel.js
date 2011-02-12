@@ -1,9 +1,11 @@
 var GRAPHGAMEL = {
     'authenticated': false,
+    'special_fields': [],
     'populate_table': function(table_id, properties) {
         table = document.getElementById(table_id);
         table.innerHTML = "";
         i = 1;
+        this.special_fields = [];
         for (var key in properties) {
             if (key.length > 0 && key[0] != "_") {
                 tr = document.createElement('tr');
@@ -24,6 +26,8 @@ var GRAPHGAMEL = {
                 tr.className = "row" + i%2;
                 table.appendChild(tr);
                 i++;
+            } else if (key[0] == "_") {
+                this.special_fields.push(key);
             }
         }
     },
@@ -110,6 +114,16 @@ var GRAPHGAMEL = {
                 $("#"+value_field).autocomplete(response);
             }
         });
+    },
+
+    'populate_embed_objects': function(list, properties) {
+        for(i=0;i<list.length;i++) {
+            element = list[i][0]
+            key = list[i][1];
+            if (this.special_fields.indexOf(key) != -1 ) {
+                document.getElementById(element).innerHTML = properties[key];
+            }
+        }
     }
 
 }

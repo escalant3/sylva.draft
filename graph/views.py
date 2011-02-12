@@ -465,6 +465,15 @@ def add_media(request, graph_id, node_id):
     return redirect(node_info, graph_id, node_id)
 
 
+def add_media_link(request, graph_id, node_id):
+    graph = Neo4jGraph.objects.get(pk=graph_id)
+    node = get_node_without_connection(graph, node_id)
+    media_type = request.POST['media_type']
+    media_link = request.POST['media_link']
+    node.set(media_type, media_link)
+    return redirect(node_info, graph_id, node_id)
+
+
 def create_raw_relationship(request, graph_id, node_id):
     if request.method == "GET":
         gdb = get_neo4j_connection(graph_id)

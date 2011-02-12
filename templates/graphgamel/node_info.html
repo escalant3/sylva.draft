@@ -98,6 +98,7 @@
             GRAPHGAMEL.authenticated = false;
         {% endif %}
         GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
+        GRAPHGAMEL.populate_embed_objects([['gbook_div', '_gbook']], {{ properties|safe }});
     }
 </script>
 {% endblock %}
@@ -171,7 +172,16 @@ Showing page {{ pagination.page }} of {{ pagination.total }}
         <input type="file" name="media_file">
         <input type="submit" value="Add media">
     </form>
+    <h5>Add link</h5>
+    <form method="POST" action="./add_media_link/">
+        <select id="media_type" name="media_type">
+            <option value="_gbook">Google Book</option>
+        </select>
+        <input type="text" name="media_link">
+        <input type="submit" value="Add media">
+    </form>
     {% endif %}
+    <div id="gbook_div"></div>
     {% if 'image' in media_items %}
         <h5>Images</h5>
         <ul id="mycarousel" class="jcarousel-skin-tango gallery">
