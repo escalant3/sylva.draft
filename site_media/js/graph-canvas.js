@@ -30,7 +30,7 @@ RaphaelGraph.prototype.style = {
     "canvasOpacity": 0.5,
     //Font properties
     "fontColor": "black",
-    "fontSize": 14,
+    "fontSize": 14,                 //Overwritten by refresh_style
     //Node properties
     "defaultNodeColor": "#f00",
     "nodeStrokeColor": "black",
@@ -71,7 +71,8 @@ RaphaelGraph.prototype.style = {
 RaphaelGraph.prototype.refresh_styles = function() {
     dinamic_styles = [["nodeStrokeWidth", this.NODE_SIZE/40],
                         ["selectedNodeStrokeWidth", this.NODE_SIZE/5],
-                        ["edgeStrokeWidth", this.NODE_SIZE/24]];
+                        ["edgeStrokeWidth", this.NODE_SIZE/24],
+                        ["fontSize", Math.min(this.NODE_SIZE/4,8)]];
     for(i=0;i<dinamic_styles.length;i++)
         this.style[dinamic_styles[i][0]] = dinamic_styles[i][1];
 }
