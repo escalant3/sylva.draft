@@ -32,7 +32,7 @@ RaphaelGraph.prototype.style = {
     "fontColor": "black",
     "fontSize": 14,                 //Overwritten by refresh_style
     //Node properties
-    "defaultNodeColor": "#f00",
+    "defaultNodeColor": "#E4E4E4",
     "nodeStrokeColor": "black",
     "overNodeStrokeColor": "red",
     "nodeStrokeWidth": 2,           //Overwritten by refresh_style
@@ -79,7 +79,7 @@ RaphaelGraph.prototype.draw = function draw(layout) {
     counter = 0;
     for (var node in this.data.nodes) counter++;
     this.number_of_nodes = counter;
-    this.NODE_SIZE = Math.max((this.width / 5) / this.number_of_nodes, 1);
+    this.NODE_SIZE = Math.max((Math.min(this.width, this.height) / 5) / this.number_of_nodes, 1);
     this.refresh_styles();
     GraphLayout.margin = this.NODE_SIZE;
     nodes = this.data.nodes;
