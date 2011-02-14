@@ -13,7 +13,17 @@ var GRAPHGAMEL = {
                 td.appendChild(document.createTextNode(key));
                 tr.appendChild(td);
                 td = document.createElement('td');
-                td.appendChild(document.createTextNode(properties[key]));
+                info = properties[key];
+                if (this.isURL(info)) {
+                    t = document.createTextNode('Open link');
+                    a = document.createElement('a');
+                    a.setAttribute('href', info);
+                    a.setAttribute('target', '_blank');
+                    a.appendChild(t);
+                    td.appendChild(a);
+                } else {
+                    td.appendChild(document.createTextNode(info));
+                }
                 tr.appendChild(td);
                 if (this.authenticated) {
                     td = document.createElement('td');
@@ -124,6 +134,10 @@ var GRAPHGAMEL = {
                 document.getElementById(element).innerHTML = properties[key];
             }
         }
+    },
+
+    'isURL': function(data) {
+        return ((data.match('^http://') == 'http://') || (data.match('^https://') == 'https://'));
     }
 
 }
