@@ -558,20 +558,33 @@ def visualize(request, graph_id, node_id):
                                     'node_id': node_id}))
 
 
-def expand_node(request, graph_id):
+def get_node_from_index(request, graph_id):
     node_id = request.GET.get('node_id', None)
     node_type = request.GET.get('node_type', None)
     gdb = get_neo4j_connection(graph_id)
     result = filter_by_property(gdb.index('id', node_id),
                                 'type', node_type)
     if len(result) == 1:
-        node = result[0]
-    visual_data = request.session.get('visual_data', None)
-    new_graph = get_node_and_neighbourhood(graph_id, node.id, visual_data)
-    response_dictionary = {'success': True,
-                            'new_gdata': new_graph}
+        return result[0]
+    else:
+        return None
+
+
+def expand_node(request, graph_id):
+    node = get_node_from_index(request, graph_id)
+    if node:
+        visual_data = request.session.get('visual_data', None)
+        new_graph = get_node_and_neighbourhood(graph_id, node.id, visual_data)
+        response_dictionary = {'success': True,
+                                'new_gdata': new_graph}
+    else:
+        response_dictionary = {'success': False}
     return HttpResponse(simplejson.dumps(response_dictionary))
 
+
+def open_node_info(request, graph_id):
+    node = get_node_from_index(request, graph_id)
+    return HttpResponse(simplejson.dumps({'success':True, 'node_id':node.id}))
 
 def handle_csv_file(uploaded_file):
     csv_info = csv.reader(uploaded_file)

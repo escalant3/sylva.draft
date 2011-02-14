@@ -43,28 +43,26 @@ RaphaelGraph.prototype.style = {
     "overEdgeStrokeColor": "red",
     //Floating window (fw) properties
     "fwStrokeColor": "#ADF1DA",
-    "fwStrokeWidth": 5,
+    "fwStrokeWidth": 2,
     "fwOpacity": 0.75,
     "fwColor": "#000",
     "fwAngle": 10,
-    "fwInitialWidth": 20,
-    "fwInitialHeight": 20,
-    "fwFinalWidth": 160,
-    "fwFinalHeight": 200,
+    "fwWidth": 80,
+    "fwHeight": 110,
     "fwAnimationTime": 200,
     //Floating window button (fwbtn) properties
     "fwbtnStrokeColor": "ADF1DA",
     "fwbtnStrokeWidth": 1,
     "fwbtnOpacity": 0.75,
     "fwbtnColor": "#FFF",
-    "fwbtnWidth": 120,
-    "fwbtnHeight": 40,
+    "fwbtnWidth": 70,
+    "fwbtnHeight": 15,
     "fwbtnAngle": 10,
     "fwbtnAnimationTime": 50,
-    "fwbtnFontSize": 18,
+    "fwbtnFontSize": 10,
     "fwbtnFontColor": "black",
     "fwbtnFontStrokeColor": "white",
-    "fwbtnFontStrokeWidth": 0.5,
+    "fwbtnFontStrokeWidth": 0,
 };
 
 
@@ -271,32 +269,29 @@ RaphaelGraph.prototype.show_node_action_box = function show_node_action_box(xpos
     this.info_box = this.paper.set();
     this.showing_info_box = true;
     xpos = xpos-RaphaelMenu.width;
-    r = this.paper.rect(xpos, ypos,
-                        raphael.style.fwInitialWidth,
-                        raphael.style.fwInitialHeight,
-                        raphael.style.fwAngle);
+    r = this.paper.rect(xpos, ypos, 1, 1, raphael.style.fwAngle);
     r.attr({"stroke": raphael.style.fwStrokeColor,
                 "stroke-width": raphael.style.fwStrokeWidth,
                 "opacity": raphael.style.fwOpacity,
                 "fill": raphael.style.fwColor});
-    r.animate({"width":raphael.style.fwFinalWidth,
-                "height":raphael.style.fwFinalHeight},
+    r.animate({"width":raphael.style.fwWidth,
+                "height":raphael.style.fwHeight},
             raphael.style.fwAnimationTime);
     r.node.onclick = function() {raphael.info_box.remove();};
     //Close Window Button
-    closeButtonX = raphael.style.fwFinalWidth + xpos - 10;
-    closeButtonY = ypos + 10;
+    closeButtonX = raphael.style.fwWidth + xpos - 5;
+    closeButtonY = ypos + 5;
     closeButton = this.paper.circle(closeButtonX, closeButtonY, 4);
     closeButton.node.onclick = function() {closeButton.remove();
                                             raphael.info_box.remove();};
     closeButton.attr({"fill": "red"});
     this.info_box.push(r);
     this.info_box.push(closeButton);
-    buttons = ["Delete", "Expand", "Multiselection"];
-    functions = [delete_node, expand_node, multi_select];
-    xpos += 20;
+    buttons = ["Show", "Delete", "Expand", "Multiselection"];
+    functions = [open_node_info, delete_node, expand_node, multi_select];
+    xpos += 5;
     for(i=0;i<buttons.length;i++)
-        this.create_button(this.info_box, xpos, ypos+20+i*60, buttons[i],
+        this.create_button(this.info_box, xpos, ypos+10+i*25, buttons[i],
         functions[i]);
 
     // Info box dragging
@@ -333,8 +328,9 @@ RaphaelGraph.prototype.create_button = function(set, x, y, label, f) {
     r.node.onmouseover = function() {r.attr({"fill":"yellow"})};
     r.node.onmouseout = function() {r.attr({"fill":"white"})};
     r.node.onclick = function() {raphael.showing_info_box=false;
+                                set.hide();
                                 f();};
-    var t = this.paper.text(x+55,y+20,label).attr({
+    var t = this.paper.text(x+35,y+8,label).attr({
                         "font-size": raphael.style.fwbtnFontSize,
                         "fill": raphael.style.fwbtnFontColor,
                         "stroke-width": raphael.style.fwbtnFontStrokeWidth,

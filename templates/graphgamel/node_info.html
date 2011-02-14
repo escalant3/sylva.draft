@@ -43,7 +43,6 @@
                 data: {field_value: document.getElementById(element+'_node_id').value,
                         node_type: document.getElementById(element+'_node_type').value},
                 success: function(response, success, results) {
-                    console.log(response.results.length);
                     if (response.results.length == 1) {
                         properties = response.results[0].properties;
                         info = "A node with the following information has been found:\n\n";

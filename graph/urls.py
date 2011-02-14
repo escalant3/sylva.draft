@@ -2,9 +2,10 @@ from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('',
     (r'(\d+)/node/(\d+)/(\d+)/$', 'graph.views.node_info'),
-    (r'(\d+)/node/(\d+)/$', 'graph.views.node_info'),
+    (r'(\d+)/node/(-?\d+)/$', 'graph.views.node_info'),
     (r'(\d+)/node/(\d+)/visualize/$', 'graph.views.visualize'),
     (r'(\d+)/node/expand_node/$', 'graph.views.expand_node'),
+    (r'(\d+)/node/open_node_info/$', 'graph.views.open_node_info'),
     (r'(\d+)/node/(\d+)/add_property/$',
         'graph.views.node_property',
         {'action': 'add'}),

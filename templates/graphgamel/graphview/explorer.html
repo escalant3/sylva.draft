@@ -103,6 +103,53 @@
                 }
             }
         }
+
+        function open_node_info() {
+            function fsuccess(response) {
+                function fclose() {
+                    iframe = document.getElementById('info_iframe');
+                    iframe.parentNode.removeChild(iframe);
+                    button = document.getElementById('btn_iframe');
+                    button.parentNode.removeChild(button);
+                }
+                url = "{% url graph.views.node_info graph_id '-1' %}".replace('-1', response['node_id']);
+                iframe = document.createElement('iframe');
+                iframe.setAttribute('src', url);
+                iframe.setAttribute('id', 'info_iframe');
+                iframe.setAttribute('width', '85%');
+                iframe.setAttribute('height', '85%');
+                iframe.setAttribute('style', 'position:absolute;top:50;left:50');
+                close = document.createTextNode('Close Info');
+                button = document.createElement('button');
+                button.setAttribute('id', 'btn_iframe');
+                button.setAttribute('style', 'position:absolute;top:30;left:50');
+                button.onclick = fclose;
+                button.appendChild(close);
+                document.body.appendChild(iframe);
+                document.body.appendChild(button);
+            }
+            function ferror(response) {
+                alert('ERROR opening node info');
+            }
+            function execute(node_id) {
+                url = "{% url graph.views.open_node_info graph_id %}";
+                node_type = gdata['nodes'][selected_node]['type'];
+                $.ajax({url: url,
+                    type:"GET",
+                    dataType:"json",
+                    data: {'node_id': node_id,
+                        'node_type': node_type},
+                    success: fsuccess,
+                    error: ferror});
+            }
+            if (!raphael.multiselection) {
+               execute(selected_node);
+            } else {
+                for(i=raphael.multiselection_table.length;i>0;i--) {
+                    execute(raphael.multiselection_table[i-1]);
+                }
+            }
+        }
         
         function refresh_labels() {
             new_label_field = document.getElementById('label_field_id').value;
