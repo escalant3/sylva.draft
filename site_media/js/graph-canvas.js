@@ -434,3 +434,10 @@ RaphaelGraph.prototype.disable_selection = function disable_selection(node_id){
     c.attr("stroke-width", this.style.nodeStrokeWidth);
 }
 
+RaphaelGraph.prototype.add_node = function add_node(node) {
+    if (!this.data.nodes.hasOwnProperty(node.id)) {
+        this.data.nodes[node.id] = node;
+        GraphLayout.random_position(node);
+        this.draw_node(node);
+    }
+}

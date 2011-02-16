@@ -33,7 +33,7 @@
             function fsuccess(response) {
                 new_graph = eval(response['new_gdata']);
                 for (var node in new_graph.nodes) {
-                    gdata.nodes[node] = new_graph.nodes[node];
+                    raphael.add_node(new_graph.nodes[node]);
                 }
                 counter = 0;
                 for (var edge_id in gdata.edges) {
@@ -56,7 +56,7 @@
                         gdata.edges[edge_index.toString()] = new_graph.edges[edge_id];
                     }
                 }
-                raphael.draw("random");
+                raphael.render();
             }
             function ferror(response) {
                 alert('ERROR expanding node');

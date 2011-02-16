@@ -167,6 +167,12 @@ var GraphLayout = {
         node1._xspeed += attractiveForce * dx / d;
         node1._yspeed += attractiveForce * dy / d;
     }
+},
+
+/* Random position for one node */
+'random_position': function(node) {
+    node._xpos = this.rand(width);
+    node._ypos = this.rand(height);
 }
 }
 
