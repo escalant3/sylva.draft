@@ -23,10 +23,10 @@ function populateRelationsControl() {
         value = controls[i].value;
         if (value != "null") {
             option_from = document.createElement('option');
-            option_from.text = value;
+            option_from.text = "(" + i + ")" + value;
             option_from.value = i;
             option_to = document.createElement('option');
-            option_to.text = value;
+            option_to.text = "(" + i + ")" + value;
             option_to.value = i;
             node_from.appendChild(option_from);
             node_to.appendChild(option_to);
@@ -62,9 +62,9 @@ function addRelation() {
         relationsToAdd[relationsToAddIndex] = {"node_from_type": node_from,
                                             "relation_type": relation,
                                             "node_to_type": node_to};
-        document.getElementById('added_node_from').innerHTML += node_from + "<br/>";
+        document.getElementById('added_node_from').innerHTML += "(" + nodeFromIndex + ")" + node_from + "<br/>";
         document.getElementById('added_relation').innerHTML += relation + "<br/>";
-        document.getElementById('added_node_to').innerHTML += node_to + "<br/>";
+        document.getElementById('added_node_to').innerHTML += "(" + nodeToIndex + ")" + node_to + "<br/>";
     }
 }
 
@@ -101,7 +101,7 @@ function manager(step) {
             break; 
         case 3:
             configure_trs(["collapse_tr"],["numbers_tr", "field1_tr", "field2_tr",
-                    "rfield1_tr", "rfield2_tr"], ["column_selector", "direction_selector"]);
+                    "rfield1_tr", "rfield2_tr", "direction_tr"], ["column_selector", "direction_selector"]);
             break;
         case 4:
             configure_trs(["numbers_tr", "field1_tr", "field2_tr"], ["rfield1_tr",
@@ -207,37 +207,6 @@ function commitData() {
                         "data": relation_data});
                 }
             }
-            /*
-            for(k=0;k<valid_relations.length;k++) {
-                for(var j in graph_data) {
-                    if ((graph_data[j] == valid_relations[k].node_from) && (data[i][j] != "") 
-                        && (direction_data[j] != "end")) {
-                        for(var l in graph_data) {
-                            if ((graph_data[l] == valid_relations[k].node_to) && (data[i][l] != "") 
-                                && (direction_data[l] != "start")) {
-                                relation_data = {};
-                                for(m=0;m<rextra_fields.length;m++) {
-                                    vr_id = rextra_fields[m][0];
-                                    if (data[i][rextra_fields[m][2]] != "" && valid_relations[vr_id]['node_from'] == graph_data[j] &&
-                                    valid_relations[vr_id]['relation'] == valid_relations[k].relation &&
-                                    valid_relations[vr_id]['node_to'] == graph_data[l]) {
-                                        relation_data[rextra_fields[m][1]] = data[i][rextra_fields[m][2]];
-                                    }
-                                }
-                                new_relationships.push({"node_from": data[i][j],
-                                        "node_from_type": graph_data[j],
-                                        "relation": valid_relations[k].relation,
-                                        "node_to": data[i][l],
-                                        "node_to_type": graph_data[l],
-                                        "data": relation_data});
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
-            } */
-
         }
     }
 
@@ -448,10 +417,9 @@ type that a column generates and leave the rest in blank (- - - -).</p>
 <p>As you may know, Sylva graph databases are directed. This means that
 relationships between elements are from one node to another and not in
 the reverse way unless it is explicitly specified.</p>
-<p>Sylva Importer will try to find every possible relation between your
-fields but if you want to declare some of them as "Only Start" or 
-"Only End" you can do it by selecting the correct option in the following
-controls.</p>
+<p>Select all the possible relationship between the columns that you 
+want to create with the correct relation type. Only valid relationships
+from the schema are allowed.</p>
 <p>Press <strong>Next</strong> when you are done.</p>
 </div>
 <div id="instructions_3" class="hidden">
