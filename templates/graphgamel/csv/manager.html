@@ -12,6 +12,61 @@
 var data = eval({{ json_data|safe }});
 var valid_relations = eval({{ valid_relations|safe }});
 var step = 0;
+var relationsToAdd = {};
+
+function populateRelationsControl() {
+    controls = $('.column_selector');
+    node_from = document.getElementById('node_from');
+    relation = document.getElementById('relation_type');
+    node_to = document.getElementById('node_to');
+    for(i=0;i<controls.length;i++) {
+        value = controls[i].value;
+        if (value != "null") {
+            option_from = document.createElement('option');
+            option_from.text = value;
+            option_from.value = i;
+            option_to = document.createElement('option');
+            option_to.text = value;
+            option_to.value = i;
+            node_from.appendChild(option_from);
+            node_to.appendChild(option_to);
+        }
+    }
+    for(i=0;i<valid_relations.length;i++) {
+        option = document.createElement('option');
+        option.text = valid_relations[i].relation;
+        option.value = valid_relations[i].relation;
+        relation.appendChild(option);
+    }
+}
+
+function addRelation() {
+    nodeFromIndex = document.getElementById('node_from').value;
+    nodeToIndex = document.getElementById('node_to').value;
+    nodeFromId = "column_" + nodeFromIndex;
+    nodeToId = "column_" + nodeToIndex;
+    node_from = document.getElementById(nodeFromId).value;
+    relation = document.getElementById('relation_type').value;
+    node_to = document.getElementById(nodeToId).value;
+    allowed_relationship = false;
+    for(i=0;i<valid_relations.length;i++) {
+        if ((valid_relations[i].node_from == node_from) &&
+            (valid_relations[i].relation == relation) &&
+            (valid_relations[i].node_to == node_to)) {
+                allowed_relationship = true;
+                break;
+            }
+    }
+    relationsToAddIndex = nodeFromIndex + "-" + nodeToIndex + "-" + i;
+    if ((allowed_relationship) && (!relationsToAdd.hasOwnProperty(relationsToAddIndex))) {
+        relationsToAdd[relationsToAddIndex] = {"node_from_type": node_from,
+                                            "relation_type": relation,
+                                            "node_to_type": node_to};
+        document.getElementById('added_node_from').innerHTML += node_from + "<br/>";
+        document.getElementById('added_relation').innerHTML += relation + "<br/>";
+        document.getElementById('added_node_to').innerHTML += node_to + "<br/>";
+    }
+}
 
 function manager(step) {
     function configure_trs(showing_list, hidden_list, blocked_list) {
@@ -40,9 +95,10 @@ function manager(step) {
                    "field1_tr", "field2_tr", "rfield1_tr", "rfield2_tr"], []);
             break;
         case 2:
-            configure_trs(["direction_tr"], ["numbers_tr", "collapse_tr", "field1_tr",
+            populateRelationsControl();
+            configure_trs(["direction_tr", "numbers_tr"], ["collapse_tr", "field1_tr",
                     "field2_tr", "rfield1_tr", "rfield2_tr"], ["column_selector"]);
-            break;
+            break; 
         case 3:
             configure_trs(["collapse_tr"],["numbers_tr", "field1_tr", "field2_tr",
                     "rfield1_tr", "rfield2_tr"], ["column_selector", "direction_selector"]);
@@ -94,7 +150,7 @@ function commitData() {
         rextra_field_id = "rfield_" + j;
         if (columns[item_id].value != "null") {
             graph_data[j] = columns[item_id].value;
-            direction_data[j] = directions[direction_id].value;
+            //direction_data[j] = directions[direction_id].value;
         } else if (fields[extra_field_id].value != "null") {
             extra_fields[j] = [fields[extra_field_id].value, document.getElementById('key_'+j).value];
         }
@@ -125,6 +181,33 @@ function commitData() {
             }
             // Searching relations between the fields of the row
             document.getElementById('progress_bar').innerHTML= "Creating relationships information..."
+            for(var j in relationsToAdd) {
+                relationInfo = j.split("-");
+                node_from = data[i][relationInfo[0]];
+                node_to = data[i][relationInfo[1]];
+                node_from_type = relationsToAdd[j]["node_from_type"];
+                node_to_type = relationsToAdd[j]["node_to_type"];
+                relation_type = relationsToAdd[j]["relation_type"];
+                if ((node_from != "") && (node_to != "")) {
+                    relation_data = {};
+                    for(m=0;m<rextra_fields.length;m++) {
+                        vr_id = rextra_fields[m][0];
+                        if (data[i][rextra_fields[m][2]] != "" && valid_relations[vr_id]['node_from'] == node_from_type && 
+                                valid_relations[vr_id]['relation'] == relation_type &&
+                                valid_relations[vr_id]['node_to'] == node_to_type) {
+                            relation_data[rextra_fields[m][1]] = data[i][rextra_fields[m][2]];
+                        }
+                    }
+
+                    new_relationships.push({"node_from": node_from,
+                        "node_from_type": relationsToAdd[j]["node_from_type"],
+                        "relation": relationsToAdd[j]["relation_type"],
+                        "node_to": node_to,
+                        "node_to_type": relationsToAdd[j]["node_to_type"],
+                        "data": relation_data});
+                }
+            }
+            /*
             for(k=0;k<valid_relations.length;k++) {
                 for(var j in graph_data) {
                     if ((graph_data[j] == valid_relations[k].node_from) && (data[i][j] != "") 
@@ -153,7 +236,7 @@ function commitData() {
                         break;
                     }
                 }
-            }
+            } */
 
         }
     }
@@ -233,8 +316,15 @@ window.onload = function() {
         <button id="sall" onClick="$('.csv_selector').attr('checked',true);">Select all</button>
         <button id="dsall" onClick="$('.csv_selector').attr('checked',false);">Deselect all</button>
         <button id="startbtn" onClick="start_configuration();">Next</button>
+    
+    
+    
+    
+    
     </div>
-    <div id="manager_buttons">
+    <div
+    
+    id="manager_buttons">
         <button id="next" onClick="step++;manager(step);">Next</button>
         <button id="finish" disabled="true" onClick="commitData()">Finish</button>
     </div>
@@ -259,15 +349,25 @@ window.onload = function() {
         </select></td>
     {% endfor %}
     </tr>
+    <tr>
+    <td><p id="added_node_from"/></td>
+    <td><p id="added_relation"/></td>
+    <td><p id="added_node_to"/></td>
+    </tr>
     <tr id="direction_tr">
     <td></td>
-    {% for item in len %}
-        <td><select class="direction_selector" id="direction_{{ item }}">
-            <option value="null">- - - -</option>
-            <option value="start">Start</option>
-            <option value="end">End</option>
-        </select></td>
-    {% endfor %}
+    <td>
+    <select id="node_from"/>
+    </td>
+    <td>
+    <select id="relation_type"/>
+    </td>
+    <td>
+    <select id="node_to"/>
+    </td>
+    <td>
+    <button onclick="addRelation()">Add Relation</button>
+    </td>
     </tr>
     <tr id="collapse_tr">
     <td></td>
