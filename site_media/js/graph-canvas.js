@@ -30,6 +30,8 @@ RaphaelGraph.prototype.style = {
     //Font properties
     "fontColor": "black",
     "fontSize": 14,                 //Overwritten by refresh_style
+    //Labels
+    "labelYMargin": -20,                 //Overwritten by refresh_style
     //Node properties
     "defaultNodeColor": "#E4E4E4",
     "nodeStrokeColor": "black",
@@ -69,7 +71,8 @@ RaphaelGraph.prototype.refresh_styles = function() {
     dinamic_styles = [["nodeStrokeWidth", this.NODE_SIZE/40],
                         ["selectedNodeStrokeWidth", this.NODE_SIZE/5],
                         ["edgeStrokeWidth", this.NODE_SIZE/24],
-                        ["fontSize", Math.max(this.NODE_SIZE/4,8)]];
+                        ["fontSize", Math.max(this.NODE_SIZE/4,8)],
+                        ["labelYMargin", -1.3*this.NODE_SIZE]];
     for(i=0;i<dinamic_styles.length;i++)
         this.style[dinamic_styles[i][0]] = dinamic_styles[i][1];
 }
@@ -127,7 +130,7 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
     this.elements[node.id]["object"] = c;
     this.elements[node.id]["edges"] = {};
     this.elements[node.id]["label"] = this.draw_label(node._xpos, 
-                            node._ypos,
+                            node._ypos + this.style.labelYMargin,
                             node[this.node_label_field] || "");
     if (node.hasOwnProperty("color")) {
         c.attr("fill", node["color"]);
@@ -178,7 +181,7 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
             this.attr({cx: x, cy: y});
             raphael.elements[node.id]["label"].remove();
             raphael.elements[node.id]["label"] = raphael.draw_label(
-                        x, y, node[raphael.node_label_field] || "");
+                        x, y + raphael.style.labelYMargin, node[raphael.node_label_field] || "");
             node_dragged = raphael.data.nodes[node.id]
             node_dragged._xpos = x;
             node_dragged._ypos = y;
