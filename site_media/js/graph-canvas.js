@@ -182,6 +182,8 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
             raphael.elements[node.id]["label"].remove();
             raphael.elements[node.id]["label"] = raphael.draw_label(
                         x, y + raphael.style.labelYMargin, node[raphael.node_label_field] || "");
+            if (!raphael.show_labels)
+                raphael.elements[node.id]["label"].hide();
             node_dragged = raphael.data.nodes[node.id]
             node_dragged._xpos = x;
             node_dragged._ypos = y;
