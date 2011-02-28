@@ -45,3 +45,7 @@ div.instructions {
 div.hidden {
     display: none;
 }
+
+span.label {
+    background: #EDF3FE;
+}

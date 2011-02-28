@@ -146,14 +146,16 @@ Showing page {{ pagination.page|add:"1" }} of {{ pagination.total|add:"1" }}
 </table>
 {% if user.is_authenticated %}
 <h5>Add outgoing relationship</h5>
+<span class="label">This node</span>
 <select id="out_relation" name="out_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out').value])"></select>
 <select id="out_node_type" name="out_node_type" onChange="GRAPHGAMEL.get_autocompletion_objects ('out_node_type', 'out_node_id')";></select>
 <input id="out_node_id" name="out_node_id" type="text"/>
 <input type="button" value="Search node" onclick="search_for_new_relationship('out');">
 <h5>Add incoming relationship</h5>
-<select id="in_relation" name="in_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('in_node_type'), SCHEMA_DATA['incoming'][document.getElementById('in_relation').value])"></select>
 <select id="in_node_type" name="in_node_type" onChange="GRAPHGAMEL.get_autocompletion_objects('in_node_type', 'in_node_id')"></select>
 <input id="in_node_id" name="in_node_id"/>
+<select id="in_relation" name="in_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('in_node_type'), SCHEMA_DATA['incoming'][document.getElementById('in_relation').value])"></select>
+<span class="label">This node</span>
 <input type="button" value="Search node" onclick="search_for_new_relationship('in');">
 {% endif %}
 </div>
