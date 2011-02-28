@@ -26,7 +26,7 @@ RaphaelGraph.prototype.style = {
     //Canvas properties
     "canvasColor": "EBEBEB",
     "canvasStrokeWidth": 5,
-    "canvasStroke": "#C0D4EE",
+    "canvasStroke": "#000",
     "canvasOpacity": 0.5,
     //Font properties
     "fontColor": "black",

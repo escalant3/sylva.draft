@@ -1,48 +1,58 @@
 var RaphaelMenu = {
-    'width': 300,
+    'width': 200,
+    'show_topics': function() {
+        MenuControl.toggle('topics_menu');
+    },
     'draw' : function(raphael_graph) {
-        function draw_option(x,y,label,element) {
-            menu_font = {"font-size": 30,
-                    "fill": "#ccc",
-                    "stroke-width":0.5,
-                    "stroke":"black"};
-            var t = raphael_menu.text(x,y,label);
-            t.attr(menu_font);
-            t.node.onmouseover = function() {t.attr("fill","#fff");
-                                            t.animate({"font-size":50},100);};
-            t.node.onmouseout = function() {t.attr("fill","#ccc");
-                                            t.animate({"font-size":30},100);};
-            t.node.onclick = function() {MenuControl.toggle(element);};
-
-        }
         raphael_menu = Raphael("explorer_menu", this.width, raphael_graph.height);
-        r = raphael_menu.rect(5,5,200,400,50);
-        r.attr({"stroke":"#ADF1DA",
+        r = raphael_menu.rect(5,5,180,400,50);
+        r.attr({"stroke":"#000",
                 "stroke-width":5,
-                "opacity":0.5,
-                "fill":"#C0D4EE"});
-        t = raphael_menu.text(100,40,"Sylva");
-        t.attr({"font-size": 50,
+                "opacity":0.3,
+                "fill":"#000"});
+        t = raphael_menu.text(100,35,"Sylva");
+        t.attr({"font-size": 40,
                 "fill": "#ccc",
                 "stroke-width":0.5,
                 "stroke":"black"});
-        start_position = 120;
-        step = 50;
-        menu_elements = ["Topics"];
-        dom_names = ["topics_menu"];
-        for(i=0;i<menu_elements.length;i++) {
-            draw_option(100, start_position+i*step, menu_elements[i], dom_names[i]);
-        }
+        
+        // Buttons
+        xInit = 20;
+        yInit = 80;
+        xStep = 80;
+        yStep = 20;
+        i=0;
+        j=0;
+        var topicsButton = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "Topics", this.show_topics);
+        topicsButton.draw();
+        j=1;
+        var button2 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN2", undefined);
+        //button2.draw();
+        i=1;
+        j=0;
+        var button3 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN3", undefined);
+        //button3.draw();
+        j=1;
+        var button4 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN4", undefined);
+        //button4.draw();
+
+        // Sliders
+        xInit = 25;
+        yInit = 150;
+        yStep = 50
+        i=0;
         labels = ["id", "", "ID", "type"]
-        var labelControl = new DiscreteSlider(raphael_menu, "Label", 30, start_position+i*step, labels, raphael, 'toggle_labels');
+        var labelControl = new DiscreteSlider(raphael_menu, "Label", xInit, yInit+i*yStep, labels, raphael, 'toggle_labels');
         labelControl.draw()
+        i++;
         layouts = ["random", "circular", "spring", "ARF"];
-        var layout = new DiscreteSlider(raphael_menu, "Layout", 30, start_position+(i+1)*step, layouts, raphael, 'draw');
+        var layout = new DiscreteSlider(raphael_menu, "Layout", xInit, yInit+i*yStep, layouts, raphael, 'draw');
         layout.draw()
+        i++;
         sizes = [Math.floor(raphael.width) + "x" + Math.floor(raphael.height),
                 "800x800", "1024x768", "1280x800"];
         var canvasSizeControl = new DiscreteSlider(raphael_menu, "Canvas Size",
-                    30, start_position+(i+2)*step, sizes, raphael, 'set_size');
+                    xInit, yInit+i*yStep, sizes, raphael, 'set_size');
         canvasSizeControl.draw();
         
     }

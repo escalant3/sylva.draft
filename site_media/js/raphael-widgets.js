@@ -45,3 +45,47 @@ DiscreteSlider.prototype.draw = function() {
         text.attr({text: slider.values[slider.option]});
     };
 }
+
+function Button(r, x, y, label, f) {
+    this.r = r;
+    this.xpos = x;
+    this.ypos = y;
+    this.label = label;
+    this.f = f;
+    this.style = {
+        "btnStrokeColor": "ADF1DA",
+        "btnStrokeWidth": 1,
+        "btnOpacity": 0.75,
+        "btnColor": "#FFF",
+        "btnWidth": 70,
+        "btnHeight": 15,
+        "btnAngle": 10,
+        "btnAnimationTime": 50,
+        "btnFontSize": 10,
+        "btnFontColor": "black",
+        "btnFontStrokeColor": "white",
+        "btnFontStrokeWidth": 0,
+    }
+}
+
+Button.prototype.draw = function() {
+    var rect = this.r.rect(this.xpos, this.ypos, 1,1,this.style.btnAngle);
+    rect.attr({"stroke": this.style.btnStrokeColor,
+            "stroke-width": this.style.btnStrokeWidth,
+            "opacity": this.style.btnOpacity,
+            "fill": this.style.btnColor});
+    rect.animate({"width": this.style.btnWidth,
+                "height": this.style.btnHeight},
+                this.style.fwbtnAnimationTime);
+    var t = this.r.text(this.xpos+35,this.ypos+8,this.label).attr({
+                        "font-size": this.style.btnFontSize,
+                        "fill": this.style.btnFontColor,
+                        "stroke-width": this.style.btnFontStrokeWidth,
+                        "stroke": this.style.btnFontStrokeColor});
+    var button = this;
+    t.node.onmouseover = rect.node.onmouseover = function() {
+                            rect.attr({"fill":"yellow"})};
+    t.node.onmouseout = rect.node.onmouseout = function() {
+                            rect.attr({"fill":"white"})};
+    t.node.onclick = rect.node.onclick = function() {button.f();};
+}
