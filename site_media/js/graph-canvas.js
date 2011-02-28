@@ -8,6 +8,7 @@ function RaphaelGraph(_data) {
     this.paper.raphael_object = this;
     this.info_box = undefined;
     this.showing_info_box = false;
+    this.last_layout;
 }
 
 RaphaelGraph.prototype.NODE_SIZE = 10;
@@ -94,6 +95,7 @@ RaphaelGraph.prototype.draw = function draw(layout) {
         case "circular": GraphLayout.circular_layout(nodes, width, height);break;
         case "ARF": GraphLayout.ARF_layout(nodes,edges,1,width,height);break;
     }
+    this.last_layout = layout;
     this.render();
 }
 
@@ -359,12 +361,15 @@ RaphaelGraph.prototype.update = function update(_data) {
     this.render();
 }
 
-RaphaelGraph.prototype.set_size = function set_size(width, height) {
-    this.width = width;
-    this.height = height;
+RaphaelGraph.prototype.set_size = function set_size(size) {
+    // size is a WIDTHxHEIGHT string
+    size = size.split('x');
+    this.width = size[0];
+    this.height = size[1];
     this.paper.setSize(width, height);
     this.NODE_SIZE = (this.width / 8) / this.number_of_nodes;
     this.refresh_styles();
+    this.draw(this.last_layout);
 }
 
 RaphaelGraph.prototype.delete_node = function delete_node(selected_node) {
