@@ -143,7 +143,6 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
         c.node.onclick = function(position) {
             selected_node = node.id;
             selected_edge = null;
-            info_html = raphael.info_as_table(node);
             if (raphael.dragging) {
                 raphael.dragging = false;
                 raphael.canvas.toBack();
@@ -341,28 +340,6 @@ RaphaelGraph.prototype.show_edge_action_box = function show_edge_action_box(xpos
     document.getElementById('floating_edge_menu').style.display='block';
     document.getElementById('floating_node_menu').style.display='none';
 };
-
-RaphaelGraph.prototype.info_as_table = function info_as_table(element) {
-    html_table = "<table>";
-    for (var field in element) {
-        if (field.length && field[0]!="_") {
-            element_value = element[field];
-            if (element[field] instanceof Object) {
-                element_value = "";
-                for (var j in element[field]) {
-                    element_value += "<p>" + j + ": " + element[field][j] + "</p>";
-                }
-            } else {
-                element_value = element[field];
-            }
-            html_table += "<tr><td class=\"label\">" + field +
-                        ":</td><td class=\"data\">" + element_value + 
-                        "</td></tr>";
-            }
-    }
-    html_table += "</table>";
-    document.getElementById("infoTable").innerHTML = html_table;
-}
 
 RaphaelGraph.prototype.toggle_labels = function toggle_labels(label_field) {
     this.node_label_field = label_field;
