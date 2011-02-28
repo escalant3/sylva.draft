@@ -28,12 +28,14 @@ var RaphaelMenu = {
                 "stroke":"black"});
         start_position = 120;
         step = 50;
-        menu_elements = ["Info", "Labels", "Topics", "Layout", "Options"];
-        dom_names = ["dataset_info_menu", "labels_menu", "topics_menu",
-                    "layouts_menu", "options_menu"];
+        menu_elements = ["Labels", "Topics", "Options"];
+        dom_names = ["labels_menu", "topics_menu", "options_menu"];
         for(i=0;i<menu_elements.length;i++) {
             draw_option(100, start_position+i*step, menu_elements[i], dom_names[i]);
         }
+        layouts = ["random", "circular", "spring", "ARF"];
+        var layout = new DiscreteSlider(raphael_menu, "Layout", 30, start_position+i*step, layouts, raphael, 'draw');
+        layout.draw()
     }
 };
 
