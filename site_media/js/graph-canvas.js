@@ -366,7 +366,7 @@ RaphaelGraph.prototype.set_size = function set_size(size) {
     size = size.split('x');
     this.width = size[0];
     this.height = size[1];
-    this.paper.setSize(width, height);
+    this.paper.setSize(this.width, this.height);
     this.NODE_SIZE = (this.width / 8) / this.number_of_nodes;
     this.refresh_styles();
     this.draw(this.last_layout);
