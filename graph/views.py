@@ -254,6 +254,7 @@ def node_info(request, graph_id, node_id, page=0):
                         'start_neo_id': r.start.id,
                         'relation_type': r.type,
                         'relation_url': r.url,
+                        'relation_id': r.url.split('/')[-1], #TODO Fix in client
                         'end_id': r.end.get('id', None),
                         'end_type': r.end.get('type', None),
                         'end_neo_id': r.end.id}
@@ -440,6 +441,16 @@ def delete_node(request, graph_id, node_id):
             pass
     return HttpResponse(simplejson.dumps({'success': success,
                                         'messages': messages}))
+
+
+def delete_relationship(request, graph_id, node_id, relationship_id, page):
+    gdb = get_neo4j_connection(graph_id)
+    node = gdb.nodes[int(node_id)]
+    for relation in node.relationships.all():
+        if relationship_id == relation.url.split('/')[-1]:
+            relation.delete()
+            break
+    return node_info(request, graph_id, node_id, page)
 
 
 def add_media(request, graph_id, node_id):
