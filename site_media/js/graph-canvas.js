@@ -367,7 +367,7 @@ RaphaelGraph.prototype.info_as_table = function info_as_table(element) {
 RaphaelGraph.prototype.toggle_labels = function toggle_labels(label_field) {
     this.node_label_field = label_field;
     this.edge_label_field = label_field;
-    this.show_labels = !this.show_labels;
+    //this.show_labels = !this.show_labels;
     raphael_object.render()
 }
 

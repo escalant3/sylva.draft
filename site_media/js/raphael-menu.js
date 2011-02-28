@@ -28,14 +28,18 @@ var RaphaelMenu = {
                 "stroke":"black"});
         start_position = 120;
         step = 50;
-        menu_elements = ["Labels", "Topics", "Options"];
-        dom_names = ["labels_menu", "topics_menu", "options_menu"];
+        menu_elements = ["Topics", "Options"];
+        dom_names = ["topics_menu", "options_menu"];
         for(i=0;i<menu_elements.length;i++) {
             draw_option(100, start_position+i*step, menu_elements[i], dom_names[i]);
         }
+        labels = ["id", "", "ID", "type"]
+        var labelControl = new DiscreteSlider(raphael_menu, "Label", 30, start_position+i*step, labels, raphael, 'toggle_labels');
+        labelControl.draw()
         layouts = ["random", "circular", "spring", "ARF"];
-        var layout = new DiscreteSlider(raphael_menu, "Layout", 30, start_position+i*step, layouts, raphael, 'draw');
+        var layout = new DiscreteSlider(raphael_menu, "Layout", 30, start_position+(i+1)*step, layouts, raphael, 'draw');
         layout.draw()
+        
     }
 };
 

@@ -41,7 +41,7 @@ DiscreteSlider.prototype.draw = function() {
     leftc.node.onclick = left.node.onclick = function () {
         slider.option--;
         if (slider.option < 0) slider.option=0;
-        raphael.draw(slider.values[slider.option]);
+        slider.object[slider.method](slider.values[slider.option]);
         text.attr({text: slider.values[slider.option]});
     };
 }

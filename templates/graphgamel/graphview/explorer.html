@@ -217,20 +217,6 @@
                             </span><br>
                 {% endfor %}
             </div>
-            <div id="labels_menu" class="menu">
-                <input type="text" id="label_field_id" value="id"/>
-                <input type="checkbox" checked onClick="refresh_labels()"/>
-            </div>
-            <div id="layouts_menu" class="menu">
-                    <select id="layout_type">
-                        <option value="spring">Spring layout</option>
-                        <option value="circular">Circular layout</option>
-                        <option value="ARF">ARF layout</option>
-                        <option value="shell">Shell layout</option>
-                        <option value="random">Random layout</option>
-                    </select>
-                    <input type="button" value="Relayout" onclick="raphael.draw(getElementById('layout_type').value);"/>
-            </div>
             <div id="options_menu" class="menu">
                 <table>
                     <tr>
