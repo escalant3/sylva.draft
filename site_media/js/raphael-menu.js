@@ -1,5 +1,13 @@
 var RaphaelMenu = {
     'width': 200,
+    'range': function(start, end, step) {
+        /* A function that returns a list of integers from
+           start to end with a given step */
+        list = [];
+        for(i=start;i<end;i=i+step)
+            list.push(String(i));
+        return list;
+    },
     'show_topics': function() {
         MenuControl.toggle('topics_menu');
     },
@@ -37,24 +45,33 @@ var RaphaelMenu = {
         //button4.draw();
 
         // Sliders
-        xInit = 25;
-        yInit = 150;
-        yStep = 50
-        i=0;
-        labels = ["id", "", "ID", "type"]
+        var xInit = 25;
+        var yInit = 150;
+        var yStep = 50
+        var i=0;
+        var labels = ["id", "", "ID", "type"]
         var labelControl = new DiscreteSlider(raphael_menu, "Label", xInit, yInit+i*yStep, labels, raphael, 'toggle_labels');
         labelControl.draw()
         i++;
-        layouts = ["random", "circular", "spring", "ARF"];
+        var layouts = ["random", "circular", "spring", "ARF"];
         var layout = new DiscreteSlider(raphael_menu, "Layout", xInit, yInit+i*yStep, layouts, raphael, 'draw');
         layout.draw()
         i++;
-        sizes = [Math.floor(raphael.width) + "x" + Math.floor(raphael.height),
+        var sizes = [Math.floor(raphael.width) + "x" + Math.floor(raphael.height),
                 "800x800", "1024x768", "1280x800"];
         var canvasSizeControl = new DiscreteSlider(raphael_menu, "Canvas Size",
                     xInit, yInit+i*yStep, sizes, raphael, 'set_size');
         canvasSizeControl.draw();
-        
+        i++;
+        var fontSizes = RaphaelMenu.range(8,36,4);
+        var fontSizeControl = new DiscreteSlider(raphael_menu, "Font Size",
+                    xInit, yInit+i*yStep, fontSizes, raphael, 'setFontSize');
+        fontSizeControl.draw();
+        i++;
+        var nodeSizes = RaphaelMenu.range(2,50,2);
+        var nodeSizeControl = new DiscreteSlider(raphael_menu, "Node Size",
+                    xInit, yInit+i*yStep, nodeSizes, raphael, 'setNodeSize');
+        nodeSizeControl.draw();
     }
 };
 

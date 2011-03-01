@@ -428,3 +428,13 @@ RaphaelGraph.prototype.add_node = function add_node(node) {
         this.draw_node(node);
     }
 }
+
+RaphaelGraph.prototype.setFontSize = function(size) {
+    this.style.fontSize = size;
+    this.render();
+}
+
+RaphaelGraph.prototype.setNodeSize = function(size) {
+    this.NODE_SIZE = size;
+    this.render();
+}
