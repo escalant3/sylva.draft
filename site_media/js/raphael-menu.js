@@ -34,8 +34,8 @@ var RaphaelMenu = {
         var topicsButton = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "Topics", this.show_topics);
         topicsButton.draw();
         j=1;
-        var button2 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN2", undefined);
-        //button2.draw();
+        var button2 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "GEXF", export_to_gexf);
+        button2.draw();
         i=1;
         j=0;
         var button3 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN3", undefined);

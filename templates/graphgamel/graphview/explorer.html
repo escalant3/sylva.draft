@@ -151,6 +151,11 @@
                 }
             }
         }
+
+        function export_to_gexf() {
+            location.href = "{% url graph.views.export_to_gexf 'JVAR' %}"
+            .replace('JVAR', encodeURIComponent(JSON.stringify(raphael.data)));
+        }
     </script> 
 {% endblock %}
 

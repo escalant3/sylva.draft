@@ -15,6 +15,8 @@ from graph.models import Neo4jGraph, Node, Media, GraphIndex, \
                     NodeType, EdgeType
 from schema.models import ValidRelation
 
+import converters
+
 
 RESERVED_FIELD_NAMES = ('id', 'type')
 RELATIONS_PER_PAGE = 20
@@ -673,3 +675,11 @@ def add_relationship_ajax(request, graph_id):
         else:
             success = False
         return HttpResponse(simplejson.dumps({'success':success}))
+
+
+def export_to_gexf(request, json_graph):
+    response = HttpResponse(mimetype='application/xml')
+    response['Content-Disposition'] = 'attachment; filename=graph.gexf'
+    gephi_format = converters.json_to_gexf(json_graph)
+    response.write(gephi_format)
+    return response
