@@ -74,8 +74,9 @@ RaphaelGraph.prototype.refresh_styles = function() {
                         ["edgeStrokeWidth", this.NODE_SIZE/24],
                         ["fontSize", Math.max(this.NODE_SIZE/4,8)],
                         ["labelYMargin", -1.3*this.NODE_SIZE]];
-    for(i=0;i<dinamic_styles.length;i++)
+    for(i=0;i<dinamic_styles.length;i++) {
         this.style[dinamic_styles[i][0]] = dinamic_styles[i][1];
+    }
 }
 
 RaphaelGraph.prototype.draw = function draw(layout) {
@@ -94,6 +95,7 @@ RaphaelGraph.prototype.draw = function draw(layout) {
         case "spring": GraphLayout.spring_layout(nodes,edges,1,width,height);break;
         case "circular": GraphLayout.circular_layout(nodes, width, height);break;
         case "ARF": GraphLayout.ARF_layout(nodes,edges,1,width,height);break;
+        default: GraphLayout.random_layout(nodes, width, height);break;
     }
     this.last_layout = layout;
     this.render();
@@ -158,51 +160,52 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
                 };
             };
         };
-        c.node.onmouseover = function () {
-            c.attr("stroke", raphael.style.overNodeStrokeColor);
-        };
-        c.node.onmouseout = function () {
-            c.attr("stroke", raphael.style.nodeStrokeColor);
-        };
-
-        function move(dx, dy) {
-            raphael.dragging = true;
-            this.update(dx - (this.dx || 0), dy - (this.dy || 0));
-            this.dx = dx;
-            this.dy = dy;
-        }
-
-        function down() {
-            this.dx = this.dy = 0;
-        }
-
-        c.update = function (dx, dy) {
-            x = this.attr("cx") + dx;
-            y = this.attr("cy") + dy;
-            this.attr({cx: x, cy: y});
-            raphael.elements[node.id]["label"].remove();
-            raphael.elements[node.id]["label"] = raphael.draw_label(
-                        x, y + raphael.style.labelYMargin, node[raphael.node_label_field] || "");
-            if (!raphael.show_labels)
-                raphael.elements[node.id]["label"].hide();
-            node_dragged = raphael.data.nodes[node.id]
-            node_dragged._xpos = x;
-            node_dragged._ypos = y;
-            edges = raphael.elements[node.id].edges;
-            for (var relation_id in edges) {
-                for (var node_id in edges[relation_id]) {
-                    raphael.elements[node.id]["edges"][relation_id][node_id]["label"].remove();
-                    edges[relation_id][node_id].remove();
-                    edge = {};
-                    edge.node1 = node.id;
-                    edge.node2 = node_id;
-                    edge.id = relation_id;
-                    raphael.draw_edge(edge);
-                }
-           }
-        }
-        c.drag(move, down);
     }
+    c.node.onmouseover = function () {
+        c.attr("stroke", raphael.style.overNodeStrokeColor);
+    };
+    c.node.onmouseout = function () {
+        c.attr("stroke", raphael.style.nodeStrokeColor);
+    };
+
+    function move(dx, dy) {
+        raphael.dragging = true;
+        this.update(dx - (this.dx || 0), dy - (this.dy || 0));
+        this.dx = dx;
+        this.dy = dy;
+    }
+
+    function down() {
+        this.dx = this.dy = 0;
+    }
+
+    c.update = function (dx, dy) {
+        x = this.attr("cx") + dx;
+        y = this.attr("cy") + dy;
+        this.attr({cx: x, cy: y});
+        raphael.elements[node.id]["label"].remove();
+        raphael.elements[node.id]["label"] = raphael.draw_label(
+                    x, y + raphael.style.labelYMargin, node[raphael.node_label_field] || "");
+        if (!raphael.show_labels)
+            raphael.elements[node.id]["label"].hide();
+        node_dragged = raphael.data.nodes[node.id]
+        node_dragged._xpos = x;
+        node_dragged._ypos = y;
+        edges = raphael.elements[node.id].edges;
+        for (var relation_id in edges) {
+            for (var node_id in edges[relation_id]) {
+                raphael.elements[node.id]["edges"][relation_id][node_id]["label"].remove();
+                edges[relation_id][node_id].remove();
+                edge = {};
+                edge.node1 = node.id;
+                edge.node2 = node_id;
+                edge.id = relation_id;
+                raphael.draw_edge(edge);
+            }
+       }
+    }
+    c.drag(move, down);
+
     if (!this.show_labels)
         this.elements[node.id]["label"].hide();
 };
