@@ -130,14 +130,8 @@ def editor(request, graph_id):
     schema = graph.schema
     # Only show editor if user has permissions 
     # or no permissions are established
-    allowed_users = schema.allowed_users.all()
-    allowed_groups = schema.allowed_groups.all()
-    user = request.user
-    if allowed_users or allowed_groups:
-        if user not in allowed_users and not \
-            [g for g in user.groups.all() if g in allowed_groups]:
-            return HttpResponseRedirect('/accounts/login/?next=%s' % 
-                                        request.path)
+    if not validate_user(request, schema):
+        return unauthorized_user(request)
     if request.method == 'POST':
         gdb = neo4jclient.GraphDatabase(graph.host)
         if gdb:
@@ -326,7 +320,32 @@ def get_neo4j_connection(graph_id):
         return None
 
 
+def get_schema(graph_id):
+    return Neo4jGraph.objects.get(pk=graph_id).schema
+
+
+def validate_user(request, schema):
+    allowed_users = schema.allowed_users.all()
+    allowed_groups = schema.allowed_groups.all()
+    user = request.user
+    if allowed_users or allowed_groups:
+        if user not in allowed_users and not \
+            [g for g in user.groups.all() if g in allowed_groups]:
+            return False
+    return True
+
+
+def unauthorized_user(request):
+    if request.is_ajax():
+        return HttpResponse(simplejson.dumps({'nopermission': True}))
+    else:
+        return HttpResponseRedirect('/accounts/login/?next=%s' % 
+                                        request.path)
+
+
 def node_property(request, graph_id, node_id, action):
+    if not validate_user(request, get_schema(graph_id)):
+        return unauthorized_user(request)
     node = get_node_without_connection(graph_id, node_id)
     if node:
         if action == 'add':
@@ -339,6 +358,9 @@ def node_property(request, graph_id, node_id, action):
 
 def relation_property(request, graph_id, start_node_id,
                             edge_type, end_node_id, action):
+    if not validate_user(request, get_schema(graph_id)):
+        return unauthorized_user(request)
+
     relation = get_relationship_without_connection(graph_id, start_node_id,
                                         edge_type, end_node_id)
     if relation:
@@ -440,6 +462,8 @@ def filter_by_property(nodes, prop, value):
 
 
 def delete_node(request, graph_id, node_id):
+    if not validate_user(request, get_schema(graph_id)):
+        return unauthorized_user(request)
     success = False
     if request.is_ajax():
         gdb = get_neo4j_connection(graph_id)
@@ -456,6 +480,8 @@ def delete_node(request, graph_id, node_id):
 
 
 def delete_relationship(request, graph_id, node_id, relationship_id, page):
+    if not validate_user(request, get_schema(graph_id)):
+        return unauthorized_user(request)
     gdb = get_neo4j_connection(graph_id)
     node = gdb.nodes[int(node_id)]
     for relation in node.relationships.all():

@@ -1,6 +1,7 @@
 var GRAPHGAMEL = {
     'authenticated': false,
     'special_fields': [],
+    'permission_error': 'Your user has not privilegies to perform that action',
     'populate_table': function(table_id, properties) {
         table = document.getElementById(table_id);
         table.innerHTML = "";
@@ -56,9 +57,10 @@ var GRAPHGAMEL = {
                                 document.getElementById('new_property_key').value = "";
                                 document.getElementById('new_property_value').value = "";
                             } else {
-                                alert('Unable to add property')
+                                GRAPHGAMEL.error(response);
                             }
-                        }});
+                        },
+                });
     },
 
     'modify_property': function(property) {
@@ -72,7 +74,7 @@ var GRAPHGAMEL = {
                         if (response['success']) {
                             GRAPHGAMEL.populate_table('properties_table', response['properties']);
                         } else {
-                            alert('Unable to edit property')
+                            GRAPHGAMEL.error(response);
                         }
                     }});
     },
@@ -86,7 +88,7 @@ var GRAPHGAMEL = {
                             if (response['success']) {
                                 GRAPHGAMEL.populate_table('properties_table', response['properties']);
                             } else {
-                                alert('Unable to delete property');
+                                GRAPHGAMEL.error(response);
                             }
                         }});
     },
@@ -138,6 +140,14 @@ var GRAPHGAMEL = {
 
     'isURL': function(data) {
         return ((data.match('^http://') == 'http://') || (data.match('^https://') == 'https://'));
+    },
+
+    'error': function(response) {
+        if (response['nopermission']) {
+            alert(GRAPHGAMEL.permission_error);
+        } else {
+            alert('An uknown error ocurred')
+        }
     }
 
 }
