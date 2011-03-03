@@ -279,6 +279,7 @@ def node_info(request, graph_id, node_id, page=0):
                                                 'caption': media.media_caption})
     node_name = '%s(%s)' % (node.properties['id'],
                             node.properties['type'])
+    authorized = validate_user(request, get_schema(graph_id))
     return render_to_response('graphgamel/node_info.html',
                                     RequestContext(request, {
                                     'properties': properties,
@@ -289,7 +290,8 @@ def node_info(request, graph_id, node_id, page=0):
                                     'node_id': node_id,
                                     'media_items': media_items,
                                     'node_name': node_name,
-                                    'pagination': pagination}))
+                                    'pagination': pagination,
+                                    'authorized': authorized}))
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
@@ -301,6 +303,7 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
         properties = simplejson.dumps(relation.properties)
         start_node_properties = simplejson.dumps(relation.start.properties)
         end_node_properties = simplejson.dumps(relation.end.properties)
+        authorized = validate_user(request, get_schema(graph_id))
         return render_to_response('graphgamel/relation_info.html',
                                 RequestContext(request, {
                                 'properties': properties,
@@ -309,7 +312,8 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
                                 'end_node_id': end_node_id,
                                 'start_node_properties': start_node_properties,
                                 'end_node_properties': end_node_properties,
-                                'edge_type': edge_type}))
+                                'edge_type': edge_type,
+                                'authorized': authorized}))
 
 
 def get_neo4j_connection(graph_id):

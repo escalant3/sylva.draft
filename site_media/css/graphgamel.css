@@ -49,3 +49,9 @@ div.hidden {
 span.label {
     background: #EDF3FE;
 }
+
+p.nopermission {
+    width: 320px;
+    background: #FFD0D0;
+    padding:10px;
+}

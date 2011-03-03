@@ -13,7 +13,7 @@
 {% block extracode %}
 <script type="application/javascript">
     window.onload = function() {
-        {% if user.is_authenticated %}
+        {% if authorized %}
             GRAPHGAMEL.authenticated = true;
         {% else %}
             GRAPHGAMEL.authenticated = false;
@@ -28,13 +28,20 @@
 {% block content %}
 <div id="main">
 <h1>Relationship info</h1>
-{% if user.is_authenticated %}
+    {% if user.is_authenticated and not authorized %}
+    <p class="nopermission">READ ONLY MODE<br/>
+    Your user is not able to edit this data. If you 
+    want to add information, please log in as an authorized user.</p>
+    {% endif %}
+
     <h3>Actions</h3>
+    {% if authorized %}
     <a class="deletelink" onclick="GRAPHGAMEL.delete_relationship()">Delete this relationship</a>
-{% endif %}
+    {% endif %}
+    
 <h3>Properties</h3>
 <table id="properties_table" class="properties"></table>
-{% if user.is_authenticated %}
+{% if authorized %}
     <h5>Add property</h5>
         <input type="text" id="new_property_key">
         <input type="text" id="new_property_value">
