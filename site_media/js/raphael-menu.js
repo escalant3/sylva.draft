@@ -11,6 +11,9 @@ var RaphaelMenu = {
     'show_topics': function() {
         MenuControl.toggle('topics_menu');
     },
+    'show_query': function() {
+        MenuControl.toggle('query_menu');
+    },
     'draw' : function(raphael_graph) {
         raphael_menu = Raphael("explorer_menu", this.width, raphael_graph.height);
         r = raphael_menu.rect(5,5,180,400,50);
@@ -38,8 +41,8 @@ var RaphaelMenu = {
         button2.draw();
         i=1;
         j=0;
-        var button3 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN3", undefined);
-        //button3.draw();
+        var button3 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "Query", this.show_query);
+        button3.draw();
         j=1;
         var button4 = new Button(raphael_menu, xInit+xStep*i, yInit+yStep*j, "BTN4", undefined);
         //button4.draw();

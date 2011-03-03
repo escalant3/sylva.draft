@@ -211,10 +211,8 @@
 
 {% block bottombar %}
 <div id="query_menu" class="menu query_menu">
-    <form action="." method="post">
-        <input id="query" name="query" type="text" size="60"/>
-        <input id="btn_query" type="submit" value="Execute"/>
-        <input id="cncl_query" type="button" value="Cancel" onClick="toggle('query')"/>
-    </form>
+    <input id="query" name="query" type="text" size="80"/>
+    <button id="btn_query" onclick="SylvaConsole.execute()">Execute</button>
+    
 </div>
 {% endblock %}
