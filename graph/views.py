@@ -128,6 +128,16 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
 def editor(request, graph_id):
     graph = Neo4jGraph.objects.get(pk=graph_id)
     schema = graph.schema
+    # Only show editor if user has permissions 
+    # or no permissions are established
+    allowed_users = schema.allowed_users.all()
+    allowed_groups = schema.allowed_groups.all()
+    user = request.user
+    if allowed_users or allowed_groups:
+        if user not in allowed_users and not \
+            [g for g in user.groups.all() if g in allowed_groups]:
+            return HttpResponseRedirect('/accounts/login/?next=%s' % 
+                                        request.path)
     if request.method == 'POST':
         gdb = neo4jclient.GraphDatabase(graph.host)
         if gdb:
