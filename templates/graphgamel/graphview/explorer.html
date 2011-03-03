@@ -156,6 +156,24 @@
             location.href = "{% url graph.views.export_to_gexf 'JVAR' %}"
             .replace('JVAR', encodeURIComponent(JSON.stringify(raphael.data)));
         }
+
+        function createTopicsMenu(raphael) {
+            for(var type in raphael.style.topics) {
+                input = document.createElement('input')
+                input.setAttribute('type', 'checkbox');
+                input.setAttribute('onclick', 'toggle_nodes(\'' + type + '\')');
+                input.setAttribute('checked', '');
+                span = document.createElement('span');
+                color = raphael.style.topics[type];
+                span.setAttribute('style', 'color:' + color);
+                text = document.createTextNode(type);
+                span.appendChild(text);
+                topicsMenu = document.getElementById('topics_menu');
+                topicsMenu.appendChild(input);
+                topicsMenu.appendChild(span);
+                topicsMenu.appendChild(document.createElement('br'));
+            }
+        }
     </script> 
 {% endblock %}
 
@@ -168,6 +186,7 @@
             terminalWidget.onkeydown = onKeyDown;
             MenuControl.render_controls('.menu');
             RaphaelMenu.draw(raphael);
+            createTopicsMenu(raphael);
         }
     </script>
 {% endblock %}
@@ -184,13 +203,7 @@
         </div>
         <div id="floating_menus">
             <div id="topics_menu" class="menu">
-                {% for key, style in node_style_list %}
-                    <input type="checkbox" onclick="toggle_nodes('{{ key }}')" 
-                        checked>
-                            <span style="color:{{ style.color }}">
-                                {{ style.label }}
-                            </span><br>
-                {% endfor %}
+                <span/>
             </div>
         </div>
     </div>

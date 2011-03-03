@@ -65,6 +65,8 @@ RaphaelGraph.prototype.style = {
     "fwbtnFontColor": "black",
     "fwbtnFontStrokeColor": "white",
     "fwbtnFontStrokeWidth": 0,
+    //Node colors by topics
+    "topics":{},
 };
 
 
@@ -136,8 +138,11 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
     this.elements[node.id]["label"] = this.draw_label(node._xpos, 
                             node._ypos + this.style.labelYMargin,
                             node[this.node_label_field] || "");
-    if (node.hasOwnProperty("color")) {
-        c.attr("fill", node["color"]);
+    if (node.hasOwnProperty("type")) {
+        if (!this.style.topics.hasOwnProperty(node["type"])) {
+            this.style.topics[node["type"]] = Raphael.getColor(1);
+        }
+        c.attr("fill", this.style.topics[node["type"]]);
     } else {
         c.attr("fill", this.style.defaultNodeColor);
     }

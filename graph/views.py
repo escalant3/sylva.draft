@@ -566,14 +566,13 @@ def get_autocompletion_objects(request, graph_id):
         return HttpResponse(simplejson.dumps(results))
 
 
-def get_node_and_neighbourhood(graph_id, node_id, visual_data):
+def get_node_and_neighbourhood(graph_id, node_id):
     neograph = Neo4jGraph.objects.get(pk=graph_id)
     graph = {"nodes":{}, "edges":{}}
     gdb = get_neo4j_connection(graph_id)
     node = gdb.node[int(node_id)]
     properties = node.properties
-    graph["nodes"][properties['id']] = visual_data[properties['type']]
-    graph["nodes"][properties['id']].update(properties)
+    graph["nodes"][properties['id']] = properties
     relationships = node.relationships.all()
     edges_counter= 0
     for r in relationships:
@@ -581,14 +580,14 @@ def get_node_and_neighbourhood(graph_id, node_id, visual_data):
         properties = start_properties.copy()
         start_id = properties["id"]
         if start_id not in graph["nodes"]:
-            graph["nodes"][start_id] = visual_data[properties['type']].copy()
-            graph["nodes"][start_id].update(properties.copy())
+            #graph["nodes"][start_id] = visual_data[properties['type']].copy()
+            graph["nodes"][start_id] = properties.copy()
         end_properties = r.end.properties
         properties = end_properties.copy()
         end_id = properties["id"]
         if end_id not in graph["nodes"]:
-            graph["nodes"][end_id] = visual_data[properties['type']].copy()
-            graph["nodes"][end_id].update(properties.copy())
+            #graph["nodes"][end_id] = visual_data[properties['type']].copy()
+            graph["nodes"][end_id] = properties.copy()
         graph["edges"][edges_counter] = {'node1': start_id,
                                     'node2': end_id,
                                     'id': r.type}
@@ -598,15 +597,10 @@ def get_node_and_neighbourhood(graph_id, node_id, visual_data):
 
 def visualize(request, graph_id, node_id):
     neograph = Neo4jGraph.objects.get(pk=graph_id)
-    visual_data = neograph.schema.get_node_visual_data()
-    request.session['visual_data'] = visual_data
-    graph = get_node_and_neighbourhood(graph_id, node_id, visual_data)
-    style_list = [(key, value) for key, value
-                        in visual_data.iteritems()]
+    graph = get_node_and_neighbourhood(graph_id, node_id)
     return render_to_response('graphgamel/graphview/explorer.html',
                                     RequestContext(request, {
                                     'json_graph': simplejson.dumps(graph),
-                                    'node_style_list':style_list,
                                     'graph_id': graph_id,
                                     'node_id': node_id}))
 
