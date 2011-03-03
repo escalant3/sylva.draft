@@ -580,13 +580,11 @@ def get_node_and_neighbourhood(graph_id, node_id):
         properties = start_properties.copy()
         start_id = properties["id"]
         if start_id not in graph["nodes"]:
-            #graph["nodes"][start_id] = visual_data[properties['type']].copy()
             graph["nodes"][start_id] = properties.copy()
         end_properties = r.end.properties
         properties = end_properties.copy()
         end_id = properties["id"]
         if end_id not in graph["nodes"]:
-            #graph["nodes"][end_id] = visual_data[properties['type']].copy()
             graph["nodes"][end_id] = properties.copy()
         graph["edges"][edges_counter] = {'node1': start_id,
                                     'node2': end_id,
