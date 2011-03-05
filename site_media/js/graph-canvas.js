@@ -446,3 +446,8 @@ RaphaelGraph.prototype.setNodeSize = function(size) {
     this.NODE_SIZE = size;
     this.render();
 }
+
+RaphaelGraph.prototype.clear = function() {
+    this.data = {"nodes":{}, "edges":{}};
+    this.render();
+}

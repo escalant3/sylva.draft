@@ -182,8 +182,9 @@
         window.onload = function () {
             raphael = new RaphaelGraph(gdata);
             raphael.draw("random");
-            terminalWidget = document.getElementById('query');
-            terminalWidget.onkeydown = onKeyDown;
+            sylvaConsole = new SylvaConsole(document.getElementById('shell'),
+                                            document.getElementById('shellLog'));
+            sylvaConsole.terminalWidget.onkeydown = sylvaConsole.onKeyDown;
             MenuControl.render_controls('.menu');
             RaphaelMenu.draw(raphael);
             createTopicsMenu(raphael);
@@ -197,6 +198,11 @@
 
 {% block content %}
     <div id="content">
+        <div class="commandPrompt">
+            <input id="shell" type="text" size="40" class="commandPrompt"/>
+            <button id="btn_query" onclick="SylvaConsole.execute()">Execute</button>
+            <span id="shellLog" class="commandPromptLog"/>
+        </div>
         <div id="canvas"> </div>
         <div id="info">
             {% block extra_controls %}{% endblock %}
@@ -211,7 +217,7 @@
 
 {% block bottombar %}
 <div id="query_menu" class="menu query_menu">
-    <input id="query" name="query" type="text" size="80"/>
+    <input id="query" name="query" type="text" size="40"/>
     <button id="btn_query" onclick="SylvaConsole.execute()">Execute</button>
     
 </div>
