@@ -533,7 +533,7 @@ def create_raw_relationship(request, graph_id, node_id):
         start_node = gdb.nodes[int(node_id)]
         end_node = gdb.nodes[int(request.GET['destination'])]
         edge_type = request.GET['edge_type']
-        if (request.GET['reversed']):
+        if (request.GET['reversed'] == u"true"):
             start_node, end_node = end_node, start_node
         if not get_relationship(start_node, end_node, edge_type):
             getattr(start_node, edge_type)(end_node)
