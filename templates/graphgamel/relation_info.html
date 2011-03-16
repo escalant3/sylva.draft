@@ -48,8 +48,10 @@
         <input type="button" value="Add new property" onClick="GRAPHGAMEL.add_property()">
 {% endif %}
 <h3>Node from</h3>
+<a href="{% url graph.views.node_info graph_id start_node_id %}">Open this node</a>
 <table id="start_node_properties_table" class="properties"></table>
 <h3>Node to</h3>
+<a href="{% url graph.views.node_info graph_id end_node_id %}">Open this node</a>
 <table id="end_node_properties_table" class="properties"></table>
 </div>
 {% endblock %}
