@@ -618,8 +618,7 @@ def get_node_from_index(request, graph_id):
 def expand_node(request, graph_id):
     node = get_node_from_index(request, graph_id)
     if node:
-        visual_data = request.session.get('visual_data', None)
-        new_graph = get_node_and_neighbourhood(graph_id, node.id, visual_data)
+        new_graph = get_node_and_neighbourhood(graph_id, node.id)
         response_dictionary = {'success': True,
                                 'new_gdata': new_graph}
     else:
