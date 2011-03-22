@@ -20,6 +20,12 @@ function SylvaConsole(widget, logWidget) {
                         delete_node();
                     },
                     'args': 1},
+                'expand-node': {
+                    'action': function(node_id) {
+                        selected_node = node_id;
+                        expand_node();
+                    },
+                    'args': 1},
             },
         },
     };
