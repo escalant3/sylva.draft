@@ -58,7 +58,7 @@
                             } else {
                                 reversed = false;
                             }
-                            self.location = location.href + "create_raw_relationship?reversed="+ reversed + "&destination="+ destination +"&edge_type="+edge_type;
+                            self.location = "{% url graph.views.create_raw_relationship graph_id node_id %}" + "?reversed="+ reversed + "&destination="+ destination +"&edge_type="+edge_type;
                         }
                     }
                 }
