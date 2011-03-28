@@ -1,4 +1,5 @@
 import csv
+import datetime
 import neo4jclient
 import simplejson
 
@@ -58,12 +59,12 @@ def add_message(request, text,
 
 def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
-    slug_id = defaultfilters.slugify(n['id'])[:150]
-    result = filter_by_property(gdb.index('id', slug_id),
-                                'type', n['type'])
+    slug_id = defaultfilters.slugify(n['_slug'])[:150]
+    result = filter_by_property(gdb.index('_slug', slug_id),
+                                '_type', n['_type'])
     if len(result) == 1:
         node = result[0]
-        n['id'] = slug_id
+        n['_slug'] = slug_id
         for key, value in n.iteritems():
             node.set(key, value)
     else:
@@ -73,12 +74,12 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
 
 
 def create_node(gdb, n, graph):
-    original_id = n['id']
-    n['id'] = defaultfilters.slugify(n['id'])[:150]
+    original_id = n['_slug']
+    n['_slug'] = defaultfilters.slugify(n['_slug'])[:150]
     node_properties = {}
-    if original_id != n['id']:
-        node_properties['ID'] = original_id
-    node_type_obj = NodeType.objects.filter(name=n['type'])
+    if original_id != n['_slug']:
+        node_properties['id'] = original_id
+    node_type_obj = NodeType.objects.filter(name=n['_type'])
     if node_type_obj:
         default_properties = node_type_obj[0].nodedefaultproperty_set.all()
         for dp in default_properties:
@@ -86,11 +87,12 @@ def create_node(gdb, n, graph):
     for key, value in n.items():
         node_properties[key] = value
     node = gdb.node(**node_properties)
-    gdb.add_to_index('id', n['id'], node)
-    gdb.add_to_index('type', n['type'], node)
+    node.properties.update({'_url': "/".join(node.url.split('/')[-2:])})
+    gdb.add_to_index('_slug', n['_slug'], node)
+    gdb.add_to_index('_type', n['_type'], node)
     graph_index = GraphIndex(graph=graph,
-                            node_id=n['id'],
-                            node_type=n['type'])
+                            node_id=n['_slug'],
+                            node_type=n['_type'])
     graph.graphindex_set.add(graph_index)
     return node
 
@@ -124,6 +126,17 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
     return return_function(relation, created, creation_info)
 
 
+def get_internal_attributes(slug, _type, graph_id, user):
+    timestamp = datetime.datetime.now()
+    return {'_slug': slug,
+            '_type': _type,
+            '_graph': graph_id,
+            '_user': user.username,
+            '_timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            '_origin': 1,
+            }
+
+
 @login_required
 def editor(request, graph_id):
     graph = Neo4jGraph.objects.get(pk=graph_id)
@@ -137,7 +150,10 @@ def editor(request, graph_id):
         if gdb:
             data = request.POST.copy()
             if data['mode'] == 'node':
-                n = {'id': data['node_id'], 'type': data['node_type']}
+                n = get_internal_attributes(data['node_id'],
+                                            data['node_type'],
+                                            graph_id,
+                                            request.user)
                 properties = simplejson.loads(data['node_properties'])
                 n.update(properties)
                 node, new = get_or_create_node(gdb, n, graph, True)
@@ -158,18 +174,22 @@ def editor(request, graph_id):
             elif data['mode'] == 'relation':
                 #Check if it is a valid relationship
                 #Create data in Neo4j server
-                node_from = {'id': data['node_from_id'],
-                            'type': data['node_from_type']}
+                node_from = get_internal_attributes(data['node_from_id'],
+                                                    data['node_from_type'],
+                                                    graph_id,
+                                                    request.user)
                 properties = simplejson.loads(data['node_from_properties'])
                 node_from.update(properties)
-                relation = {'type': data['relation_type']}
+                relation = {'_type': data['relation_type']}
                 properties = simplejson.loads(data['relation_properties'])
                 relation.update(properties)
-                node_to = {'id': data['node_to_id'],
-                            'type': data['node_to_type']}
+                node_to = get_internal_attributes(data['node_to_id'],
+                                                    data['node_to_type'],
+                                                    graph_id,
+                                                    request.user)
                 properties = simplejson.loads(data['node_to_properties'])
                 node_to.update(properties)
-                edge_type = relation['type']
+                edge_type = relation['_type']
                 node1 = get_or_create_node(gdb, node_from, graph)
                 node2 = get_or_create_node(gdb, node_to, graph)
                 rel_obj, new = get_or_create_relationship(node1,
@@ -183,6 +203,15 @@ def editor(request, graph_id):
                         default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
                         for dp in default_properties:
                             rel_obj.set(dp.key, dp.value)
+                
+                # Relation inner properties
+                timestamp = datetime.datetime.now()
+                inner_properties = {'_user': request.user.username,
+                                    '_graph': graph_id,
+                                    '_timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                                    '_url': "/".join(rel_obj.url.split('/')[-2:]),
+                                    '_origin': 1}
+                relation.update(inner_properties)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
                 if new:
