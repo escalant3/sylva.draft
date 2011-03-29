@@ -84,7 +84,7 @@
         if (label == "node") {
             field_value = document.getElementById(element+'_id').value;
             node_type = document.getElementById(element+'_type').value;
-            if (node_id) {
+            if (field_value) {
                 // Check if node exists
                 $.ajax({url: location.href + "search_node",
                         data: {field_value: field_value,
