@@ -23,7 +23,7 @@
 <h3>Browse nodes by type</h3>
 <ul>
 {% for node_type in node_types %}
-    <p><a href="{% url graph.views.search_nodes_by_field graph_id 'type' node_type %}">{{ node_type }}</a></p>
+    <p><a href="{% url graph.views.search_nodes_by_field graph_id '_type' node_type %}">{{ node_type }}</a></p>
 {% endfor %}
 </ul>
 <h3>Search by id</h3>
@@ -37,7 +37,7 @@
         <ul>
             <li>
                 <a class="changelink" href="{% url graph.views.node_info graph_id result.neo_id %}">
-                    {{ result.properties.id }} ({{ result.properties.type }})
+                    {{ result.slug }} ({{ result.type }})
                 </a>
             </li>
         </ul>

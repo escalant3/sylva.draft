@@ -459,7 +459,7 @@ def search_node(request, graph_id, node_field='', _field_value=''):
             return index(request, error_message)
         field_value = request.GET.get('field_value', _field_value)
         if not node_field:
-            node_field = 'id'
+            node_field = '_slug'
         try:
             if field_value:
                 result = gdb.index(node_field, field_value)
@@ -471,15 +471,16 @@ def search_node(request, graph_id, node_field='', _field_value=''):
                 result = []
         except neo4jclient.NotFoundError:
             result = []
-        if node_field != 'type':
+        if node_field != '_type':
             node_type = request.GET.get('node_type', '')
         else:
             node_type = field_value
-        if field_value and node_field == 'type':
-            result = [r for r in result if node_type == r.properties['type']]
+        if field_value and node_field == '_type':
+            result = [r for r in result if node_type == r.properties['_type']]
         response = [{'url': r.url,
                     'neo_id': r.id,
-                    'properties': r.properties} for r in result]
+                    'slug': r.properties['_slug'],
+                    'type': r.properties['_type']} for r in result]
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
