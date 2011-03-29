@@ -127,15 +127,23 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
 
 
 def get_internal_attributes(slug, _type, graph_id, user):
-    timestamp = datetime.datetime.now()
     return {'_slug': slug,
             '_type': _type,
             '_graph': graph_id,
             '_user': user.username,
-            '_timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            '_timestamp': get_timestamp(),
             '_origin': 1,
             }
 
+
+def get_timestamp():
+    timestamp = datetime.datetime.now()
+    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def update_timestamp(element, username):
+    element.set('_timestamp', get_timestamp())
+    element.set('_user', username)
 
 @login_required
 def editor(request, graph_id):
@@ -205,11 +213,10 @@ def editor(request, graph_id):
                             rel_obj.set(dp.key, dp.value)
                 
                 # Relation inner properties
-                timestamp = datetime.datetime.now()
                 inner_properties = {'_user': request.user.username,
                                     '_graph': graph_id,
-                                    '_timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                                    '_url': "/".join(rel_obj.url.split('/')[-2:]),
+                                    '_timestamp': get_timestamp(),
+                                    '_url': "/".join(rel_obj.url.split('/')[-1:]),
                                     '_origin': 1}
                 relation.update(inner_properties)
                 for key, value in relation.iteritems():
@@ -424,6 +431,7 @@ def add_property(request, element):
                 element.set(key, value)
                 properties = element.properties
                 success = True
+                update_timestamp(element, request.user.username)
         return HttpResponse(simplejson.dumps({'success': success,
                                             'properties': properties}))
 
@@ -439,6 +447,7 @@ def modify_property(request, element):
                 element.set(key, value)
                 properties = element.properties
                 success = True
+                update_timestamp(element, request.user.username)
         return HttpResponse(simplejson.dumps({'success': success,
                                             'properties': properties}))
 
@@ -453,6 +462,7 @@ def delete_property(request, element):
                 element.delete(key)
                 properties = element.properties
                 success = True
+                update_timestamp(element, request.user.username)
         return HttpResponse(simplejson.dumps({'success': success,
                                             'properties': properties}))
 
@@ -537,8 +547,8 @@ def add_media(request, graph_id, node_id):
     graph = Neo4jGraph.objects.get(pk=graph_id)
     node = get_node_without_connection(graph, node_id)
     if not '_media' in node.properties:
-        relational_db_node = Node(node_id=node.properties['id'],
-                                    node_type=node.properties['type'],
+        relational_db_node = Node(node_id=node.properties['_slug'],
+                                    node_type=node.properties['_type'],
                                     graph=graph)
         relational_db_node.save()
         node.set('_media', relational_db_node.id)
