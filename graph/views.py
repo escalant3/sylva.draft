@@ -126,14 +126,17 @@ def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
     return return_function(relation, created, creation_info)
 
 
-def get_internal_attributes(slug, _type, graph_id, user):
-    return {'_slug': slug,
+def get_internal_attributes(slug, _type, graph_id, user, relation=False):
+    internal_attrs = {'_slug': slug,
             '_type': _type,
             '_graph': graph_id,
             '_user': user.username,
             '_timestamp': get_timestamp(),
             '_origin': 1,
             }
+    if relation:
+        internal_attrs['_weight'] = False
+    return internal_attrs
 
 
 def get_timestamp():
@@ -213,11 +216,14 @@ def editor(request, graph_id):
                             rel_obj.set(dp.key, dp.value)
                 
                 # Relation inner properties
-                inner_properties = {'_user': request.user.username,
-                                    '_graph': graph_id,
-                                    '_timestamp': get_timestamp(),
-                                    '_url': "/".join(rel_obj.url.split('/')[-1:]),
-                                    '_origin': 1}
+                slug = "%s:%s:%s" % (start_node.properties['_slug'],
+                                    edge_type,
+                                    end_node.properties['_slug'])
+                inner_properties = get_internal_attributes(slug,
+                                                edge_type,
+                                                graph_id,
+                                                request.user,
+                                                True)
                 relation.update(inner_properties)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
@@ -584,7 +590,18 @@ def create_raw_relationship(request, graph_id, node_id):
         if (request.GET['reversed'] == u"true"):
             start_node, end_node = end_node, start_node
         if not get_relationship(start_node, end_node, edge_type):
-            getattr(start_node, edge_type)(end_node)
+            relationship = getattr(start_node, edge_type)(end_node)
+            relationship.set('_url', "/".join(relationship.url.split('/')[-2:]))
+            slug = "%s:%s:%s" % (start_node.properties['_slug'],
+                                edge_type,
+                                end_node.properties['_slug'])
+            properties = get_internal_attributes(slug,
+                                                edge_type,
+                                                graph_id,
+                                                request.user,
+                                                True)
+            for key, value in properties.iteritems():
+                relationship.set(key, value)
     return redirect(node_info, graph_id, node_id)
 
 
