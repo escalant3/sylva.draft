@@ -284,18 +284,18 @@ def node_info(request, graph_id, node_id, page=0):
                     'previous': max(0, page-1),
                     'next': min(total_pages, page+1)}
     for r in relationships[pagination['start']:pagination['end']]:
-        relation_info = {'start_id': r.start.get('id', None),
-                        'start_type': r.start.get('type', None),
+        relation_info = {'start_id': r.start.get('_slug', None),
+                        'start_type': r.start.get('_type', None),
                         'start_neo_id': r.start.id,
                         'relation_type': r.type,
                         'relation_url': r.url,
                         'relation_id': r.url.split('/')[-1], #TODO Fix in client
-                        'end_id': r.end.get('id', None),
-                        'end_type': r.end.get('type', None),
+                        'end_id': r.end.get('_slug', None),
+                        'end_type': r.end.get('_type', None),
                         'end_neo_id': r.end.id}
         relationships_list.append(relation_info)
     graph = Neo4jGraph.objects.get(pk=graph_id)
-    node_type = node['type']
+    node_type = node['_type']
     outgoing, incoming = graph.schema.get_incoming_and_outgoing(node_type)
     media_items = {}
     if '_media' in node.properties:
@@ -306,8 +306,8 @@ def node_info(request, graph_id, node_id, page=0):
                 media_items[media.media_type] = []
             media_items[media.media_type].append({'url': media.media_file.url,
                                                 'caption': media.media_caption})
-    node_name = '%s(%s)' % (node.properties['id'],
-                            node.properties['type'])
+    node_name = '%s(%s)' % (node.properties['_slug'],
+                            node.properties['_type'])
     authorized = validate_user(request, get_schema(graph_id))
     return render_to_response('graphgamel/node_info.html',
                                     RequestContext(request, {
