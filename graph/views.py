@@ -379,6 +379,10 @@ def unauthorized_user(request):
 def node_property(request, graph_id, node_id, action):
     if not validate_user(request, get_schema(graph_id)):
         return unauthorized_user(request)
+    key = request.GET['property_key']
+    if key.startswith('_'):
+        return HttpResponse(simplejson.dumps({'success': False,
+                                            'internalfield': key}))
     node = get_node_without_connection(graph_id, node_id)
     if node:
         if action == 'add':
@@ -396,6 +400,10 @@ def relation_property(request, graph_id, start_node_id,
 
     relation = get_relationship_without_connection(graph_id, start_node_id,
                                         edge_type, end_node_id)
+    key = request.GET['property_key']
+    if key.startswith('_'):
+        return HttpResponse(simplejson.dumps({'success': False,
+                                            'internalfield': key}))
     if relation:
         if action == 'add':
             return add_property(request, relation)

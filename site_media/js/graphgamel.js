@@ -2,13 +2,14 @@ var GRAPHGAMEL = {
     'authenticated': false,
     'special_fields': [],
     'permission_error': 'Your user has not privilegies to perform that action',
+    'internalfield_error': ' is a internal field and cannot be modified by the user',
     'populate_table': function(table_id, properties) {
         table = document.getElementById(table_id);
         table.innerHTML = "";
         i = 1;
         this.special_fields = [];
         for (var key in properties) {
-            if (key.length > 0 && key[0] != "_") {
+            if (key.length > 0) {
                 tr = document.createElement('tr');
                 td = document.createElement('td');
                 td.appendChild(document.createTextNode(key));
@@ -139,12 +140,15 @@ var GRAPHGAMEL = {
     },
 
     'isURL': function(data) {
+        if (!data.hasOwnProperty('match')) return false;
         return ((data.match('^http://') == 'http://') || (data.match('^https://') == 'https://'));
     },
 
     'error': function(response) {
         if (response['nopermission']) {
             alert(GRAPHGAMEL.permission_error);
+        } else if (response['internalfield']) {
+            alert(response['internalfield'] + GRAPHGAMEL.internalfield_error);
         } else {
             alert('An uknown error ocurred')
         }
