@@ -16,7 +16,7 @@ RaphaelGraph.prototype.NODE_ANIMATION_TIME = 250;
 RaphaelGraph.prototype.XMARGIN = 5;
 RaphaelGraph.prototype.YMARGIN = 5;
 RaphaelGraph.prototype.show_labels = true;
-RaphaelGraph.prototype.node_label_field = "id";
+RaphaelGraph.prototype.node_label_field = "_slug";
 RaphaelGraph.prototype.node_edge_field = "id";
 RaphaelGraph.prototype.multiselection = false;
 RaphaelGraph.prototype.multiselection_table = [];
@@ -132,17 +132,17 @@ RaphaelGraph.prototype.render = function render() {
 
 RaphaelGraph.prototype.draw_node = function draw_node(node) {
     var c = this.paper.circle(node._xpos, node._ypos, this.NODE_SIZE);
-    this.elements[node.id] = {};
-    this.elements[node.id]["object"] = c;
-    this.elements[node.id]["edges"] = {};
-    this.elements[node.id]["label"] = this.draw_label(node._xpos, 
+    this.elements[node._slug] = {};
+    this.elements[node._slug]["object"] = c;
+    this.elements[node._slug]["edges"] = {};
+    this.elements[node._slug]["label"] = this.draw_label(node._xpos, 
                             node._ypos + this.style.labelYMargin,
                             node[this.node_label_field] || "");
-    if (node.hasOwnProperty("type")) {
-        if (!this.style.topics.hasOwnProperty(node["type"])) {
-            this.style.topics[node["type"]] = Raphael.getColor(1);
+    if (node.hasOwnProperty("_type")) {
+        if (!this.style.topics.hasOwnProperty(node["_type"])) {
+            this.style.topics[node["_type"]] = Raphael.getColor(1);
         }
-        c.attr("fill", this.style.topics[node["type"]]);
+        c.attr("fill", this.style.topics[node["_type"]]);
     } else {
         c.attr("fill", this.style.defaultNodeColor);
     }
@@ -150,7 +150,7 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
     raphael = this;
     if (this.events_enabled) {
         c.node.onclick = function(position) {
-            selected_node = node.id;
+            selected_node = node._slug;
             selected_edge = null;
             if (raphael.dragging) {
                 raphael.dragging = false;
@@ -160,7 +160,7 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
                     raphael.show_node_action_box(position.clientX + raphael.XMARGIN,
                                         position.clientY + raphael.YMARGIN);
                 } else {
-                    raphael.enable_selection(node.id);
+                    raphael.enable_selection(node._slug);
                     raphael.multiselection_table.push(selected_node);
                 };
             };
@@ -188,21 +188,21 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
         x = this.attr("cx") + dx;
         y = this.attr("cy") + dy;
         this.attr({cx: x, cy: y});
-        raphael.elements[node.id]["label"].remove();
-        raphael.elements[node.id]["label"] = raphael.draw_label(
+        raphael.elements[node._slug]["label"].remove();
+        raphael.elements[node._slug]["label"] = raphael.draw_label(
                     x, y + raphael.style.labelYMargin, node[raphael.node_label_field] || "");
         if (!raphael.show_labels)
-            raphael.elements[node.id]["label"].hide();
-        node_dragged = raphael.data.nodes[node.id]
+            raphael.elements[node._slug]["label"].hide();
+        node_dragged = raphael.data.nodes[node._slug]
         node_dragged._xpos = x;
         node_dragged._ypos = y;
-        edges = raphael.elements[node.id].edges;
+        edges = raphael.elements[node._slug].edges;
         for (var relation_id in edges) {
             for (var node_id in edges[relation_id]) {
-                raphael.elements[node.id]["edges"][relation_id][node_id]["label"].remove();
+                raphael.elements[node._slug]["edges"][relation_id][node_id]["label"].remove();
                 edges[relation_id][node_id].remove();
                 edge = {};
-                edge.node1 = node.id;
+                edge.node1 = node._slug;
                 edge.node2 = node_id;
                 edge.id = relation_id;
                 raphael.draw_edge(edge);
@@ -212,7 +212,7 @@ RaphaelGraph.prototype.draw_node = function draw_node(node) {
     c.drag(move, down);
 
     if (!this.show_labels)
-        this.elements[node.id]["label"].hide();
+        this.elements[node._slug]["label"].hide();
 };
 
 RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
@@ -408,7 +408,7 @@ RaphaelGraph.prototype.delete_edge = function delete_edge(selected_edge) {
 RaphaelGraph.prototype.toggle_nodes = function toggle_nodes(node_type) {
     for (var node_id in this.data.nodes) {
         node = this.data.nodes[node_id];
-        if (node["type"] == node_type) {
+        if (node["_type"] == node_type) {
             if (node.hasOwnProperty("_visible")) {
                 node["_visible"] = !node["_visible"];
             } else {
@@ -430,8 +430,8 @@ RaphaelGraph.prototype.disable_selection = function disable_selection(node_id){
 }
 
 RaphaelGraph.prototype.add_node = function add_node(node) {
-    if (!this.data.nodes.hasOwnProperty(node.id)) {
-        this.data.nodes[node.id] = node;
+    if (!this.data.nodes.hasOwnProperty(node._slug)) {
+        this.data.nodes[node._slug] = node;
         GraphLayout.random_position(node);
         this.draw_node(node);
     }

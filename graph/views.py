@@ -638,18 +638,18 @@ def get_node_and_neighbourhood(graph_id, node_id):
     gdb = get_neo4j_connection(graph_id)
     node = gdb.node[int(node_id)]
     properties = node.properties
-    graph["nodes"][properties['id']] = properties
+    graph["nodes"][properties['_slug']] = properties
     relationships = node.relationships.all()
     edges_counter= 0
     for r in relationships:
         start_properties = r.start.properties
         properties = start_properties.copy()
-        start_id = properties["id"]
+        start_id = properties["_slug"]
         if start_id not in graph["nodes"]:
             graph["nodes"][start_id] = properties.copy()
         end_properties = r.end.properties
         properties = end_properties.copy()
-        end_id = properties["id"]
+        end_id = properties["_slug"]
         if end_id not in graph["nodes"]:
             graph["nodes"][end_id] = properties.copy()
         graph["edges"][edges_counter] = {'node1': start_id,
@@ -673,8 +673,8 @@ def get_node_from_index(request, graph_id):
     node_id = request.GET.get('node_id', None)
     node_type = request.GET.get('node_type', None)
     gdb = get_neo4j_connection(graph_id)
-    result = filter_by_property(gdb.index('id', node_id),
-                                'type', node_type)
+    result = filter_by_property(gdb.index('_slug', node_id),
+                                '_type', node_type)
     if len(result) == 1:
         return result[0]
     else:

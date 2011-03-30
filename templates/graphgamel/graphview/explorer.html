@@ -64,7 +64,7 @@
             }
             function execute(node_id) {
                 url = "{% url graph.views.expand_node graph_id %}";
-                node_type = gdata['nodes'][selected_node]['type'];
+                node_type = gdata['nodes'][selected_node]['_type'];
                 $.ajax({url: url,
                     type:"GET",
                     dataType:"json",
@@ -134,7 +134,7 @@
             }
             function execute(node_id) {
                 url = "{% url graph.views.open_node_info graph_id %}";
-                node_type = gdata['nodes'][selected_node]['type'];
+                node_type = gdata['nodes'][selected_node]['_type'];
                 $.ajax({url: url,
                     type:"GET",
                     dataType:"json",

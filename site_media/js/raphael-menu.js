@@ -52,7 +52,7 @@ var RaphaelMenu = {
         var yInit = 150;
         var yStep = 50
         var i=0;
-        var labels = ["id", "", "ID", "type"]
+        var labels = ["_slug", "", "_type"]
         var labelControl = new DiscreteSlider(raphael_menu, "Label", xInit, yInit+i*yStep, labels, raphael, 'toggle_labels');
         labelControl.draw()
         i++;
