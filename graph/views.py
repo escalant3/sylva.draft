@@ -148,6 +148,25 @@ def update_timestamp(element, username):
     element.set('_timestamp', get_timestamp())
     element.set('_user', username)
 
+
+def set_relationship_properties(rel_obj, edge_type, graph_id, user):
+    edge_type_obj = EdgeType.objects.filter(name=edge_type)
+    if edge_type_obj:
+        default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
+        for dp in default_properties:
+            rel_obj.set(dp.key, dp.value)
+    slug = "%s:%s:%s" % (rel_obj.start.properties['_slug'],
+                        edge_type,
+                        rel_obj.end.properties['_slug'])
+    inner_properties = get_internal_attributes(slug,
+                                                edge_type,
+                                                graph_id,
+                                                user,
+                                                True)
+    for key, value in inner_properties.iteritems():
+        rel_obj.set(key, value)
+
+
 @login_required
 def editor(request, graph_id):
     graph = Neo4jGraph.objects.get(pk=graph_id)
@@ -201,30 +220,18 @@ def editor(request, graph_id):
                 properties = simplejson.loads(data['node_to_properties'])
                 node_to.update(properties)
                 edge_type = relation['_type']
-                node1 = get_or_create_node(gdb, node_from, graph)
-                node2 = get_or_create_node(gdb, node_to, graph)
-                rel_obj, new = get_or_create_relationship(node1,
-                                                            node2,
+                start_node = get_or_create_node(gdb, node_from, graph)
+                end_node = get_or_create_node(gdb, node_to, graph)
+                rel_obj, new = get_or_create_relationship(start_node,
+                                                            end_node,
                                                             edge_type,
                                                             True)
                 if new:
-                    edge_type_obj = EdgeType.objects.filter(
-                                        name=data['relation_type'])
-                    if edge_type_obj:
-                        default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
-                        for dp in default_properties:
-                            rel_obj.set(dp.key, dp.value)
-                
-                # Relation inner properties
-                slug = "%s:%s:%s" % (start_node.properties['_slug'],
-                                    edge_type,
-                                    end_node.properties['_slug'])
-                inner_properties = get_internal_attributes(slug,
-                                                edge_type,
+                    # Relation default and inner properties
+                    set_relationship_properties(rel_obj, 
+                                                data['relation_type'],
                                                 graph_id,
-                                                request.user,
-                                                True)
-                relation.update(inner_properties)
+                                                request.user)
                 for key, value in relation.iteritems():
                     rel_obj.set(key, value)
                 if new:
@@ -591,17 +598,11 @@ def create_raw_relationship(request, graph_id, node_id):
             start_node, end_node = end_node, start_node
         if not get_relationship(start_node, end_node, edge_type):
             relationship = getattr(start_node, edge_type)(end_node)
-            relationship.set('_url', "/".join(relationship.url.split('/')[-2:]))
-            slug = "%s:%s:%s" % (start_node.properties['_slug'],
-                                edge_type,
-                                end_node.properties['_slug'])
-            properties = get_internal_attributes(slug,
-                                                edge_type,
-                                                graph_id,
-                                                request.user,
-                                                True)
-            for key, value in properties.iteritems():
-                relationship.set(key, value)
+            # Relation default and inner properties
+            set_relationship_properties(relationship,
+                                        edge_type,
+                                        graph_id,
+                                        request.user)
     return redirect(node_info, graph_id, node_id)
 
 
