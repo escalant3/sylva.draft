@@ -15,13 +15,12 @@ def json_to_gexf(json_graph):
             <node id="%s" label="%s">
             <attvalues>""" % (node, node)
         for key, value in properties.iteritems():
-            if not key.startswith('_'):
-                if key not in node_attributes:
-                    node_attributes[key] = attribute_counter
-                    attribute_counter += 1
-                nodes += """
-                    <attvalue for="%s" value="%s"/>""" % (node_attributes[key],
-                                                            value)
+            if key not in node_attributes:
+                node_attributes[key] = attribute_counter
+                attribute_counter += 1
+            nodes += """
+                <attvalue for="%s" value="%s"/>""" % (node_attributes[key],
+                                                    value)
         nodes += """
             </attvalues>
             </node>"""
@@ -34,7 +33,7 @@ def json_to_gexf(json_graph):
                                 graph['edges'][edge]['node1'],
                                 graph['edges'][edge]['node2'])
         for key, value in graph['edges'][edge].iteritems():
-            if key != "node1" and key != "node2" and not key.startswith('_'):
+            if key != "node1" and key != "node2":
                 if key not in edge_attributes:
                     edge_attributes[key] = attribute_counter
                     attribute_counter += 1
