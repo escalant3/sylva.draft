@@ -1,8 +1,8 @@
 from django import forms
-from graph.models import Neo4jGraph
+from graph.models import GraphDB
 
-GRAPHS = [(s.id, s.name) for s in Neo4jGraph.objects.all()]
 
 class UploadCSVForm(forms.Form):
+    GRAPHS = [(s.id, s.name) for s in GraphDB.objects.all()]
     graph = forms.ChoiceField(choices=GRAPHS)
     csv_file = forms.FileField()

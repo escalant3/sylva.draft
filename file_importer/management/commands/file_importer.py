@@ -3,7 +3,7 @@ import simplejson
 
 from django.core.management.base import BaseCommand
 
-from graph.models import Neo4jGraph
+from graph.models import GraphDB
 from graph.views import get_or_create_node, \
                         get_or_create_relationship
 
@@ -16,7 +16,7 @@ class Command(BaseCommand):
             print "Usage: python manage.py importer FILE DESTINATIO_GRAPH"
             return
         else:
-            graph = Neo4jGraph.objects.filter(name=args[1])
+            graph = GraphDB.objects.filter(name=args[1])
             if len(graph) == 0:
                 print "Database not found"
                 return

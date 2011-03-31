@@ -12,19 +12,20 @@ from django.template import defaultfilters
 from django.template import RequestContext
 
 from graph.forms import UploadCSVForm
-from graph.models import Neo4jGraph, Node, Media, GraphIndex, \
+from graph.models import GraphDB, Node, Media, GraphIndex, \
                     NodeType, EdgeType
 from schema.models import ValidRelation
+from settings import GRAPHDB_HOST
 
 import converters
 
 
-RESERVED_FIELD_NAMES = ('id', 'type')
+RESERVED_FIELD_NAMES = ('_slug', '_type')
 RELATIONS_PER_PAGE = 20
 
 
 def index(request, error=''):
-    graphs = Neo4jGraph.objects.all()
+    graphs = GraphDB.objects.all()
     messages = request.session.get('messages', None)
     if not messages:
         request.session['messages'] = []
@@ -62,6 +63,7 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
     slug_id = defaultfilters.slugify(n['_slug'])[:150]
     result = filter_by_property(gdb.index('_slug', slug_id),
                                 '_type', n['_type'])
+    result = filter_by_property(result, '_graph', str(graph.id))
     if len(result) == 1:
         node = result[0]
         n['_slug'] = slug_id
@@ -87,7 +89,7 @@ def create_node(gdb, n, graph):
     for key, value in n.items():
         node_properties[key] = value
     node = gdb.node(**node_properties)
-    node.properties.update({'_url': "/".join(node.url.split('/')[-2:])})
+    node.set('_url', "/".join(node.url.split('/')[-2:]))
     gdb.add_to_index('_slug', n['_slug'], node)
     gdb.add_to_index('_type', n['_type'], node)
     graph_index = GraphIndex(graph=graph,
@@ -105,12 +107,12 @@ def get_relationship(node1, node2, edge_type):
 
 
 def get_node_without_connection(graph_id, node_id):
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     return gdb.node[int(node_id)]
 
 
 def get_relationship_without_connection(graph_id, node1, edge_type, node2):
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     start_node = gdb.nodes[int(node1)]
     end_node = gdb.nodes[int(node2)]
     return get_relationship(start_node, end_node, edge_type)
@@ -165,18 +167,22 @@ def set_relationship_properties(rel_obj, edge_type, graph_id, user):
                                                 True)
     for key, value in inner_properties.iteritems():
         rel_obj.set(key, value)
+    rel_obj.set('_url', "/".join(rel_obj.url.split('/')[-2:]))
 
 
 @login_required
 def editor(request, graph_id):
-    graph = Neo4jGraph.objects.get(pk=graph_id)
+    graph = GraphDB.objects.get(pk=graph_id)
     schema = graph.schema
     # Only show editor if user has permissions 
     # or no permissions are established
     if not validate_user(request, schema):
         return unauthorized_user(request)
+    if not ValidRelation.objects.filter(schema=schema):
+        error_message = 'Schema %s has no valid relations' % schema.name
+        return index(request, error_message)
     if request.method == 'POST':
-        gdb = neo4jclient.GraphDatabase(graph.host)
+        gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
         if gdb:
             data = request.POST.copy()
             if data['mode'] == 'node':
@@ -264,12 +270,11 @@ def editor(request, graph_id):
                                         data['node_to_type']))
     else:
         # Check connection
-        host = graph.host
         try:
-            gdb = neo4jclient.GraphDatabase(host)
-            request.session["host"] = host
+            gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
+            request.session["GRAPHDB_HOST"] = GRAPHDB_HOST
         except:
-            error_message = "The host %s is not available" % host
+            error_message = "The host %s is not available" % GRAPHDB_HOST
             return index(request, error_message)
         form_structure = simplejson.dumps(schema.get_dictionaries())
         node_types = simplejson.dumps(schema.get_node_types())
@@ -291,8 +296,11 @@ def editor(request, graph_id):
 
 def node_info(request, graph_id, node_id, page=0):
     page = int(page)
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.node[int(node_id)]
+    # Makes sure graph_id is node_id graph
+    if node['_graph'] != graph_id:
+        return redirect(node_info, node['_graph'], node_id)
     properties = simplejson.dumps(node.properties)
     relationships = node.relationships.all()
     relationships_list = []
@@ -314,7 +322,7 @@ def node_info(request, graph_id, node_id, page=0):
                         'end_type': r.end.get('_type', None),
                         'end_neo_id': r.end.id}
         relationships_list.append(relation_info)
-    graph = Neo4jGraph.objects.get(pk=graph_id)
+    graph = GraphDB.objects.get(pk=graph_id)
     node_type = node['_type']
     outgoing, incoming = graph.schema.get_incoming_and_outgoing(node_type)
     media_items = {}
@@ -344,7 +352,7 @@ def node_info(request, graph_id, node_id, page=0):
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     start_node = gdb.node[int(start_node_id)]
     end_node = gdb.node[int(end_node_id)]
     relation = get_relationship(start_node, end_node, edge_type)
@@ -365,16 +373,15 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
                                 'authorized': authorized}))
 
 
-def get_neo4j_connection(graph_id):
-    graph = Neo4jGraph.objects.get(pk=graph_id)
+def get_graphdb_connection(graphdb_host):
     try:
-        return neo4jclient.GraphDatabase(graph.host)
+        return neo4jclient.GraphDatabase(graphdb_host)
     except:
         return None
 
 
 def get_schema(graph_id):
-    return Neo4jGraph.objects.get(pk=graph_id).schema
+    return GraphDB.objects.get(pk=graph_id).schema
 
 
 def validate_user(request, schema):
@@ -482,11 +489,9 @@ def delete_property(request, element):
 
 def search_node(request, graph_id, node_field='', _field_value=''):
     if request.method == 'GET':
-        gdb = get_neo4j_connection(graph_id)
+        gdb = get_graphdb_connection(GRAPHDB_HOST)
         if not gdb:
-            graph = Neo4jGraph.objects.get(pk=graph_id)
-            host = graph.host
-            error_message = "The host %s is not available" % host
+            error_message = "The host %s is not available" % GRAPHDB_HOST 
             return index(request, error_message)
         field_value = request.GET.get('field_value', _field_value)
         if not node_field:
@@ -502,12 +507,14 @@ def search_node(request, graph_id, node_field='', _field_value=''):
                 result = []
         except neo4jclient.NotFoundError:
             result = []
+        # Multigraph DB filtering
+        result = filter_by_property(result, '_graph', graph_id)
         if node_field != '_type':
             node_type = request.GET.get('node_type', '')
         else:
             node_type = field_value
         if field_value and node_field == '_type':
-            result = [r for r in result if node_type == r.properties['_type']]
+            result = filter_by_property(result, '_type', node_type)
         response = [{'url': r.url,
                     'neo_id': r.id,
                     'slug': r.properties['_slug'],
@@ -531,7 +538,7 @@ def delete_node(request, graph_id, node_id):
         return unauthorized_user(request)
     success = False
     if request.is_ajax():
-        gdb = get_neo4j_connection(graph_id)
+        gdb = get_graphdb_connection(GRAPHDB_HOST)
         try:
             # TODO API corrupts database
             if False:
@@ -547,7 +554,7 @@ def delete_node(request, graph_id, node_id):
 def delete_relationship(request, graph_id, node_id, relationship_id, page):
     if not validate_user(request, get_schema(graph_id)):
         return unauthorized_user(request)
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.nodes[int(node_id)]
     for relation in node.relationships.all():
         if relationship_id == relation.url.split('/')[-1]:
@@ -557,7 +564,7 @@ def delete_relationship(request, graph_id, node_id, relationship_id, page):
 
 
 def add_media(request, graph_id, node_id):
-    graph = Neo4jGraph.objects.get(pk=graph_id)
+    graph = GraphDB.objects.get(pk=graph_id)
     node = get_node_without_connection(graph, node_id)
     if not '_media' in node.properties:
         relational_db_node = Node(node_id=node.properties['_slug'],
@@ -580,7 +587,7 @@ def add_media(request, graph_id, node_id):
 
 
 def add_media_link(request, graph_id, node_id):
-    graph = Neo4jGraph.objects.get(pk=graph_id)
+    graph = GraphDB.objects.get(pk=graph_id)
     node = get_node_without_connection(graph, node_id)
     media_type = request.POST['media_type']
     media_link = request.POST['media_link']
@@ -590,7 +597,7 @@ def add_media_link(request, graph_id, node_id):
 
 def create_raw_relationship(request, graph_id, node_id):
     if request.method == "GET":
-        gdb = get_neo4j_connection(graph_id)
+        gdb = get_graphdb_connection(GRAPHDB_HOST)
         start_node = gdb.nodes[int(node_id)]
         end_node = gdb.nodes[int(request.GET['destination'])]
         edge_type = request.GET['edge_type']
@@ -610,7 +617,7 @@ def search_results(request, graph_id, results, search_string):
     if len(results) == 1:
         return redirect(node_info, graph_id, results[0]['neo_id'])
     else:
-        graph = Neo4jGraph.objects.get(pk=graph_id)
+        graph = GraphDB.objects.get(pk=graph_id)
         return render_to_response('graphgamel/result_list.html',
                                     RequestContext(request, {
                                     'graph_id': graph_id,
@@ -621,7 +628,7 @@ def search_results(request, graph_id, results, search_string):
 
 def get_autocompletion_objects(request, graph_id):
     if request.method == 'GET':
-        graph = Neo4jGraph.objects.get(pk=graph_id)
+        graph = GraphDB.objects.get(pk=graph_id)
         node_type = request.GET.get('node_type', '')
         if node_type:
             results = [r.node_id
@@ -633,9 +640,9 @@ def get_autocompletion_objects(request, graph_id):
 
 
 def get_node_and_neighbourhood(graph_id, node_id):
-    neograph = Neo4jGraph.objects.get(pk=graph_id)
+    neograph = GraphDB.objects.get(pk=graph_id)
     graph = {"nodes":{}, "edges":{}}
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.node[int(node_id)]
     properties = node.properties
     graph["nodes"][properties['_slug']] = properties
@@ -660,7 +667,7 @@ def get_node_and_neighbourhood(graph_id, node_id):
 
 
 def visualize(request, graph_id, node_id):
-    neograph = Neo4jGraph.objects.get(pk=graph_id)
+    neograph = GraphDB.objects.get(pk=graph_id)
     graph = get_node_and_neighbourhood(graph_id, node_id)
     return render_to_response('graphgamel/graphview/explorer.html',
                                     RequestContext(request, {
@@ -672,9 +679,10 @@ def visualize(request, graph_id, node_id):
 def get_node_from_index(request, graph_id):
     node_id = request.GET.get('node_id', None)
     node_type = request.GET.get('node_type', None)
-    gdb = get_neo4j_connection(graph_id)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     result = filter_by_property(gdb.index('_slug', node_id),
                                 '_type', node_type)
+    result = filter_by_property(result, '_graph', graph_id)
     if len(result) == 1:
         return result[0]
     else:
@@ -706,7 +714,7 @@ def import_manager(request):
         form = UploadCSVForm(request.POST, request.FILES)
         if form.is_valid():
             graph_id = int(request.POST['graph'])
-            graph = Neo4jGraph.objects.get(pk=graph_id)
+            graph = GraphDB.objects.get(pk=graph_id)
             try:
                 rows = handle_csv_file(request.FILES['csv_file'])
                 row_length = len(rows[0])
@@ -732,8 +740,8 @@ def import_manager(request):
 
 def add_node_ajax(request, graph_id):
     if request.method == 'GET':
-        graph = Neo4jGraph.objects.get(pk=int(graph_id))
-        gdb = neo4jclient.GraphDatabase(graph.host)
+        graph = GraphDB.objects.get(pk=int(graph_id))
+        gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
         node = simplejson.loads(request.GET['json_node'])
         collapse = simplejson.loads(request.GET['collapse'])
         if collapse:
@@ -749,8 +757,8 @@ def add_node_ajax(request, graph_id):
 
 def add_relationship_ajax(request, graph_id):
     if request.method == 'GET':
-        graph = Neo4jGraph.objects.get(pk=int(graph_id))
-        gdb = neo4jclient.GraphDatabase(graph.host)
+        graph = GraphDB.objects.get(pk=int(graph_id))
+        gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
         relation_info = simplejson.loads(request.GET['json_relation'])
         node_from = {}
         node_to = {}

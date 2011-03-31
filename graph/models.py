@@ -5,7 +5,7 @@ from schema.models import Schema, NodeType, EdgeType
 # Create your models here.
 
 
-class Graph(models.Model):
+class GraphDB(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=100)
     schema = models.ForeignKey(Schema)
@@ -13,17 +13,10 @@ class Graph(models.Model):
     def __unicode__(self):
         return self.name
 
-
-class Neo4jGraph(Graph):
-    host = models.CharField(max_length=100)
-
-    def __unicode__(self):
-        return self.name
-
 class Node(models.Model):
     node_id = models.CharField(max_length=100)
     node_type = models.CharField(max_length=100)
-    graph = models.ForeignKey(Graph)
+    graph = models.ForeignKey(GraphDB)
 
     def __unicode__(self):
         return '%s. Node %s' % (self.graph.name, self.node_id)
@@ -49,7 +42,7 @@ class Media(models.Model):
         verbose_name_plural = "Media files"
 
 class GraphIndex(models.Model):
-    graph = models.ForeignKey(Graph)
+    graph = models.ForeignKey(GraphDB)
     node_id = models.CharField(max_length=150)
     node_type = models.CharField(max_length=150)
 
