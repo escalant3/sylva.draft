@@ -1,7 +1,7 @@
 import re
 import simplejson
 
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission, ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from random import randint
@@ -15,12 +15,28 @@ def is_alphanumeric(value):
 
 
 class GraphDB(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.SlugField(max_length=30, unique=True)
     description = models.CharField(max_length=100)
     public = models.BooleanField()
 
     def __unicode__(self):
         return self.name
+
+    
+    def save(self, *args, **kwargs):
+        super(GraphDB, self).save(*args, **kwargs) # Call the "real" save() method.
+        self.create_new_permissions()
+
+
+    def create_new_permissions(self):
+        permissions = ('can_see', 'can_edit', 'can_delete', 'can_edit_schema',
+                'can_add_data', 'can_edit_data', 'can_delete_data',
+                'can_add_operator', 'can_edit_operator', 'can_delete_operator')
+        new_permissions = ["%s_%s" % (self.name, p) for p in permissions]
+        content_type = ContentType.objects.filter(model='graphdb')[0]
+        for np in new_permissions:
+            p = Permission(content_type=content_type, name=np, codename=np)
+            p.save()
 
 
     def get_dictionaries(self):
