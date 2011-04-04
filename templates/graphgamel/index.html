@@ -30,6 +30,7 @@
 
 {% block extrahead %}
     {% block extraimports %}
+    <script type="text/javascript" src="/media/js/admin/RelatedObjectLookups.js"></script> 
     <link rel="stylesheet" type="text/css" href="/site_media/css/graphgamel.css"/>
     <script language="javascript" src="/site_media/js/jquery-1.3.2.min.js"></script>
     <script language="javascript" src="/site_media/js/graphgamel.js"></script>
@@ -53,19 +54,24 @@
 {% if error_message %}
     <p class="errornote">Error: {{ error_message }}</p>
 {% endif %}
+<ul>
+<a id="add_id_graphdb" class="add-another" onclick="return showAddAnotherPopup(this);" href="/admin/schema/graphdb/add/">
+    <img width="10" height="10" alt="Add Another" src="/media/img/admin/icon_addlink.gif">
+    Add new graph
+</a>
 {% for graph in graph_list %}
-    <ul>
-        <li>
-            <h3>{{ graph.name }}: {{ graph.description }}</h3>
-            <ul>
-            <li><a class="changelink" href="{% url graph.views.editor graph.id %}">Edit graph</a></li>
-            <li><a href="{% url graph.views.search_node graph.id %}">
-                Browse data
-            </a></li>
-            </ul>
-        </li>
-    </ul>
+    <li>
+        <h3>{{ graph.name }}: {{ graph.description }}</h3>
+        <ul>
+        <li><a class="changelink" href="{% url schema.views.schema_editor graph.id %}">Edit schema</a></li>
+        <li><a class="changelink" href="{% url graph.views.editor graph.id %}">Edit graph</a></li>
+        <li><a href="{% url graph.views.search_node graph.id %}">
+            Browse data
+        </a></li>
+        </ul>
+    </li>
 {% endfor %}
+</ul>
 {% if user.is_superuser %}
 <h1>Sylva Management</h1>
     <ul>

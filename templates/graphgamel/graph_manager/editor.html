@@ -1,0 +1,58 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Sylva: Graph Schema Manager</h1>
+{% endblock %}
+
+{% block content %}
+<div class="instructions">
+<p>Welcome to Sylva Schema Manager. You can learn more about Sylva Schemas <a href=".">here</a>.</p>
+</div>
+<h1>Node Types</h1>
+<ul>
+{% for node_type in node_types %}
+    <li>{{ node_type.name }}</li>
+{% endfor %}
+<form action="{% url schema.views.add_node_type graph_id %}" method="POST">
+    <input type="text" name="nodetype"/>
+    <input type="submit" value="Create new NodeType"/>
+</form>
+</ul>
+<h1>Edge Types</h1>
+<ul>
+{% for edge_type in edge_types %}
+    <li>{{ edge_type.name }}</li>
+{% endfor %}
+<form action="{% url schema.views.add_edge_type graph_id %}" method="POST">
+    <input type="text" name="edgetype"/>
+    <input type="submit" value="Create new EdgeType"/>
+</form>
+</ul>
+<h1>Valid Relationships</h1>
+<ul>
+{% for vr in valid_relationships %}
+    <li>{{ vr.node_from.name }} {{ vr.relation.name }} {{ vr.node_to.name }}</li>
+{% endfor %}
+<form action="{% url schema.views.add_valid_relationship graph_id %}" method="POST">
+    <select name="node_from">
+        {% for node_type in node_types %}
+            <option value="{{ node_type.name }}">{{ node_type.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="relation">
+        {% for edge_type in edge_types %}
+            <option value="{{ edge_type.name }}">{{ edge_type.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="node_to">
+        {% for node_type in node_types %}
+            <option value="{{ node_type.name }}">{{ node_type.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Create new Valid Relationship"/>
+</form>
+</ul>
+{% endblock %}

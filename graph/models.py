@@ -1,17 +1,9 @@
 from django.db import models
 
-from schema.models import Schema, NodeType, EdgeType
+from schema.models import GraphDB
 
 # Create your models here.
 
-
-class GraphDB(models.Model):
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=100)
-    schema = models.ForeignKey(Schema)
-
-    def __unicode__(self):
-        return self.name
 
 class Node(models.Model):
     node_id = models.CharField(max_length=100)

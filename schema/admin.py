@@ -1,4 +1,4 @@
-from schema.models import Schema, NodeType, EdgeType, ValidRelation, \
+from schema.models import GraphDB, NodeType, EdgeType, ValidRelation, \
                             NodeDefaultProperty, EdgeDefaultProperty
 from django.contrib import admin
 
@@ -15,9 +15,9 @@ class EdgeTypeAdmin(admin.ModelAdmin):
     inlines = [EdgeDefaultPropertyInline]
 
 class ValidRelationAdmin(admin.ModelAdmin):
-    list_filter = ['schema']
+    list_filter = ['graph']
 
-admin.site.register(Schema)
+admin.site.register(GraphDB)
 admin.site.register(NodeType, NodeTypeAdmin)
 admin.site.register(EdgeType, EdgeTypeAdmin)
 admin.site.register(ValidRelation, ValidRelationAdmin)

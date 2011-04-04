@@ -12,9 +12,8 @@ from django.template import defaultfilters
 from django.template import RequestContext
 
 from graph.forms import UploadCSVForm
-from graph.models import GraphDB, Node, Media, GraphIndex, \
-                    NodeType, EdgeType
-from schema.models import ValidRelation
+from graph.models import Node, Media, GraphIndex
+from schema.models import ValidRelation, NodeType, EdgeType, GraphDB
 from settings import GRAPHDB_HOST
 
 import converters

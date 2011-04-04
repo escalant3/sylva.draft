@@ -13,5 +13,6 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'^accounts/login/$', login),
     (r'^accounts/logout/$', logout),
+    (r'^schema/', include('schema.urls')),
     (r'^', include('graph.urls')),
 )

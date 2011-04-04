@@ -14,18 +14,18 @@ def is_alphanumeric(value):
         raise ValidationError(u'%s is an invalid identifier' % value)
 
 
-class Schema(models.Model):
+class GraphDB(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=100)
-    allowed_users = models.ManyToManyField(User, blank=True)
-    allowed_groups = models.ManyToManyField(Group, blank=True)
+    public = models.BooleanField()
 
     def __unicode__(self):
         return self.name
 
+
     def get_dictionaries(self):
         form_structure = {}
-        valid_relations = ValidRelation.objects.filter(schema=self)
+        valid_relations = ValidRelation.objects.filter(graph=self)
         from_nodes = set([vr.node_from for vr in valid_relations])
         for node in from_nodes:
             form_structure[node] = {}
@@ -46,7 +46,7 @@ class Schema(models.Model):
     def get_incoming_and_outgoing(self, node_type):
         outgoing = {}
         incoming = {}
-        for vr in ValidRelation.objects.filter(schema=self):
+        for vr in ValidRelation.objects.filter(graph=self):
             if vr.node_from.name == node_type:
                 if not vr.relation.name in outgoing:
                     outgoing[vr.relation.name] = {}
@@ -60,7 +60,7 @@ class Schema(models.Model):
 
     def get_node_types(self):
         node_types = set()
-        for vr in ValidRelation.objects.filter(schema=self):
+        for vr in ValidRelation.objects.filter(graph=self):
             if vr.node_from.name not in node_types:
                 node_types.add(vr.node_from.name)
             if vr.node_to.name not in node_types:
@@ -98,26 +98,26 @@ class Schema(models.Model):
 class NodeType(models.Model):
     name = models.CharField(max_length=30, unique=True,
                             validators=[is_alphanumeric])
+    graph = models.ForeignKey(GraphDB)
 
     def __unicode__(self):
-        return self.name
+        return "%s (%s)" % (self.name, self.graph.name)
 
 
 class EdgeType(models.Model):
     name = models.CharField(max_length=30, unique=True,
                             validators=[is_alphanumeric])
+    graph = models.ForeignKey(GraphDB)
 
     def __unicode__(self):
-        return self.name
+        return "%s (%s)" % (self.name, self.graph.name)
 
 
 class ValidRelation(models.Model):
     node_from = models.ForeignKey(NodeType, related_name='node_from')
     relation = models.ForeignKey(EdgeType)
     node_to = models.ForeignKey(NodeType, related_name='node_to')
-    schema = models.ForeignKey(Schema)
-    allowed_users = models.ManyToManyField(User, blank=True)
-    allowed_groups = models.ManyToManyField(Group, blank=True)
+    graph = models.ForeignKey(GraphDB)
 
     def __unicode__(self):
         return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
