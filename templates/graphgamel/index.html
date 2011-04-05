@@ -68,16 +68,20 @@
     <li>
         <h3>{{ g.graph.name }}: {{ g.graph.description }}</h3>
         <ul>
+        <li><a href="{% url graph.views.search_node g.graph.id %}">
+            Browse data
+        </a></li>
         {% if g.can_edit_schema %}
         <li><a class="changelink" href="{% url schema.views.schema_editor g.graph.id %}">Edit schema</a></li>
         {% endif %}
         {% if g.can_edit %}
         <li><a class="changelink" href="{% url graph.views.editor g.graph.id %}">Edit graph</a></li>
         {% endif %}
-        <li><a href="{% url graph.views.search_node g.graph.id %}">
-            Browse data
-        </a></li>
+        {% if g.can_delete %}
+        <li><a class="deletelink" href="{% url admin:schema_graphdb_delete g.graph.id %}">Delete graph</a></li>
+        {% endif %}
         </ul>
+
     </li>
 {% endfor %}
 </ul>
