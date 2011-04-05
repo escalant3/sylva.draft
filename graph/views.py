@@ -178,13 +178,10 @@ def set_relationship_properties(rel_obj, edge_type, graph_id, user):
 @login_required
 def editor(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
-    schema = graph.schema
-    # Only show editor if user has permissions 
-    # or no permissions are established
-    if not validate_user(request, schema):
+    if not request.user.has_perm("schema.%s_can_edit" % graph.name):
         return unauthorized_user(request)
-    if not ValidRelation.objects.filter(schema=schema):
-        error_message = 'Schema %s has no valid relations' % schema.name
+    if not ValidRelation.objects.filter(graph=graph):
+        error_message = 'Graph %s has no valid relations' % graph.name
         return index(request, error_message)
     if request.method == 'POST':
         gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
@@ -281,17 +278,17 @@ def editor(request, graph_id):
         except:
             error_message = "The host %s is not available" % GRAPHDB_HOST
             return index(request, error_message)
-        form_structure = simplejson.dumps(schema.get_dictionaries())
-        node_types = simplejson.dumps(schema.get_node_types())
+        form_structure = simplejson.dumps(graph.get_dictionaries())
+        node_types = simplejson.dumps(graph.get_node_types())
         request.session['form_structure'] = form_structure
         request.session['node_types'] = node_types
     form_structure = request.session['form_structure']
     node_types = request.session['node_types']
     messages = request.session.get('messages', [])
-    json_graph = schema.get_json_schema_graph()
+    json_graph = graph.get_json_schema_graph()
     return render_to_response('graphgamel/editor.html',
                         RequestContext(request, {
-                        'schema': schema,
+                        'graph': graph,
                         'history_list': messages,
                         'form_structure': form_structure,
                         'node_types': node_types,
