@@ -24,7 +24,13 @@ RELATIONS_PER_PAGE = 20
 
 
 def index(request, error=''):
-    graphs = GraphDB.objects.all()
+    user = request.user
+    graphs = [{'graph': g, 
+        'can_edit_schema': user.has_perm('schema.%s_can_edit_schema' % g.name),
+        'can_edit': user.has_perm('schema.%s_can_edit' % g.name),
+        'can_delete': user.has_perm('schema.%s_can_delete' % g.name)}
+            for g in GraphDB.objects.all() 
+            if g.public or user.has_perm("schema.%s_can_see" % g.name)]
     messages = request.session.get('messages', None)
     if not messages:
         request.session['messages'] = []

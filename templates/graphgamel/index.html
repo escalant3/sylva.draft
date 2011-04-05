@@ -55,17 +55,26 @@
     <p class="errornote">Error: {{ error_message }}</p>
 {% endif %}
 <ul>
-<a id="add_id_graphdb" class="add-another" onclick="return showAddAnotherPopup(this);" href="/admin/schema/graphdb/add/">
-    <img width="10" height="10" alt="Add Another" src="/media/img/admin/icon_addlink.gif">
-    Add new graph
-</a>
-{% for graph in graph_list %}
+{% if perms.schema.add_graphdb %}
+    <a id="add_id_graphdb" class="add-another" 
+        onclick="return showAddAnotherPopup(this);"
+        href="/admin/schema/graphdb/add/">
+        <img width="10" height="10" alt="Add Another"
+            src="/media/img/admin/icon_addlink.gif">
+        Add new graph
+    </a>
+{% endif %}
+{% for g in graph_list %}
     <li>
-        <h3>{{ graph.name }}: {{ graph.description }}</h3>
+        <h3>{{ g.graph.name }}: {{ g.graph.description }}</h3>
         <ul>
-        <li><a class="changelink" href="{% url schema.views.schema_editor graph.id %}">Edit schema</a></li>
-        <li><a class="changelink" href="{% url graph.views.editor graph.id %}">Edit graph</a></li>
-        <li><a href="{% url graph.views.search_node graph.id %}">
+        {% if g.can_edit_schema %}
+        <li><a class="changelink" href="{% url schema.views.schema_editor g.graph.id %}">Edit schema</a></li>
+        {% endif %}
+        {% if g.can_edit %}
+        <li><a class="changelink" href="{% url graph.views.editor g.graph.id %}">Edit graph</a></li>
+        {% endif %}
+        <li><a href="{% url graph.views.search_node g.graph.id %}">
             Browse data
         </a></li>
         </ul>
