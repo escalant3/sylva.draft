@@ -57,8 +57,7 @@
 <ul>
 {% if perms.schema.add_graphdb %}
     <a id="add_id_graphdb" class="add-another" 
-        onclick="return showAddAnotherPopup(this);"
-        href="/admin/schema/graphdb/add/">
+        href="{% url schema.views.add_graph %}">
         <img width="10" height="10" alt="Add Another"
             src="/media/img/admin/icon_addlink.gif">
         Add new graph

@@ -1,0 +1,18 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Sylva: Graph Manager</h1>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>Create new graph</h1>
+    <form method="post" action="{% url schema.views.add_graph %}">
+        {{ form.as_p }}
+        <input type="submit" value="Create"/>
+    </form>
+</div>
+{% endblock %}

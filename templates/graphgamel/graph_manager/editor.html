@@ -10,8 +10,7 @@
 {% block content %}
 <div class="instructions">
 <p>Welcome to Sylva Schema Manager. You can learn more about Sylva Schemas <a href=".">here</a>.</p>
-</div>
-<h1>Node Types</h1>
+<h3>Node Types</h3>
 <ul>
 {% for node_type in node_types %}
     <li>{{ node_type.name }}</li>
@@ -21,7 +20,7 @@
     <input type="submit" value="Create new NodeType"/>
 </form>
 </ul>
-<h1>Edge Types</h1>
+<h3>Edge Types</h3>
 <ul>
 {% for edge_type in edge_types %}
     <li>{{ edge_type.name }}</li>
@@ -31,7 +30,7 @@
     <input type="submit" value="Create new EdgeType"/>
 </form>
 </ul>
-<h1>Valid Relationships</h1>
+<h3>Valid Relationships</h3>
 <ul>
 {% for vr in valid_relationships %}
     <li>{{ vr.node_from.name }} {{ vr.relation.name }} {{ vr.node_to.name }}</li>
@@ -55,4 +54,5 @@
     <input type="submit" value="Create new Valid Relationship"/>
 </form>
 </ul>
+</div>
 {% endblock %}

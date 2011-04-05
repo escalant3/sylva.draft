@@ -1,7 +1,10 @@
+from django.contrib.auth.models import Permission
 from django.shortcuts import (render_to_response,
                                 redirect)
-from graph.views import unauthorized_user
-from schema.models import GraphDB, NodeType, EdgeType, ValidRelation
+from graph.views import unauthorized_user, index
+from schema.forms import CreateGraphForm
+from schema.models import (GraphDB, NodeType, EdgeType,
+                            ValidRelation, PERMISSIONS)
 
 
 def schema_editor(request, graph_id):
@@ -51,3 +54,24 @@ def add_valid_relationship(request, graph_id):
                         graph=graph)
     vr.save()
     return redirect(schema_editor, graph_id)
+
+
+def add_graph(request):
+    if request.method == "POST":
+        form = CreateGraphForm(request.POST)
+        if form.is_valid():
+            #TODO Validation non-existent slug
+            graph = GraphDB(name=form.cleaned_data['name'],
+                            description=form.cleaned_data['description'],
+                            public=form.cleaned_data['public'])
+            graph.save()
+            # Add all graph permissions to graph creator
+            for p in PERMISSIONS:
+                permission_str = '%s_%s' % (graph.name, p)
+                permission = Permission.objects.filter(name=permission_str)[0]
+                permission.user_set.add(request.user)
+            return redirect(index)
+    else:
+        form = CreateGraphForm()
+    return render_to_response('graphgamel/graph_manager/create.html',
+                            {'form': form})

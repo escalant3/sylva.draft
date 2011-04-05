@@ -6,7 +6,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from random import randint
 
-# Create your models here.
+
+PERMISSIONS = ('can_see', 'can_edit', 'can_delete', 'can_edit_schema',
+        'can_add_data', 'can_edit_data', 'can_delete_data',
+        'can_add_operator', 'can_edit_operator', 'can_delete_operator')
 
 
 def is_alphanumeric(value):
@@ -29,10 +32,7 @@ class GraphDB(models.Model):
 
 
     def create_new_permissions(self):
-        permissions = ('can_see', 'can_edit', 'can_delete', 'can_edit_schema',
-                'can_add_data', 'can_edit_data', 'can_delete_data',
-                'can_add_operator', 'can_edit_operator', 'can_delete_operator')
-        new_permissions = ["%s_%s" % (self.name, p) for p in permissions]
+        new_permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
         content_type = ContentType.objects.filter(model='graphdb')[0]
         for np in new_permissions:
             p = Permission(content_type=content_type, name=np, codename=np)
