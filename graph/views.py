@@ -97,6 +97,7 @@ def create_node(gdb, n, graph):
     node.set('_url', "/".join(node.url.split('/')[-2:]))
     gdb.add_to_index('_slug', n['_slug'], node)
     gdb.add_to_index('_type', n['_type'], node)
+    gdb.add_to_index('_graph', n['_graph'], node)
     graph_index = GraphIndex(graph=graph,
                             node_id=n['_slug'],
                             node_type=n['_type'])
