@@ -327,7 +327,7 @@ def node_info(request, graph_id, node_id, page=0):
         relationships_list.append(relation_info)
     graph = GraphDB.objects.get(pk=graph_id)
     node_type = node['_type']
-    outgoing, incoming = graph.schema.get_incoming_and_outgoing(node_type)
+    outgoing, incoming = graph.get_incoming_and_outgoing(node_type)
     media_items = {}
     if '_media' in node.properties:
         relational_node = Node.objects.get(pk=node.properties['_media'])
@@ -339,7 +339,7 @@ def node_info(request, graph_id, node_id, page=0):
                                                 'caption': media.media_caption})
     node_name = '%s(%s)' % (node.properties['_slug'],
                             node.properties['_type'])
-    authorized = validate_user(request, get_schema(graph_id))
+    permissions = get_permissions(request.user, graph.name) 
     return render_to_response('graphgamel/node_info.html',
                                     RequestContext(request, {
                                     'properties': properties,
@@ -351,7 +351,7 @@ def node_info(request, graph_id, node_id, page=0):
                                     'media_items': media_items,
                                     'node_name': node_name,
                                     'pagination': pagination,
-                                    'authorized': authorized}))
+                                    'permission': permissions}))
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
@@ -363,7 +363,8 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
         properties = simplejson.dumps(relation.properties)
         start_node_properties = simplejson.dumps(relation.start.properties)
         end_node_properties = simplejson.dumps(relation.end.properties)
-        authorized = validate_user(request, get_schema(graph_id))
+        graph = GraphDB.objects.get(pk=graph_id)
+        permissions = get_permissions(request.user, graph.name) 
         return render_to_response('graphgamel/relation_info.html',
                                 RequestContext(request, {
                                 'properties': properties,
@@ -373,8 +374,13 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
                                 'start_node_properties': start_node_properties,
                                 'end_node_properties': end_node_properties,
                                 'edge_type': edge_type,
-                                'authorized': authorized}))
+                                'permission': permissions}))
 
+
+def get_permissions(user, graph):
+    return {'can_add': user.has_perm('schema.%s_can_add_data' % graph),
+            'can_edit': user.has_perm('schema.%s_can_edit_data' % graph),
+            'can_delete': user.has_perm('schema.%s_can_delete_data' % graph)}
 
 def get_graphdb_connection(graphdb_host):
     try:
@@ -407,39 +413,54 @@ def unauthorized_user(request):
 
 
 def node_property(request, graph_id, node_id, action):
-    if not validate_user(request, get_schema(graph_id)):
-        return unauthorized_user(request)
     key = request.GET['property_key']
     if key.startswith('_'):
         return HttpResponse(simplejson.dumps({'success': False,
                                             'internalfield': key}))
     node = get_node_without_connection(graph_id, node_id)
+    graph = GraphDB.objects.get(pk=graph_id)
     if node:
         if action == 'add':
+            if not request.user.has_perm('schema.%s_can_add_data'
+                                            % graph.name):
+                return unauthorized_user(request)
             return add_property(request, node)
         elif action == 'modify':
+            if not request.user.has_perm('schema.%s_can_edit_data'
+                                            % graph.name):
+                return unauthorized_user(request)
             return modify_property(request, node)
         elif action == 'delete':
+            if not request.user.has_perm('schema.%s_can_delete_data'
+                                            % graph.name):
+                return unauthorized_user(request)
             return delete_property(request, node)
 
 
 def relation_property(request, graph_id, start_node_id,
                             edge_type, end_node_id, action):
-    if not validate_user(request, get_schema(graph_id)):
-        return unauthorized_user(request)
-
     relation = get_relationship_without_connection(graph_id, start_node_id,
                                         edge_type, end_node_id)
     key = request.GET['property_key']
     if key.startswith('_'):
         return HttpResponse(simplejson.dumps({'success': False,
                                             'internalfield': key}))
+    graph = GraphDB.objects.get(pk=graph_id)
     if relation:
         if action == 'add':
+            if not request.user.has_perm('schema.%s_can_add_data'
+                                            % graph.name):
+                return unauthorized_user(request)
             return add_property(request, relation)
         elif action == 'modify':
+            if not request.user.has_perm('schema.%s_can_edit_data'
+                                            % graph.name):
+                return unauthorized_user(request)
             return modify_property(request, relation)
         elif action == 'delete':
+            if not request.user.has_perm('schema.%s_can_delete_data'
+                                            % graph.name):
+                return unauthorized_user(request)
             return delete_property(request, relation)
 
 
@@ -555,7 +576,8 @@ def delete_node(request, graph_id, node_id):
 
 
 def delete_relationship(request, graph_id, node_id, relationship_id, page):
-    if not validate_user(request, get_schema(graph_id)):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm('schema.%s_can_delete_data' % graph.name):
         return unauthorized_user(request)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.nodes[int(node_id)]
@@ -599,6 +621,9 @@ def add_media_link(request, graph_id, node_id):
 
 
 def create_raw_relationship(request, graph_id, node_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm('schema.%s_can_add_data' % graph.name):
+        return unauthorized_user(request)
     if request.method == "GET":
         gdb = get_graphdb_connection(GRAPHDB_HOST)
         start_node = gdb.nodes[int(node_id)]
@@ -624,7 +649,7 @@ def search_results(request, graph_id, results, search_string):
         return render_to_response('graphgamel/result_list.html',
                                     RequestContext(request, {
                                     'graph_id': graph_id,
-                                    'node_types': graph.schema.get_node_types(),
+                                    'node_types': graph.get_node_types(),
                                     'result_list': results,
                                     'search_string': search_string}))
 

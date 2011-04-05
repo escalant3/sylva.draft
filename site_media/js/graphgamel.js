@@ -1,5 +1,7 @@
 var GRAPHGAMEL = {
-    'authenticated': false,
+    'can_add': false,
+    'can_edit': false,
+    'can_delete': false,
     'special_fields': [],
     'permission_error': 'Your user has not privilegies to perform that action',
     'internalfield_error': ' is a internal field and cannot be modified by the user',
@@ -27,10 +29,12 @@ var GRAPHGAMEL = {
                     td.appendChild(document.createTextNode(info));
                 }
                 tr.appendChild(td);
-                if (this.authenticated) {
+                if (this.can_edit) {
                     td = document.createElement('td');
                     td.innerHTML = '<a class="changelink" onClick="GRAPHGAMEL.modify_property(\'' + key + '\')">Edit</a>';
                     tr.appendChild(td);
+                }
+                if (this.can_delete) { 
                     td = document.createElement('td');
                     td.innerHTML = '<a class="deletelink" onClick="GRAPHGAMEL.delete_property(\'' + key + '\')">Delete</a>';
                     tr.appendChild(td);

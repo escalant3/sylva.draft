@@ -78,8 +78,16 @@
     }
 
     window.onload = function() {
-        {% if authorized and user.is_authenticated %}
-            GRAPHGAMEL.authenticated = true;
+        {% if permission.can_add %}
+            GRAPHGAMEL.can_add = true;
+        {% endif %}
+        {% if permission.can_edit %}
+            GRAPHGAMEL.can_edit = true;
+        {% endif %}
+        {% if permission.can_delete %}
+            GRAPHGAMEL.can_delete = true;
+        {% endif %}
+        {% if permission.can_add %}
             GRAPHGAMEL.populate_select(document.getElementById('out_relation'),
                             SCHEMA_DATA.outgoing);
             if (document.getElementById('out_relation').value != "") {
@@ -94,8 +102,6 @@
                             SCHEMA_DATA.incoming[document.getElementById('in_relation').value]);
                 GRAPHGAMEL.get_autocompletion_objects("in_node_type", "in_node_id");
             }
-        {% else %}
-            GRAPHGAMEL.authenticated = false;
         {% endif %}
         GRAPHGAMEL.populate_table('properties_table', {{ properties|safe }});
         GRAPHGAMEL.populate_embed_objects([['gbook_div', '_gbook']], {{ properties|safe }});
@@ -106,7 +112,7 @@
 {% block content %}
 <h1>Node {{ node_name }} info</h1>
 <div id="info-main-content">
-    {% if user.is_authenticated and not authorized %}
+    {% if not permission.can_add and not permission.can_edit and not permission.can_delete %}
     <p class="nopermission">READ ONLY MODE<br/>
     Your user is not able to edit this data. If you 
     want to add information, please log in as an authorized user.</p>
@@ -115,18 +121,18 @@
         <p><a target="_blank" href="{% url graph.views.visualize graph_id node_id %}">
             Visualize node
         </a></p>
-        {% if authorized and user.is_authenticated %}
+        {% if permission.can_delete %}
         <p><a class="deletelink" onclick="GRAPHGAMEL.delete_node()">
             Delete this node
         </a></p>
-            {% if media_items.meta.id %}
+            {% if media_items.meta.id and permission.can_edit and permission.can_delete %}
                 <p><a href="{% url admin:index %}graph/node/{{ media_items.meta.id }}/"
                 class="changelink">Edit multimedia files in admin panel</a></p>
             {% endif %}
         {% endif %}
 <h3>Properties</h3>
 <table id="properties_table" class="properties"></table>
-{% if authorized and user.is_authenticated %}
+{% if permission.can_add %}
     <h5>Add property</h5>
         <input type="text" id="new_property_key">
         <input type="text" id="new_property_value">
@@ -145,14 +151,14 @@ Showing page {{ pagination.page|add:"1" }} of {{ pagination.total|add:"1" }}
         <td><a href="{% url graph.views.node_info graph_id relation.end_neo_id %}">{{ relation.end_id }}</a>
             ({{ relation.end_type }})</td>
         <td><a href="{% url graph.views.relation_info graph_id relation.start_neo_id relation.relation_type relation.end_neo_id %}">Open this relation</a></td>
-        {% if authorized and user.is_authenticated  %}
-        <td><a href="{% url graph.views.delete_relationship graph_id node_id relation.relation_id pagination.page %}">Delete this relation</a>
+        {% if permission.can_delete  %}
+        <td><a class="deletelink" href="{% url graph.views.delete_relationship graph_id node_id relation.relation_id pagination.page %}">Delete this relation</a>
         </td>
         {% endif %}
     <tr>
 {% endfor %}
 </table>
-{% if authorized and user.is_authenticated  %}
+{% if permission.can_add  %}
 <h5>Add outgoing relationship</h5>
 <span class="label">This node</span>
 <select id="out_relation" name="out_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out').value])"></select>
@@ -169,7 +175,7 @@ Showing page {{ pagination.page|add:"1" }} of {{ pagination.total|add:"1" }}
 </div>
 <div id="info-right-content">
     <h3>Media</h3>
-    {% if authorized and user.is_authenticated %}
+    {% if permission.can_add %}
     <h5>Add media</h5>
     <form method="POST" enctype="multipart/form-data" action="./add_media/">
         <select id="media_type" name="media_type">
