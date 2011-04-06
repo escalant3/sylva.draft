@@ -31,12 +31,26 @@ class GraphDB(models.Model):
         self.create_new_permissions()
 
 
+    def delete(self, *args, **kwargs):
+        super(GraphDB, self).delete(*args, **kwargs)
+        self.remove_graph_permissions()
+        # TODO Delete data from the Neo4j Database
+
+
     def create_new_permissions(self):
         new_permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
         content_type = ContentType.objects.filter(model='graphdb')[0]
         for np in new_permissions:
             p = Permission(content_type=content_type, name=np, codename=np)
             p.save()
+
+
+    def remove_graph_permissions(self):
+        permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
+        for np in permissions:
+            p = Permission.objects.filter(name=np)
+            print "Deleting %s" % np
+            p.delete()
 
 
     def get_dictionaries(self):

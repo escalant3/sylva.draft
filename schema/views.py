@@ -84,3 +84,12 @@ def add_graph(request):
         form = CreateGraphForm()
     return render_to_response('graphgamel/graph_manager/create.html',
                             {'form': form})
+
+
+def delete_graph(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%s_can_delete" % graph.name):
+        return unauthorized_user(request) 
+    graph.delete()
+    return redirect(index)
+   

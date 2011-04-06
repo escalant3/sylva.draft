@@ -77,7 +77,8 @@
         <li><a class="changelink" href="{% url graph.views.editor g.graph.id %}">Edit graph</a></li>
         {% endif %}
         {% if g.can_delete %}
-        <li><a class="deletelink" href="{% url admin:schema_graphdb_delete g.graph.id %}">Delete graph</a></li>
+        <li><a class="deletelink" href="{% url schema.views.delete_graph g.graph.id %}"
+            onclick="return confirm('This will delete ALL THE DATA in the graph. Are you sure you want to delete?')">Delete graph</a></li>
         {% endif %}
         </ul>
 
