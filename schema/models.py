@@ -112,21 +112,25 @@ class GraphDB(models.Model):
 
 
 class NodeType(models.Model):
-    name = models.CharField(max_length=30, unique=True,
-                            validators=[is_alphanumeric])
+    name = models.SlugField(max_length=30)
     graph = models.ForeignKey(GraphDB)
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.graph.name)
+
+    class Meta:
+        unique_together = ('name', 'graph')
 
 
 class EdgeType(models.Model):
-    name = models.CharField(max_length=30, unique=True,
-                            validators=[is_alphanumeric])
+    name = models.SlugField(max_length=30)
     graph = models.ForeignKey(GraphDB)
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.graph.name)
+
+    class Meta:
+        unique_together = ('name', 'graph')
 
 
 class ValidRelation(models.Model):

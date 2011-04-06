@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Permission
+from django.db import IntegrityError
 from django.shortcuts import (render_to_response,
                                 redirect)
+from django.template import defaultfilters
 from graph.views import unauthorized_user, index
 from schema.forms import CreateGraphForm
 from schema.models import (GraphDB, NodeType, EdgeType,
@@ -25,9 +27,13 @@ def add_node_type(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
         return unauthorized_user(request) 
-    node_type = NodeType(name=request.POST['nodetype'],
-                        graph=graph)
-    node_type.save()
+    slug = defaultfilters.slugify(request.POST.get('nodetype', None))
+    if slug:
+        node_type = NodeType(name=slug, graph=graph)
+        try:
+            node_type.save()
+        except IntegrityError:
+            pass
     return redirect(schema_editor, graph_id)
 
 
@@ -35,9 +41,13 @@ def add_edge_type(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
         return unauthorized_user(request) 
-    edge_type = EdgeType(name=request.POST['edgetype'],
-                        graph=graph)
-    edge_type.save()
+    slug = defaultfilters.slugify(request.POST.get('edgetype', None))
+    if slug:
+        edge_type = EdgeType(name=slug, graph=graph)
+        try:
+            edge_type.save()
+        except IntegrityError:
+            pass
     return redirect(schema_editor, graph_id)
 
 
