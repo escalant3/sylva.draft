@@ -541,8 +541,9 @@ def search_node(request, graph_id, node_field='', _field_value=''):
             result = filter_by_property(result, '_type', node_type)
         response = [{'url': r.url,
                     'neo_id': r.id,
-                    'slug': r.properties['_slug'],
-                    'type': r.properties['_type']} for r in result]
+                    'properties': {'slug': r.properties['_slug'],
+                                    'type': r.properties['_type']}}
+                    for r in result]                                
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
