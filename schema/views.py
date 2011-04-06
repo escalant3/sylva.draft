@@ -60,7 +60,6 @@ def add_graph(request):
     if request.method == "POST":
         form = CreateGraphForm(request.POST)
         if form.is_valid():
-            #TODO Validation non-existent slug
             graph = GraphDB(name=form.cleaned_data['name'],
                             description=form.cleaned_data['description'],
                             public=form.cleaned_data['public'])
