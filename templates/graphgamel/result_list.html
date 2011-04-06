@@ -37,7 +37,7 @@
         <ul>
             <li>
                 <a class="changelink" href="{% url graph.views.node_info graph_id result.neo_id %}">
-                    {{ result.slug }} ({{ result.type }})
+                    {{ result.properties.slug }} ({{ result.properties.type }})
                 </a>
             </li>
         </ul>
