@@ -738,20 +738,19 @@ def handle_csv_file(uploaded_file):
     return list(csv_info)
 
 
-def import_manager(request):
+def import_manager(request, graph_id):
     if request.method == 'POST':
         form = UploadCSVForm(request.POST, request.FILES)
         if form.is_valid():
-            graph_id = int(request.POST['graph'])
             graph = GraphDB.objects.get(pk=graph_id)
             try:
                 rows = handle_csv_file(request.FILES['csv_file'])
                 row_length = len(rows[0])
             except:
                 pass #TODO Print a helpful message
-            node_types = graph.schema.get_node_types()
+            node_types = graph.get_node_types()
             valid_relations = []
-            for vr in ValidRelation.objects.filter(schema=graph.schema):
+            for vr in ValidRelation.objects.filter(graph=graph):
                 valid_relations.append({'node_from': vr.node_from.name,
                                         'relation': vr.relation.name,
                                         'node_to': vr.node_to.name})
@@ -764,15 +763,21 @@ def import_manager(request):
                         'valid_relations':simplejson.dumps(valid_relations)})
     else:
         form = UploadCSVForm()
-    return render_to_response('graphgamel/csv/upload.html', {'form': form})
+    return render_to_response('graphgamel/csv/upload.html', {'form': form,
+                                                        'graph_id': graph_id})
 
 
 def add_node_ajax(request, graph_id):
     if request.method == 'GET':
         graph = GraphDB.objects.get(pk=int(graph_id))
         gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
-        node = simplejson.loads(request.GET['json_node'])
+        tmp_node = simplejson.loads(request.GET['json_node'])
         collapse = simplejson.loads(request.GET['collapse'])
+        node = get_internal_attributes(tmp_node['id'],
+                                        tmp_node['type'],
+                                        graph_id,
+                                        request.user)
+ 
         if collapse:
             new_node = get_or_create_node(gdb, node, graph)
         else:
@@ -791,10 +796,10 @@ def add_relationship_ajax(request, graph_id):
         relation_info = simplejson.loads(request.GET['json_relation'])
         node_from = {}
         node_to = {}
-        node_from['id'] = relation_info['node_from']
-        node_from['type'] = relation_info['node_from_type']
-        node_to['id'] = relation_info['node_to']
-        node_to['type'] = relation_info['node_to_type']
+        node_from['_slug'] = relation_info['node_from']
+        node_from['_type'] = relation_info['node_from_type']
+        node_to['_slug'] = relation_info['node_to']
+        node_to['_type'] = relation_info['node_to_type']
         relation_data = relation_info['data']
         node1 = get_or_create_node(gdb, node_from, graph)
         node2 = get_or_create_node(gdb, node_to, graph)
@@ -802,6 +807,10 @@ def add_relationship_ajax(request, graph_id):
                                             node2,
                                             relation_info['relation'])
         if rel_obj:
+            set_relationship_properties(rel_obj, 
+                            relation_info['relation'],
+                            graph_id,
+                            request.user)
             for key, value in relation_data.iteritems():
                 rel_obj.set(key, value)
             success = True

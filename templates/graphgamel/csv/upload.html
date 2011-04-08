@@ -11,13 +11,13 @@
 <div class="instructions">
 <p>Welcome to Sylva importation manager. This tool will allow you to upload plain CSV information to Sylva Graph Format. You can learn more about CSV <a href=".">here</a>.</p>
 <p>Sylva supports Unicode (UTF-8) CSV files using the comma(,) as column separator and double quotes(") as text delimiter.</p>
-<p>First, select the target Graph Database where you want to insert the data. You, or anyone on your team should had created it with its schema before using this tool. If you want to learn more about schemas and databases creation you can find information <a href="">here</a>.</p>
+<p>You, or anyone on your team, should had created the graph database with its schema before using this tool. If you want to learn more about schemas and databases creation you can find information <a href="">here</a>.</p>
 <p>After selecting the target database, select a file from your computer and press Next.</p>
 </div>
 {% if form.is_multipart %}
-    <form class="importer" enctype="multipart/form-data" method="post" action="{% url graph.views.import_manager %}">
+    <form class="importer" enctype="multipart/form-data" method="post" action="{% url graph.views.import_manager graph_id %}">
 {% else %}
-    <form class="importer" method="post" action="{% url graph.views.import_manager %}">
+    <form class="importer" method="post" action="{% url graph.views.import_manager graph_id %}">
 {% endif %}
 {{ form }}
 <input type="submit" value="Next"/>
