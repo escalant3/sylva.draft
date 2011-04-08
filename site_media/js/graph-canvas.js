@@ -17,7 +17,7 @@ RaphaelGraph.prototype.XMARGIN = 5;
 RaphaelGraph.prototype.YMARGIN = 5;
 RaphaelGraph.prototype.show_labels = true;
 RaphaelGraph.prototype.node_label_field = "_slug";
-RaphaelGraph.prototype.node_edge_field = "id";
+RaphaelGraph.prototype.edge_label_field = "id";
 RaphaelGraph.prototype.multiselection = false;
 RaphaelGraph.prototype.multiselection_table = [];
 RaphaelGraph.prototype.events_enabled = true;
@@ -353,8 +353,7 @@ RaphaelGraph.prototype.show_edge_action_box = function show_edge_action_box(xpos
 
 RaphaelGraph.prototype.toggle_labels = function toggle_labels(label_field) {
     this.node_label_field = label_field;
-    this.edge_label_field = label_field;
-    //this.show_labels = !this.show_labels;
+    //this.edge_label_field = label_field;
     raphael_object.render()
 }
 
