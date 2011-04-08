@@ -121,6 +121,7 @@
         <p><a target="_blank" href="{% url graph.views.visualize graph_id node_id %}">
             Visualize node
         </a></p>
+        <p><a target="_blank" href="{% url graph.views.visualize_all graph_id %}">Visualize graph</a></p>
         {% if permission.can_delete %}
         <p><a class="deletelink" onclick="GRAPHGAMEL.delete_node()">
             Delete this node

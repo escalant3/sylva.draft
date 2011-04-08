@@ -817,3 +817,24 @@ def export_to_gexf(request, json_graph):
     gephi_format = converters.json_to_gexf(json_graph)
     response.write(gephi_format)
     return response
+
+
+def visualize_all(request, graph_id):
+    gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
+    result = gdb.index('_graph', graph_id)
+    graph = {"nodes":{}, "edges":{}}
+    edges = set()
+    for node in result:
+        graph["nodes"][node.properties['_slug']] = node.properties
+        for r in node.relationships.all():
+            edges.add((r.start['_slug'], r.type, r.end['_slug']))
+    for i, edge in enumerate(edges):
+        graph["edges"][i] = {'node1': edge[0],
+                                    'node2': edge[2],
+                                    'id': edge[1]}
+    return render_to_response('graphgamel/graphview/explorer.html',
+                                    RequestContext(request, {
+                                    'json_graph': simplejson.dumps(graph),
+                                    'graph_id': graph_id}))
+
+

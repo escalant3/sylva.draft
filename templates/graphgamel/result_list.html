@@ -20,6 +20,8 @@
 
 {% block content %}
 <h1>Browser</h1>
+<p><a target="_blank" href="{% url graph.views.visualize_all graph_id %}">Visualize graph</a></p>
+
 <h3>Browse nodes by type</h3>
 <ul>
 {% for node_type in node_types %}

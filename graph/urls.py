@@ -41,5 +41,6 @@ urlpatterns = patterns('',
     (r'import_manager/$', 'graph.views.import_manager'),
     (r'(\d+)/add_node_ajax/$', 'graph.views.add_node_ajax'),
     (r'(\d+)/add_relationship_ajax/$', 'graph.views.add_relationship_ajax'),
+    (r'(\d+)/visualize_all/$', 'graph.views.visualize_all'),
     (r'export_to_gexf/(.+)/$', 'graph.views.export_to_gexf'),
 )
