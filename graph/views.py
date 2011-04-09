@@ -684,7 +684,6 @@ def get_autocompletion_objects(request, graph_id):
 
 
 def get_node_and_neighbourhood(graph_id, node_id):
-    neograph = GraphDB.objects.get(pk=graph_id)
     graph = {"nodes":{}, "edges":{}}
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.node[int(node_id)]
@@ -711,7 +710,6 @@ def get_node_and_neighbourhood(graph_id, node_id):
 
 
 def visualize(request, graph_id, node_id):
-    neograph = GraphDB.objects.get(pk=graph_id)
     graph = get_node_and_neighbourhood(graph_id, node_id)
     return render_to_response('graphgamel/graphview/explorer.html',
                                     RequestContext(request, {
