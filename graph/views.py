@@ -63,12 +63,17 @@ def add_message(request, text,
     request.session['messages'] = request.session['messages'][:10]
 
 
+def search_in_index(gdb, _slug, _type, _graph):
+    result = filter_by_property(gdb.index('_slug', _slug),
+                                '_type', _type)
+    result = filter_by_property(result, '_graph', _graph)
+    return result
+
+
 def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
     slug_id = defaultfilters.slugify(n['_slug'])[:150]
-    result = filter_by_property(gdb.index('_slug', slug_id),
-                                '_type', n['_type'])
-    result = filter_by_property(result, '_graph', str(graph.id))
+    result = search_in_index(gdb, slug_id, n['_type'], str(graph.id))
     if len(result) == 1:
         node = result[0]
         n['_slug'] = slug_id
@@ -93,14 +98,24 @@ def create_node(gdb, n, graph):
             node_properties[dp.key] = dp.value
     for key, value in n.items():
         node_properties[key] = value
+    result = search_in_index(gdb, n['_slug'], n['_type'], n['_graph'])
+    if result:
+        counter = 1
+        slug = "%s-%s" % (n['_slug'] , counter)
+        result = search_in_index(gdb, slug, n['_type'], n['_graph'])
+        while result:
+            counter += 1
+            slug = "%s-%s" % (n['_slug'] , counter)
+            result = search_in_index(gdb, slug, n['_type'], n['_graph'])
+        node_properties['_slug'] = slug
     node = gdb.node(**node_properties)
     node.set('_url', "/".join(node.url.split('/')[-2:]))
-    gdb.add_to_index('_slug', n['_slug'], node)
-    gdb.add_to_index('_type', n['_type'], node)
-    gdb.add_to_index('_graph', n['_graph'], node)
+    gdb.add_to_index('_slug', node['_slug'], node)
+    gdb.add_to_index('_type', node['_type'], node)
+    gdb.add_to_index('_graph', node['_graph'], node)
     graph_index = GraphIndex(graph=graph,
-                            node_id=n['_slug'],
-                            node_type=n['_type'])
+                            node_id=node['_slug'],
+                            node_type=node['_type'])
     graph.graphindex_set.add(graph_index)
     return node
 
@@ -781,7 +796,7 @@ def add_node_ajax(request, graph_id):
         if collapse:
             new_node = get_or_create_node(gdb, node, graph)
         else:
-            new_node = create_node(gdb, node, graph, collapse)
+            new_node = create_node(gdb, node, graph)
         if new_node:
             success = True
         else:
