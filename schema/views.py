@@ -4,9 +4,10 @@ from django.shortcuts import (render_to_response,
                                 redirect)
 from django.template import defaultfilters
 from graph.views import unauthorized_user, index
-from schema.forms import CreateGraphForm
+from schema.forms import CreateGraphForm, CreateDefaultProperty
 from schema.models import (GraphDB, NodeType, EdgeType,
-                            ValidRelation, PERMISSIONS)
+                            ValidRelation, PERMISSIONS,
+                            NodeDefaultProperty, EdgeDefaultProperty)
 
 
 def schema_editor(request, graph_id):
@@ -58,11 +59,16 @@ def add_valid_relationship(request, graph_id):
     node_from = NodeType.objects.filter(name=request.POST['node_from'])[0]
     edge_type = EdgeType.objects.filter(name=request.POST['relation'])[0]
     node_to = NodeType.objects.filter(name=request.POST['node_to'])[0]
-    vr = ValidRelation(node_from=node_from,
+    results = ValidRelation.objects.filter(node_from=node_from,
                         relation=edge_type,
                         node_to=node_to,
                         graph=graph)
-    vr.save()
+    if not results:
+        vr = ValidRelation(node_from=node_from,
+                        relation=edge_type,
+                        node_to=node_to,
+                        graph=graph)
+        vr.save()
     return redirect(schema_editor, graph_id)
 
 
@@ -93,3 +99,62 @@ def delete_graph(request, graph_id):
     graph.delete()
     return redirect(index)
    
+
+def add_default_node_property(request, graph_id, node_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    node = NodeType.objects.get(pk=node_id)
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request) 
+    if request.method == "POST":
+        form = CreateDefaultProperty(request.POST)
+        if form.is_valid():
+            ndp = NodeDefaultProperty(key=form.cleaned_data['key'],
+                                        value=form.cleaned_data['value'],
+                                        node=node)
+            ndp.save()
+            return redirect(schema_editor, graph_id)
+    else:
+        form = CreateDefaultProperty()
+    return render_to_response('graphgamel/graph_manager/add_ndp.html', {
+                                'form': form,
+                                'graph_id': graph_id,
+                                'node': node})
+
+
+def add_default_edge_property(request, graph_id, edge_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    edge = EdgeType.objects.get(pk=edge_id)
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request) 
+    if request.method == "POST":
+        form = CreateDefaultProperty(request.POST)
+        if form.is_valid():
+            edp = EdgeDefaultProperty(key=form.cleaned_data['key'],
+                                        value=form.cleaned_data['value'],
+                                        edge=edge)
+            edp.save()
+            return redirect(schema_editor, graph_id)
+    else:
+        form = CreateDefaultProperty()
+    return render_to_response('graphgamel/graph_manager/add_edp.html', {
+                                'form': form,
+                                'graph_id': graph_id,
+                                'edge': edge})
+
+
+def delete_default_node_property(request, graph_id, property_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request) 
+    node_default_property = NodeDefaultProperty.objects.get(pk=property_id)
+    node_default_property.delete()
+    return redirect(schema_editor, graph_id)
+
+
+def delete_default_edge_property(request, graph_id, property_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request) 
+    edge_default_property = EdgeDefaultProperty.objects.get(pk=property_id)
+    edge_default_property.delete()
+    return redirect(schema_editor, graph_id)

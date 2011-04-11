@@ -13,3 +13,8 @@ class CreateGraphForm(forms.Form):
     name = forms.SlugField(validators=[unique_graph_name])
     description = forms.CharField()
     public = forms.BooleanField(required=False)
+
+
+class CreateDefaultProperty(forms.Form):
+    key = forms.SlugField()
+    value = forms.CharField()

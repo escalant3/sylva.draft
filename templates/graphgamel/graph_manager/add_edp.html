@@ -1,0 +1,18 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Sylva: Graph Manager</h1>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>Add {{ edge.name }} default property</h1>
+    <form method="post" action="{% url schema.views.add_default_edge_property graph_id edge.id %}">
+        {{ form.as_p }}
+        <input type="submit" value="Create"/>
+    </form>
+</div>
+{% endblock %}
