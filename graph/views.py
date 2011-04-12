@@ -743,8 +743,12 @@ def expand_node(request, graph_id):
 
 
 def open_node_info(request, graph_id):
-    node = get_node_from_index(request, graph_id)
-    return HttpResponse(simplejson.dumps({'success':True, 'node_id':node.id}))
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return HttpResponse(simplejson.dumps({'success':False}))
+    else:
+        node = get_node_from_index(request, graph_id)
+        return HttpResponse(simplejson.dumps({'success':True, 'node_id':node.id}))
 
 def handle_csv_file(uploaded_file):
     csv_info = csv.reader(uploaded_file)
