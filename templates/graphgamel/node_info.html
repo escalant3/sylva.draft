@@ -162,7 +162,7 @@ Showing page {{ pagination.page|add:"1" }} of {{ pagination.total|add:"1" }}
 {% if permission.can_add  %}
 <h5>Add outgoing relationship</h5>
 <span class="label">This node</span>
-<select id="out_relation" name="out_relation" onblur="GRAPHGAMEL.populate_select(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out').value])"></select>
+<select id="out_relation" name="out_relation" onChange="GRAPHGAMEL.populate_select(document.getElementById('out_node_type'), SCHEMA_DATA['outgoing'][document.getElementById('out_relation').value])"></select>
 <select id="out_node_type" name="out_node_type" onChange="GRAPHGAMEL.get_autocompletion_objects ('out_node_type', 'out_node_id')";></select>
 <input id="out_node_id" name="out_node_id" type="text"/>
 <input type="button" value="Search node" onclick="search_for_new_relationship('out');">
