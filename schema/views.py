@@ -73,6 +73,8 @@ def add_valid_relationship(request, graph_id):
 
 
 def add_graph(request):
+    if not request.user.has_perm("schema.add_graphdb"):
+        return unauthorized_user(request) 
     if request.method == "POST":
         form = CreateGraphForm(request.POST)
         if form.is_valid():
