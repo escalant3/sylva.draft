@@ -750,8 +750,10 @@ def open_node_info(request, graph_id):
         node = get_node_from_index(request, graph_id)
         return HttpResponse(simplejson.dumps({'success':True, 'node_id':node.id}))
 
-def handle_csv_file(uploaded_file):
-    csv_info = csv.reader(uploaded_file)
+def handle_csv_file(uploaded_file, separator, text_separator):
+    csv_info = csv.reader(uploaded_file,
+                            delimiter=str(separator),
+                            quotechar=str(text_separator))
     return list(csv_info)
 
 
@@ -763,10 +765,15 @@ def import_manager(request, graph_id):
         form = UploadCSVForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                rows = handle_csv_file(request.FILES['csv_file'])
+                rows = handle_csv_file(request.FILES['csv_file'],
+                                form.cleaned_data['separator'],
+                                form.cleaned_data['text_separator'])
                 row_length = len(rows[0])
             except:
-                pass #TODO Print a helpful message
+                #TODO Print a helpful message
+                return render_to_response('graphgamel/csv/upload.html', {
+                                                        'form': form,
+                                                        'graph_id': graph_id})
             node_types = graph.get_node_types()
             valid_relations = []
             for vr in ValidRelation.objects.filter(graph=graph):
