@@ -752,10 +752,12 @@ def handle_csv_file(uploaded_file):
 
 
 def import_manager(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm('schema.%s_can_add_data' % graph.name):
+        return unauthorized_user(request)
     if request.method == 'POST':
         form = UploadCSVForm(request.POST, request.FILES)
         if form.is_valid():
-            graph = GraphDB.objects.get(pk=graph_id)
             try:
                 rows = handle_csv_file(request.FILES['csv_file'])
                 row_length = len(rows[0])
@@ -781,6 +783,9 @@ def import_manager(request, graph_id):
 
 
 def add_node_ajax(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm('schema.%s_can_add_data' % graph.name):
+        return unauthorized_user(request)
     if request.method == 'GET':
         graph = GraphDB.objects.get(pk=int(graph_id))
         gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
@@ -803,6 +808,9 @@ def add_node_ajax(request, graph_id):
 
 
 def add_relationship_ajax(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm('schema.%s_can_add_data' % graph.name):
+        return unauthorized_user(request)
     if request.method == 'GET':
         graph = GraphDB.objects.get(pk=int(graph_id))
         gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
