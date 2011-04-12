@@ -87,30 +87,25 @@ function manager(step) {
     document.getElementById('instructions').innerHTML = document.getElementById('instructions_'+step).innerHTML;
     switch (step) {
         case 0: // Data rows selection
-            configure_trs([],["numbers_tr", "types_tr", "direction_tr", "collapse_tr",
+            configure_trs([],["numbers_tr", "types_tr", "direction_tr", 
                    "field1_tr", "field2_tr", "rfield1_tr", "rfield2_tr"], []);
             break;
         case 1: // Node generator type selection
-            configure_trs(["types_tr"],["numbers_tr", "direction_tr", "collapse_tr",
+            configure_trs(["types_tr"],["numbers_tr", "direction_tr",
                    "field1_tr", "field2_tr", "rfield1_tr", "rfield2_tr"], []);
             break;
         case 2:
             populateRelationsControl();
-            configure_trs(["direction_tr", "numbers_tr"], ["collapse_tr", "field1_tr",
+            configure_trs(["direction_tr", "numbers_tr"], ["field1_tr",
                     "field2_tr", "rfield1_tr", "rfield2_tr"], ["column_selector"]);
             break; 
         case 3:
-            configure_trs(["collapse_tr"],["numbers_tr", "field1_tr", "field2_tr",
-                    "rfield1_tr", "rfield2_tr", "direction_tr"], ["column_selector", "direction_selector"]);
+            configure_trs(["numbers_tr", "field1_tr", "field2_tr"], ["rfield1_tr",
+                    "rfield2_tr"], ["column_selector", "direction_selector"]);
             break;
         case 4:
-            configure_trs(["numbers_tr", "field1_tr", "field2_tr"], ["rfield1_tr",
-                    "rfield2_tr"], ["column_selector", "direction_selector",
-                    "collapse_selector"]);
-            break;
-        case 5:
             configure_trs(["rfield1_tr", "rfield2_tr"], ["numbers_tr"], ["column_selector", "direction_selector",
-                    "collapse_selector", "field_selector", "tfield_selector"]);
+                     "field_selector", "tfield_selector"]);
             document.getElementById('finish').disabled = false;
             document.getElementById('next').disabled = true;
             break;
@@ -140,7 +135,6 @@ function commitData() {
     extra_fields = {}
     rextra_fields = [];
     new_nodes_to_collapse = [];
-    new_nodes_to_duplicate = []
     new_relationships = [];
     // Checks node types and extra fields declared in header
     for(j=0;j<columns.length;j++) {
@@ -173,11 +167,7 @@ function commitData() {
                             node_info[extra_fields[k][1]] = data[i][k];
                         }
                     } 
-                    collapse = document.getElementById('collapse_'+j);
-                    if (collapse.checked)
-                        new_nodes_to_collapse.push(node_info);
-                    else
-                        new_nodes_to_duplicate.push(node_info);
+                    new_nodes_to_collapse.push(node_info);
             }
             // Searching relations between the fields of the row
             document.getElementById('progress_bar').innerHTML= "Creating relationships information..."
@@ -226,22 +216,6 @@ function commitData() {
             error: function(response) {
                 log_error("node", new_nodes_to_collapse[i]);
             }
-        });
-    }
-    total = new_nodes_to_duplicate.length;
-    for(i=0;i<new_nodes_to_duplicate.length;i++) {
-        $.ajax({url: "{% url graph.views.add_node_ajax graph_id %}", 
-            data: {json_node: JSON.stringify(new_nodes_to_duplicate[i]),
-                    collapse: false},
-            dataType: "json",
-            async: false,
-            success: function(response) {
-                document.getElementById('progress_bar').innerHTML= "Processed " + i + " regular nodes of " + total;
-            },
-            error: function(response) {
-                log_error("node", new_nodes_to_duplicate[i]);
-            }
-
         });
     }
     // Creates the relationships in Sylva server
@@ -338,16 +312,6 @@ window.onload = function() {
     <button onclick="addRelation()">Add Relation</button>
     </td>
     </tr>
-    <tr id="collapse_tr">
-    <td></td>
-    {% for item in len %}
-        <td>
-            <input id="collapse_{{ forloop.counter0 }}"
-                    class="collapse_selector"
-                    type="checkbox" checked>
-        </td>
-    {% endfor %}
-    </tr>
     <tr id="field1_tr">
     <td></td>
     {% for item in len %}
@@ -423,12 +387,6 @@ from the schema are allowed.</p>
 <p>Press <strong>Next</strong> when you are done.</p>
 </div>
 <div id="instructions_3" class="hidden">
-<p>By default, Sylva will recognize common values in your columns and it will
-generate the node once. If you want to avoid this behaviour for one of 
-your columns, just uncheck the desired control.</p>
-<p>Press <strong>Next</strong> when you are done.</p>
-</div>
-<div id="instructions_4" class="hidden">
 <p>You may want to use some of the remaining columns to create fields of the
 nodes created.</p>
 <p>A little number has appeared over each of the columns. If you want to associate
@@ -437,14 +395,11 @@ a name in the text input. This name will be the key of the property that will be
 generated in the node.</p>
 <p>Press <strong>Next</strong> when you are done.</p>
 </div>
-<div id="instructions_5" class="hidden">
+<div id="instructions_4" class="hidden">
 <p>As well as node properties, you may want to create relationship properties. Similar 
 to the previous step, select the desired relationship type in the selector and enter
 below the key of the property that will be generated.</p>
 <p>Press <strong>Finish</strong> to start the importation process. Depending of the 
 number of rows this process can take a long time.</p>
-</div>
-<div id="instructions_6" class="hidden">
-Help 6
 </div>
 {% endblock %}
