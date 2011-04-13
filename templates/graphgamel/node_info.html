@@ -123,7 +123,9 @@
         </a></p>
         <p><a target="_blank" href="{% url graph.views.visualize_all graph_id %}">Visualize graph</a></p>
         {% if permission.can_delete %}
-        <p><a class="deletelink" onclick="GRAPHGAMEL.delete_node()">
+        <p><a class="deletelink"
+            href="{% url graph.views.delete_node graph_id node_id %}"
+            onclick="return confirm('This will delete the node and all its relationships. Are you sure?')">
             Delete this node
         </a></p>
             {% if media_items.meta.id and permission.can_edit and permission.can_delete %}

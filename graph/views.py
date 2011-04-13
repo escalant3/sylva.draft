@@ -574,21 +574,16 @@ def filter_by_property(nodes, prop, value):
 
 
 def delete_node(request, graph_id, node_id):
-    if not validate_user(request, get_schema(graph_id)):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm('schema.%s_can_delete_data' % graph.name):
         return unauthorized_user(request)
     success = False
-    if request.is_ajax():
-        gdb = get_graphdb_connection(GRAPHDB_HOST)
-        try:
-            # TODO API corrupts database
-            if False:
-                gdb.nodes[int(node_id)].delete()
-                success = True
-            messages = ["Node deleted"]
-        except:
-            pass
-    return HttpResponse(simplejson.dumps({'success': success,
-                                        'messages': messages}))
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
+    # TODO API corrupts database
+    if False:
+        gdb.nodes[int(node_id)].delete()
+        success = True
+    return HttpResponse(simplejson.dumps({'success': success}))
 
 
 def delete_relationship(request, graph_id, node_id, relationship_id, page):
