@@ -73,7 +73,7 @@ RaphaelGraph.prototype.style = {
 RaphaelGraph.prototype.refresh_styles = function() {
     dinamic_styles = [["nodeStrokeWidth", this.NODE_SIZE/40],
                         ["selectedNodeStrokeWidth", this.NODE_SIZE/5],
-                        ["edgeStrokeWidth", this.NODE_SIZE/24],
+                        ["edgeStrokeWidth", this.NODE_SIZE/12],
                         ["fontSize", Math.max(this.NODE_SIZE/4,8)],
                         ["labelYMargin", -1.3*this.NODE_SIZE]];
     for(i=0;i<dinamic_styles.length;i++) {
