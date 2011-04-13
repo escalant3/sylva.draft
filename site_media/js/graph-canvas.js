@@ -36,7 +36,7 @@ RaphaelGraph.prototype.style = {
     //Node properties
     "defaultNodeColor": "#E4E4E4",
     "nodeStrokeColor": "black",
-    "overNodeStrokeColor": "red",
+    "overNodeStrokeColor": "white",
     "nodeStrokeWidth": 2,           //Overwritten by refresh_style
     "selectedNodeStrokeWidth": 5,   //Overwritten by refresh_style
     //Edge properties
