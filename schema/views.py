@@ -1,10 +1,11 @@
 from django.contrib.auth.models import Permission
+from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.shortcuts import (render_to_response,
                                 redirect)
 from django.template import defaultfilters
 from graph.views import unauthorized_user, index
-from schema.forms import CreateGraphForm, CreateDefaultProperty
+from schema.forms import CreateGraphForm, CreateDefaultProperty, EditGraphForm
 from schema.models import (GraphDB, NodeType, EdgeType,
                             ValidRelation, PERMISSIONS,
                             NodeDefaultProperty, EdgeDefaultProperty)
@@ -90,8 +91,33 @@ def add_graph(request):
             return redirect(index)
     else:
         form = CreateGraphForm()
-    return render_to_response('graphgamel/graph_manager/create.html',
-                            {'form': form})
+    return render_to_response('graphgamel/graph_manager/graph.html',
+                            {'form': form,
+                            'form_title': 'Create new graph',
+                            'action': reverse('schema.views.add_graph')})
+
+
+def edit_graph(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%_edit_schema"):
+        return unauthorized_user(request)
+    if request.method == "POST":
+        form = EditGraphForm(request.POST)
+        if form.is_valid():
+            graph.description = form.cleaned_data['description']
+            graph.public = form.cleaned_data['public']
+            graph.save_changes()
+            return redirect(index)
+    else:
+        form = EditGraphForm({'description': graph.description,
+                                'public': graph.public})
+    return render_to_response('graphgamel/graph_manager/graph.html',
+                            {'form': form,
+                            'form_title': 'Edit graph properties',
+                            'action': reverse('schema.views.edit_graph',
+                                            args=[graph_id])})
+
+
 
 
 def delete_graph(request, graph_id):

@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     (r'(\d+)/add_valid_relationship/$',
         'schema.views.add_valid_relationship'),
     (r'delete_graph/(\d+)/$', 'schema.views.delete_graph'),
+    (r'edit_graph/(\d+)/$', 'schema.views.edit_graph'),
     (r'(\d+)/$', 'schema.views.schema_editor'),
     (r'add_graph/$', 'schema.views.add_graph'),
 )

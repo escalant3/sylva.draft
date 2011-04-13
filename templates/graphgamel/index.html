@@ -74,7 +74,10 @@
         <li><a class="changelink" href="{% url schema.views.schema_editor g.graph.id %}">Edit schema</a></li>
         {% endif %}
         {% if g.can_edit %}
-        <li><a class="changelink" href="{% url graph.views.editor g.graph.id %}">Edit graph</a></li>
+        <li><a class="changelink" href="{% url graph.views.editor g.graph.id %}">Edit data</a></li>
+        {% endif %}
+        {% if g.can_edit_schema %}
+        <li><a class="changelink" href="{% url schema.views.edit_graph g.graph.id %}">Edit graph properties</a></li>
         {% endif %}
         {% if g.can_delete %}
         <li><a class="deletelink" href="{% url schema.views.delete_graph g.graph.id %}"

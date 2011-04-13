@@ -18,3 +18,8 @@ class CreateGraphForm(forms.Form):
 class CreateDefaultProperty(forms.Form):
     key = forms.SlugField()
     value = forms.CharField()
+
+
+class EditGraphForm(forms.Form):
+    description = forms.CharField()
+    public = forms.BooleanField(required=False)

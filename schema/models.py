@@ -31,6 +31,10 @@ class GraphDB(models.Model):
         self.create_new_permissions()
 
 
+    def save_changes(self, *args, **kwargs):
+        super(GraphDB, self).save(*args, **kwargs)
+
+
     def delete(self, *args, **kwargs):
         super(GraphDB, self).delete(*args, **kwargs)
         self.remove_graph_permissions()
@@ -49,7 +53,6 @@ class GraphDB(models.Model):
         permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
         for np in permissions:
             p = Permission.objects.filter(name=np)
-            print "Deleting %s" % np
             p.delete()
 
 
