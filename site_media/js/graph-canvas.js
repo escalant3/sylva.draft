@@ -237,7 +237,6 @@ RaphaelGraph.prototype.draw_edge = function draw_edge(edge) {
             selected_edge = [edge.node1, edge.node2];
             xpos = event.clientX;
             ypos = event.clientY;
-            raphael.show_edge_action_box(xpos, ypos);
         }
         e.node.onmouseover = function () {
             e.attr("stroke", raphael.style.overEdgeStrokeColor);
