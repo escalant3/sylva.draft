@@ -331,9 +331,12 @@ RaphaelGraph.prototype.create_button = function(set, x, y, label, f) {
                 raphael.style.fwbtnAnimationTime);
     r.node.onmouseover = function() {r.attr({"fill":"yellow"})};
     r.node.onmouseout = function() {r.attr({"fill":"white"})};
-    r.node.onclick = function() {raphael.showing_info_box=false;
-                                set.hide();
-                                f();};
+    r.node.onclick = function() {
+        if (label != "Multiselection") {
+            raphael.showing_info_box=false;
+            set.hide();
+        }
+        f();};
     var t = this.paper.text(x+35,y+8,label).attr({
                         "font-size": raphael.style.fwbtnFontSize,
                         "fill": raphael.style.fwbtnFontColor,

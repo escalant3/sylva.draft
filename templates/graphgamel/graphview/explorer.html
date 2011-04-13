@@ -20,6 +20,7 @@
 
         function delete_node() {
             if (raphael.multiselection) {
+                raphael.multiselection = false;
                 for(var node_id in raphael.multiselection_table) {
                     raphael.delete_node(raphael.multiselection_table[node_id]);
                 }
