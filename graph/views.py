@@ -25,11 +25,11 @@ RELATIONS_PER_PAGE = 20
 
 def index(request, error=''):
     user = request.user
-    graphs = [{'graph': g, 
+    graphs = [{'graph': g,
         'can_edit_schema': user.has_perm('schema.%s_can_edit_schema' % g.name),
         'can_edit': user.has_perm('schema.%s_can_edit' % g.name),
         'can_delete': user.has_perm('schema.%s_can_delete' % g.name)}
-            for g in GraphDB.objects.all() 
+            for g in GraphDB.objects.all()
             if g.public or user.has_perm("schema.%s_can_see" % g.name)]
     messages = request.session.get('messages', None)
     if not messages:
@@ -101,11 +101,11 @@ def create_node(gdb, n, graph):
     result = search_in_index(gdb, n['_slug'], n['_type'], n['_graph'])
     if result:
         counter = 1
-        slug = "%s-%s" % (n['_slug'] , counter)
+        slug = "%s-%s" % (n['_slug'], counter)
         result = search_in_index(gdb, slug, n['_type'], n['_graph'])
         while result:
             counter += 1
-            slug = "%s-%s" % (n['_slug'] , counter)
+            slug = "%s-%s" % (n['_slug'], counter)
             result = search_in_index(gdb, slug, n['_type'], n['_graph'])
         node_properties['_slug'] = slug
     node = gdb.node(**node_properties)
@@ -252,7 +252,7 @@ def editor(request, graph_id):
                                                             True)
                 if new:
                     # Relation default and inner properties
-                    set_relationship_properties(rel_obj, 
+                    set_relationship_properties(rel_obj,
                                                 data['relation_type'],
                                                 graph_id,
                                                 request.user)
@@ -326,20 +326,21 @@ def node_info(request, graph_id, node_id, page=0):
     properties = simplejson.dumps(node.properties)
     relationships = node.relationships.all()
     relationships_list = []
-    total_pages = len(relationships)/RELATIONS_PER_PAGE
+    total_pages = len(relationships) / RELATIONS_PER_PAGE
     pagination = {'page': page,
-                    'start': page*RELATIONS_PER_PAGE,
-                    'end': (page+1)*RELATIONS_PER_PAGE,
+                    'start': page * RELATIONS_PER_PAGE,
+                    'end': (page + 1) * RELATIONS_PER_PAGE,
                     'total': total_pages,
-                    'previous': max(0, page-1),
-                    'next': min(total_pages, page+1)}
+                    'previous': max(0, page - 1),
+                    'next': min(total_pages, page + 1)}
     for r in relationships[pagination['start']:pagination['end']]:
         relation_info = {'start_id': r.start.get('_slug', None),
                         'start_type': r.start.get('_type', None),
                         'start_neo_id': r.start.id,
                         'relation_type': r.type,
                         'relation_url': r.url,
-                        'relation_id': r.url.split('/')[-1], #TODO Fix in client
+                        #TODO Fix in client
+                        'relation_id': r.url.split('/')[-1],
                         'end_id': r.end.get('_slug', None),
                         'end_type': r.end.get('_type', None),
                         'end_neo_id': r.end.id}
@@ -353,11 +354,12 @@ def node_info(request, graph_id, node_id, page=0):
         for media in relational_node.media_set.all():
             if media.media_type not in media_items:
                 media_items[media.media_type] = []
-            media_items[media.media_type].append({'url': media.media_file.url,
-                                                'caption': media.media_caption})
+            media_items[media.media_type].append({
+                                        'url': media.media_file.url,
+                                        'caption': media.media_caption})
     node_name = '%s(%s)' % (node.properties['_slug'],
                             node.properties['_type'])
-    permissions = get_permissions(request.user, graph.name) 
+    permissions = get_permissions(request.user, graph.name)
     return render_to_response('graphgamel/node_info.html',
                                     RequestContext(request, {
                                     'properties': properties,
@@ -385,7 +387,7 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
         properties = simplejson.dumps(relation.properties)
         start_node_properties = simplejson.dumps(relation.start.properties)
         end_node_properties = simplejson.dumps(relation.end.properties)
-        permissions = get_permissions(request.user, graph.name) 
+        permissions = get_permissions(request.user, graph.name)
         return render_to_response('graphgamel/relation_info.html',
                                 RequestContext(request, {
                                 'properties': properties,
@@ -402,6 +404,7 @@ def get_permissions(user, graph):
     return {'can_add': user.has_perm('schema.%s_can_add_data' % graph),
             'can_edit': user.has_perm('schema.%s_can_edit_data' % graph),
             'can_delete': user.has_perm('schema.%s_can_delete_data' % graph)}
+
 
 def get_graphdb_connection(graphdb_host):
     try:
@@ -429,7 +432,7 @@ def unauthorized_user(request):
     if request.is_ajax():
         return HttpResponse(simplejson.dumps({'nopermission': True}))
     else:
-        return HttpResponseRedirect('/accounts/login/?next=%s' % 
+        return HttpResponseRedirect('/accounts/login/?next=%s' %
                                         request.path)
 
 
@@ -536,7 +539,7 @@ def search_node(request, graph_id, node_field='', _field_value=''):
     if request.method == 'GET':
         gdb = get_graphdb_connection(GRAPHDB_HOST)
         if not gdb:
-            error_message = "The host %s is not available" % GRAPHDB_HOST 
+            error_message = "The host %s is not available" % GRAPHDB_HOST
             return index(request, error_message)
         field_value = request.GET.get('field_value', _field_value)
         if not node_field:
@@ -546,7 +549,7 @@ def search_node(request, graph_id, node_field='', _field_value=''):
                 result = gdb.index(node_field, field_value)
                 # Strings including node_type
                 if not result and field_value.endswith(')'):
-                    clean_value = field_value[0:field_value.rfind('(')-1]
+                    clean_value = field_value[0:field_value.rfind('(') - 1]
                     result = gdb.index(node_field, clean_value)
             else:
                 result = []
@@ -564,7 +567,7 @@ def search_node(request, graph_id, node_field='', _field_value=''):
                     'neo_id': r.id,
                     'properties': {'slug': r.properties['_slug'],
                                     'type': r.properties['_type']}}
-                    for r in result]                                
+                    for r in result]
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
@@ -684,7 +687,8 @@ def get_autocompletion_objects(request, graph_id):
         node_type = request.GET.get('node_type', '')
         if node_type:
             results = [r.node_id
-                        for r in graph.graphindex_set.filter(node_type=node_type)]
+                        for r in graph.graphindex_set.filter(
+                                        node_type=node_type)]
         else:
             results = ['%s (%s)' % (r.node_id, r.node_type)
                         for r in graph.graphindex_set.all()]
@@ -692,13 +696,13 @@ def get_autocompletion_objects(request, graph_id):
 
 
 def get_node_and_neighbourhood(graph_id, node_id):
-    graph = {"nodes":{}, "edges":{}}
+    graph = {"nodes": {}, "edges": {}}
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.node[int(node_id)]
     properties = node.properties
     graph["nodes"][properties['_slug']] = properties
     relationships = node.relationships.all()
-    edges_counter= 0
+    edges_counter = 0
     for r in relationships:
         start_properties = r.start.properties
         properties = start_properties.copy()
@@ -747,7 +751,7 @@ def expand_node(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not graph.public and \
             not request.user.has_perm('schema.%s_can_see' % graph.name):
-        return HttpResponse(simplejson.dumps({'success':False}))
+        return HttpResponse(simplejson.dumps({'success': False}))
     node = get_node_from_index(request, graph_id)
     if node:
         new_graph = get_node_and_neighbourhood(graph_id, node.id)
@@ -762,10 +766,12 @@ def open_node_info(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not graph.public and \
             not request.user.has_perm('schema.%s_can_see' % graph.name):
-        return HttpResponse(simplejson.dumps({'success':False}))
+        return HttpResponse(simplejson.dumps({'success': False}))
     else:
         node = get_node_from_index(request, graph_id)
-        return HttpResponse(simplejson.dumps({'success':True, 'node_id':node.id}))
+        return HttpResponse(simplejson.dumps({'success': True,
+                                            'node_id': node.id}))
+
 
 def handle_csv_file(uploaded_file, separator, text_separator):
     csv_info = csv.reader(uploaded_file,
@@ -797,17 +803,19 @@ def import_manager(request, graph_id):
                 valid_relations.append({'node_from': vr.node_from.name,
                                         'relation': vr.relation.name,
                                         'node_to': vr.node_to.name})
-            return render_to_response('graphgamel/csv/manager.html', {'rows':rows,
+            return render_to_response('graphgamel/csv/manager.html', {
+                        'rows': rows,
                         'json_data': simplejson.dumps(rows),
                         'len': range(row_length),
                         'graph_id': graph_id,
                         'node_types': node_types,
                         'relations': valid_relations,
-                        'valid_relations':simplejson.dumps(valid_relations)})
+                        'valid_relations': simplejson.dumps(valid_relations)})
     else:
         form = UploadCSVForm()
-    return render_to_response('graphgamel/csv/upload.html', {'form': form,
-                                                        'graph_id': graph_id})
+    return render_to_response('graphgamel/csv/upload.html', {
+                                        'form': form,
+                                        'graph_id': graph_id})
 
 
 def add_node_ajax(request, graph_id):
@@ -822,7 +830,6 @@ def add_node_ajax(request, graph_id):
                                         tmp_node['type'],
                                         graph_id,
                                         request.user)
- 
         if collapse:
             new_node = get_or_create_node(gdb, node, graph)
         else:
@@ -831,7 +838,7 @@ def add_node_ajax(request, graph_id):
             success = True
         else:
             success = False
-        return HttpResponse(simplejson.dumps({'success':success}))
+        return HttpResponse(simplejson.dumps({'success': success}))
 
 
 def add_relationship_ajax(request, graph_id):
@@ -854,7 +861,7 @@ def add_relationship_ajax(request, graph_id):
                                             node2,
                                             relation_info['relation'])
         if rel_obj:
-            set_relationship_properties(rel_obj, 
+            set_relationship_properties(rel_obj,
                             relation_info['relation'],
                             graph_id,
                             request.user)
@@ -864,7 +871,7 @@ def add_relationship_ajax(request, graph_id):
 
         else:
             success = False
-        return HttpResponse(simplejson.dumps({'success':success}))
+        return HttpResponse(simplejson.dumps({'success': success}))
 
 
 def export_to_gexf(request, json_graph):
@@ -882,7 +889,7 @@ def visualize_all(request, graph_id):
         return unauthorized_user(request)
     gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
     result = gdb.index('_graph', graph_id)
-    graph = {"nodes":{}, "edges":{}}
+    graph = {"nodes": {}, "edges": {}}
     edges = set()
     for node in result:
         graph["nodes"][node.properties['_slug']] = node.properties
@@ -896,5 +903,3 @@ def visualize_all(request, graph_id):
                                     RequestContext(request, {
                                     'json_graph': simplejson.dumps(graph),
                                     'graph_id': graph_id}))
-
-
