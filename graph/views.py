@@ -313,6 +313,10 @@ def editor(request, graph_id):
 
 
 def node_info(request, graph_id, node_id, page=0):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm("schema.%s_can_see" % graph.name):
+        return unauthorized_user(request)
     page = int(page)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.node[int(node_id)]
@@ -340,7 +344,6 @@ def node_info(request, graph_id, node_id, page=0):
                         'end_type': r.end.get('_type', None),
                         'end_neo_id': r.end.id}
         relationships_list.append(relation_info)
-    graph = GraphDB.objects.get(pk=graph_id)
     node_type = node['_type']
     outgoing, incoming = graph.get_incoming_and_outgoing(node_type)
     media_items = {}
@@ -370,6 +373,10 @@ def node_info(request, graph_id, node_id, page=0):
 
 
 def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm("schema.%s_can_see" % graph.name):
+        return unauthorized_user(request)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     start_node = gdb.node[int(start_node_id)]
     end_node = gdb.node[int(end_node_id)]
@@ -378,7 +385,6 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
         properties = simplejson.dumps(relation.properties)
         start_node_properties = simplejson.dumps(relation.start.properties)
         end_node_properties = simplejson.dumps(relation.end.properties)
-        graph = GraphDB.objects.get(pk=graph_id)
         permissions = get_permissions(request.user, graph.name) 
         return render_to_response('graphgamel/relation_info.html',
                                 RequestContext(request, {
@@ -601,6 +607,8 @@ def delete_relationship(request, graph_id, node_id, relationship_id, page):
 
 def add_media(request, graph_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%s_can_add_data" % graph.name):
+        return unauthorized_user(request)
     node = get_node_without_connection(graph, node_id)
     if not '_media' in node.properties:
         relational_db_node = Node(node_id=node.properties['_slug'],
@@ -624,6 +632,8 @@ def add_media(request, graph_id, node_id):
 
 def add_media_link(request, graph_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%s_can_add_data" % graph.name):
+        return unauthorized_user(request)
     node = get_node_without_connection(graph, node_id)
     media_type = request.POST['media_type']
     media_link = request.POST['media_link']
@@ -666,8 +676,11 @@ def search_results(request, graph_id, results, search_string):
 
 
 def get_autocompletion_objects(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return unauthorized_user(request)
     if request.method == 'GET':
-        graph = GraphDB.objects.get(pk=graph_id)
         node_type = request.GET.get('node_type', '')
         if node_type:
             results = [r.node_id
@@ -705,6 +718,10 @@ def get_node_and_neighbourhood(graph_id, node_id):
 
 
 def visualize(request, graph_id, node_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return unauthorized_user(request)
     graph = get_node_and_neighbourhood(graph_id, node_id)
     return render_to_response('graphgamel/graphview/explorer.html',
                                     RequestContext(request, {
@@ -727,6 +744,10 @@ def get_node_from_index(request, graph_id):
 
 
 def expand_node(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return HttpResponse(simplejson.dumps({'success':False}))
     node = get_node_from_index(request, graph_id)
     if node:
         new_graph = get_node_and_neighbourhood(graph_id, node.id)
@@ -739,7 +760,8 @@ def expand_node(request, graph_id):
 
 def open_node_info(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
-    if not graph.public and not request.user.has_perm('schema.%s_can_see' % graph.name):
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
         return HttpResponse(simplejson.dumps({'success':False}))
     else:
         node = get_node_from_index(request, graph_id)
@@ -793,7 +815,6 @@ def add_node_ajax(request, graph_id):
     if not request.user.has_perm('schema.%s_can_add_data' % graph.name):
         return unauthorized_user(request)
     if request.method == 'GET':
-        graph = GraphDB.objects.get(pk=int(graph_id))
         gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
         tmp_node = simplejson.loads(request.GET['json_node'])
         collapse = simplejson.loads(request.GET['collapse'])
@@ -818,7 +839,6 @@ def add_relationship_ajax(request, graph_id):
     if not request.user.has_perm('schema.%s_can_add_data' % graph.name):
         return unauthorized_user(request)
     if request.method == 'GET':
-        graph = GraphDB.objects.get(pk=int(graph_id))
         gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
         relation_info = simplejson.loads(request.GET['json_relation'])
         node_from = {}
@@ -856,6 +876,10 @@ def export_to_gexf(request, json_graph):
 
 
 def visualize_all(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return unauthorized_user(request)
     gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
     result = gdb.index('_graph', graph_id)
     graph = {"nodes":{}, "edges":{}}
