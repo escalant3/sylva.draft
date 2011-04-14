@@ -1,6 +1,23 @@
 import datetime
 import simplejson
 
+
+htmlCodes = (
+    ('&', '&amp;'),
+    ('<', '&lt;'),
+    ('>', '&gt;'),
+    ('"', '&quot;'),
+    ("'", '&#39;'),
+)
+
+
+def encode_html(value):
+    if isinstance(value, basestring):
+        for replacement in htmlCodes:
+            value = value.replace(replacement[0], replacement[1])
+    return value
+
+
 def json_to_gexf(json_graph):
     " Converts a Sylva json graph to GEXF 1.2"
     today = datetime.datetime.now()
@@ -20,7 +37,8 @@ def json_to_gexf(json_graph):
                 attribute_counter += 1
             nodes += """
                 <attvalue for="%s" value="%s"/>""" % (node_attributes[key],
-                                                    value)
+                                                    encode_html(value))
+            print value
         nodes += """
             </attvalues>
             </node>"""
@@ -39,7 +57,7 @@ def json_to_gexf(json_graph):
                     attribute_counter += 1
                 edges += """
                     <attvalue for="%s" value="%s"/>""" % (edge_attributes[key],
-                                                            value)
+                                                        encode_html(value))
         edges += """
             </attvalues>
             </edge>"""
