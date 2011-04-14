@@ -64,7 +64,8 @@ def add_message(request, text,
 
 
 def search_in_index(gdb, _slug, _type, _graph):
-    result = filter_by_property(gdb.index('_slug', _slug),
+    idx = gdb.nodes.indexes.get('sylva_nodes')
+    result = filter_by_property(idx.get('_slug')[_slug],
                                 '_type', _type)
     result = filter_by_property(result, '_graph', _graph)
     return result
@@ -110,9 +111,10 @@ def create_node(gdb, n, graph):
         node_properties['_slug'] = slug
     node = gdb.node(**node_properties)
     node.set('_url', "/".join(node.url.split('/')[-2:]))
-    gdb.add_to_index('_slug', node['_slug'], node)
-    gdb.add_to_index('_type', node['_type'], node)
-    gdb.add_to_index('_graph', node['_graph'], node)
+    idx = gdb.nodes.indexes.get('sylva_nodes')
+    idx['_slug'][node['_slug']] = node
+    idx['_type'][node['_type']] = node
+    idx['_graph'][node['_graph']] = node
     graph_index = GraphIndex(graph=graph,
                             node_id=node['_slug'],
                             node_type=node['_type'])
@@ -120,11 +122,13 @@ def create_node(gdb, n, graph):
     return node
 
 
-def get_relationship(node1, node2, edge_type):
-    for relation in node1.relationships.all():
-        if relation.end == node2 and relation.type == edge_type:
-            return relation
-    return None
+def get_relationship(gdb, node1, node2, edge_type):
+    idx = gdb.relationships.indexes.get('sylva_relationships')
+    slug = "%s:%s:%s" % (node1['_slug'],
+                        edge_type,
+                        node2['_slug'])
+    result = idx.get('_slug')[slug]
+    return result[0] if result else None
 
 
 def get_node_without_connection(graph_id, node_id):
@@ -136,12 +140,13 @@ def get_relationship_without_connection(graph_id, node1, edge_type, node2):
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     start_node = gdb.nodes[int(node1)]
     end_node = gdb.nodes[int(node2)]
-    return get_relationship(start_node, end_node, edge_type)
+    return get_relationship(gdb, start_node, end_node, edge_type)
 
 
-def get_or_create_relationship(node1, node2, edge_type, creation_info=False):
+def get_or_create_relationship(gdb, node1, node2, edge_type,
+                                creation_info=False):
     created = True
-    relation = get_relationship(node1, node2, edge_type)
+    relation = get_relationship(gdb, node1, node2, edge_type)
     if relation:
         created = False
     else:
@@ -172,7 +177,7 @@ def update_timestamp(element, username):
     element.set('_user', username)
 
 
-def set_relationship_properties(rel_obj, edge_type, graph_id, user):
+def set_relationship_properties(gdb, rel_obj, edge_type, graph_id, user):
     edge_type_obj = EdgeType.objects.filter(name=edge_type)
     if edge_type_obj:
         default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
@@ -189,6 +194,10 @@ def set_relationship_properties(rel_obj, edge_type, graph_id, user):
     for key, value in inner_properties.iteritems():
         rel_obj.set(key, value)
     rel_obj.set('_url', "/".join(rel_obj.url.split('/')[-2:]))
+    idx = gdb.relationships.indexes.get('sylva_relationships')
+    idx['_slug'][slug] = rel_obj
+    idx['_type'][edge_type] = rel_obj
+    idx['_graph'][graph_id] = rel_obj
 
 
 @login_required
@@ -226,7 +235,7 @@ def editor(request, graph_id):
                                 element_type='node',
                                 text='%s node' % data['node_type'])
             elif data['mode'] == 'relation':
-                #Check if it is a valid relationship
+                # TODO Check if it is a valid relationship
                 #Create data in Neo4j server
                 node_from = get_internal_attributes(data['node_from_id'],
                                                     data['node_from_type'],
@@ -246,13 +255,15 @@ def editor(request, graph_id):
                 edge_type = relation['_type']
                 start_node = get_or_create_node(gdb, node_from, graph)
                 end_node = get_or_create_node(gdb, node_to, graph)
-                rel_obj, new = get_or_create_relationship(start_node,
+                rel_obj, new = get_or_create_relationship(gdb,
+                                                            start_node,
                                                             end_node,
                                                             edge_type,
                                                             True)
                 if new:
                     # Relation default and inner properties
-                    set_relationship_properties(rel_obj,
+                    set_relationship_properties(gdb,
+                                                rel_obj,
                                                 data['relation_type'],
                                                 graph_id,
                                                 request.user)
@@ -382,7 +393,7 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     start_node = gdb.node[int(start_node_id)]
     end_node = gdb.node[int(end_node_id)]
-    relation = get_relationship(start_node, end_node, edge_type)
+    relation = get_relationship(gdb, start_node, end_node, edge_type)
     if relation:
         properties = simplejson.dumps(relation.properties)
         start_node_properties = simplejson.dumps(relation.start.properties)
@@ -546,11 +557,12 @@ def search_node(request, graph_id, node_field='', _field_value=''):
             node_field = '_slug'
         try:
             if field_value:
-                result = gdb.index(node_field, field_value)
+                idx = gdb.nodes.indexes.get('sylva_nodes')
+                result = idx.get(node_field)[field_value]
                 # Strings including node_type
                 if not result and field_value.endswith(')'):
                     clean_value = field_value[0:field_value.rfind('(') - 1]
-                    result = gdb.index(node_field, clean_value)
+                    result = idx.get(node_field)[clean_value]
             else:
                 result = []
         except neo4jclient.NotFoundError:
@@ -655,10 +667,11 @@ def create_raw_relationship(request, graph_id, node_id):
         edge_type = request.GET['edge_type']
         if (request.GET['reversed'] == u"true"):
             start_node, end_node = end_node, start_node
-        if not get_relationship(start_node, end_node, edge_type):
+        if not get_relationship(gdb, start_node, end_node, edge_type):
             relationship = getattr(start_node, edge_type)(end_node)
             # Relation default and inner properties
-            set_relationship_properties(relationship,
+            set_relationship_properties(gdb,
+                                        relationship,
                                         edge_type,
                                         graph_id,
                                         request.user)
@@ -738,13 +751,11 @@ def get_node_from_index(request, graph_id):
     node_id = request.GET.get('node_id', None)
     node_type = request.GET.get('node_type', None)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
-    result = filter_by_property(gdb.index('_slug', node_id),
+    idx = gdb.nodes.indexes.get('sylva_nodes')
+    result = filter_by_property(idx.get('_slug')[node_id],
                                 '_type', node_type)
     result = filter_by_property(result, '_graph', graph_id)
-    if len(result) == 1:
-        return result[0]
-    else:
-        return None
+    return result[0] if len(result) == 1 else None
 
 
 def expand_node(request, graph_id):
@@ -857,11 +868,13 @@ def add_relationship_ajax(request, graph_id):
         relation_data = relation_info['data']
         node1 = get_or_create_node(gdb, node_from, graph)
         node2 = get_or_create_node(gdb, node_to, graph)
-        rel_obj = get_or_create_relationship(node1,
+        rel_obj = get_or_create_relationship(gdb,
+                                            node1,
                                             node2,
                                             relation_info['relation'])
         if rel_obj:
-            set_relationship_properties(rel_obj,
+            set_relationship_properties(gdb,
+                            rel_obj,
                             relation_info['relation'],
                             graph_id,
                             request.user)
@@ -888,7 +901,8 @@ def visualize_all(request, graph_id):
             not request.user.has_perm('schema.%s_can_see' % graph.name):
         return unauthorized_user(request)
     gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
-    result = gdb.index('_graph', graph_id)
+    idx = gdb.nodes.indexes.get('sylva_nodes')
+    result = idx.get('_graph')[graph_id]
     graph = {"nodes": {}, "edges": {}}
     edges = set()
     for node in result:
