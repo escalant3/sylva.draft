@@ -598,13 +598,17 @@ def delete_node(request, graph_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm('schema.%s_can_delete_data' % graph.name):
         return unauthorized_user(request)
-    success = False
     gdb = get_graphdb_connection(GRAPHDB_HOST)
-    # TODO API corrupts database
-    if False:
-        gdb.nodes[int(node_id)].delete()
-        success = True
-    return HttpResponse(simplejson.dumps({'success': success}))
+    node = gdb.nodes[int(node_id)]
+    for relation in node.relationships.all():
+        relation.delete()
+    graph_index = GraphIndex.objects.filter(
+                    graph=graph,
+                    node_id=node['_slug'],
+                    node_type=node['_type']).delete()
+
+    node.delete()
+    return redirect(search_node, graph_id)
 
 
 def delete_relationship(request, graph_id, node_id, relationship_id, page):
