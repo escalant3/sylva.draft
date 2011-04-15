@@ -396,17 +396,21 @@ def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
     relation = get_relationship(gdb, start_node, end_node, edge_type)
     if relation:
         properties = simplejson.dumps(relation.properties)
-        start_node_properties = simplejson.dumps(relation.start.properties)
-        end_node_properties = simplejson.dumps(relation.end.properties)
+        start_node = "%s (%s)" % (relation.start['_slug'],
+                                relation.start['_type'])
+        end_node = "%s (%s)" % (relation.end['_slug'],
+                                relation.end['_type'])
         permissions = get_permissions(request.user, graph.name)
+        relation_id = relation.url.split('/')[-1]
         return render_to_response('graphgamel/relation_info.html',
                                 RequestContext(request, {
                                 'properties': properties,
                                 'graph_id': graph_id,
+                                'relation_id': relation_id,
                                 'start_node_id': start_node_id,
                                 'end_node_id': end_node_id,
-                                'start_node_properties': start_node_properties,
-                                'end_node_properties': end_node_properties,
+                                'start_node': start_node,
+                                'end_node': end_node,
                                 'edge_type': edge_type,
                                 'permission': permissions}))
 
