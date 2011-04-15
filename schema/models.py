@@ -127,6 +127,12 @@ class GraphDB(models.Model):
                                 "label": node}
         return visual_data
 
+    def is_valid_relationship(self, node_from, edge_type, node_to):
+        return ValidRelation.objects.filter(graph=self,
+                                node_from__name=node_from,
+                                relation__name=edge_type,
+                                node_to__name=node_to)
+
 
 class NodeType(models.Model):
     name = models.SlugField(max_length=30)

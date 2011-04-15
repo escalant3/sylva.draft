@@ -235,7 +235,12 @@ def editor(request, graph_id):
                                 element_type='node',
                                 text='%s node' % data['node_type'])
             elif data['mode'] == 'relation':
-                # TODO Check if it is a valid relationship
+                # Check if it is a valid relationship
+                if not graph.is_valid_relationship(data['node_from_type'],
+                                                data['relation_type'],
+                                                data['node_to_type']):
+                    raise Exception('Relationship invalid for %s graph' % \
+                                    graph.name)
                 #Create data in Neo4j server
                 node_from = get_internal_attributes(data['node_from_id'],
                                                     data['node_from_type'],
@@ -682,6 +687,11 @@ def create_raw_relationship(request, graph_id, node_id):
         edge_type = request.GET['edge_type']
         if (request.GET['reversed'] == u"true"):
             start_node, end_node = end_node, start_node
+        if not graph.is_valid_relationship(start_node['_type'],
+                                        edge_type,
+                                        end_node['_type']):
+            raise Exception('Relationship invalid for %s graph' % \
+                                    graph.name)
         if not get_relationship(gdb, start_node, end_node, edge_type):
             relationship = getattr(start_node, edge_type)(end_node)
             # Relation default and inner properties
@@ -880,6 +890,11 @@ def add_relationship_ajax(request, graph_id):
         node_from['_type'] = relation_info['node_from_type']
         node_to['_slug'] = relation_info['node_to']
         node_to['_type'] = relation_info['node_to_type']
+        if not graph.is_valid_relationship(node_from['_type'],
+                                        relation_info['relation'],
+                                        node_to['_type']):
+            error_msg = 'Relation invalid for %s graph' % graph.name
+            return HttpResponse(simplejson.dumps({'error': error_msg}))
         relation_data = relation_info['data']
         node1 = get_or_create_node(gdb, node_from, graph)
         node2 = get_or_create_node(gdb, node_to, graph)
