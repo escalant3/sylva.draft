@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.shortcuts import (render_to_response,
                                 redirect)
 from django.template import defaultfilters
-from graph.views import unauthorized_user, index
+from graph.views import unauthorized_user, index, delete_graph_data
 from schema.forms import CreateGraphForm, CreateDefaultProperty, EditGraphForm
 from schema.models import (GraphDB, NodeType, EdgeType,
                             ValidRelation, PERMISSIONS,
@@ -124,6 +124,7 @@ def delete_graph(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_delete" % graph.name):
         return unauthorized_user(request) 
+    delete_graph_data(graph)
     graph.delete()
     return redirect(index)
    

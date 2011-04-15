@@ -604,15 +604,22 @@ def delete_node(request, graph_id, node_id):
         return unauthorized_user(request)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
     node = gdb.nodes[int(node_id)]
+    delete_sylva_node(graph, node)
+    return redirect(search_node, graph_id)
+
+
+def delete_sylva_node(graph, node):
     for relation in node.relationships.all():
         relation.delete()
-    graph_index = GraphIndex.objects.filter(
-                    graph=graph,
-                    node_id=node['_slug'],
-                    node_type=node['_type']).delete()
-
+    GraphIndex.objects.filter(
+        graph=graph,
+        node_id=node['_slug'],
+        node_type=node['_type']).delete()
+    media_nodes = Node.objects.filter(graph=graph)
+    for media_node in media_nodes:
+        media_node.media_set.all().delete()
+        media_node.delete()
     node.delete()
-    return redirect(search_node, graph_id)
 
 
 def delete_relationship(request, graph_id, node_id, relationship_id, page):
@@ -634,11 +641,11 @@ def add_media(request, graph_id, node_id):
         return unauthorized_user(request)
     node = get_node_without_connection(graph, node_id)
     if not '_media' in node.properties:
-        relational_db_node = Node(node_id=node.properties['_slug'],
-                                    node_type=node.properties['_type'],
-                                    graph=graph)
-        relational_db_node.save()
-        node.set('_media', relational_db_node.id)
+        graph_index = GraphIndex.objects.filter(
+                    graph=graph,
+                    node_id=node['_slug'],
+                    node_type=node['_type'])
+        node.set('_media', graph_index.id)
     else:
         relational_db_node = Node.objects.get(pk=node.properties['_media'])
     if request.method == "POST":
@@ -925,3 +932,11 @@ def visualize_all(request, graph_id):
                                     RequestContext(request, {
                                     'json_graph': simplejson.dumps(graph),
                                     'graph_id': graph_id}))
+
+
+def delete_graph_data(graph):
+    gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
+    idx = gdb.nodes.indexes.get('sylva_nodes')
+    result = idx.get('_graph')[graph.id]
+    for node in result:
+        delete_sylva_node(graph, node)
