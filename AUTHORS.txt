@@ -1,12 +1,12 @@
 The PRIMARY AUTHORS are (ordered by aproximated LOC number):
 
     * Diego Muñoz Escalante <escalant3@gmail.com>
+    * Javier de la Rosa <versae@gmail.com>
 
 And a big THANK YOU goes to:
 
     * University of Western Ontario and CulturePlex Lab for the funding to Sylva.
     * The Neo4j database team
-    * Javier de la Rosa, author of the neo4j-rest-client.
     * Dmitry Baranovskiy, author of the RaphaelJS library
     * John Resig for the great library jQuery.
     * Adrian Holovaty, Simon Willison and Jacob Kaplan-Moss for creating Django.
