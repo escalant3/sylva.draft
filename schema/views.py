@@ -1,11 +1,12 @@
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, User
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.shortcuts import (render_to_response,
                                 redirect)
 from django.template import defaultfilters
 from graph.views import unauthorized_user, index, delete_graph_data
-from schema.forms import CreateGraphForm, CreateDefaultProperty, EditGraphForm
+from schema.forms import (CreateGraphForm, CreateDefaultProperty,
+                        EditGraphForm, EditPermissionsForm)
 from schema.models import (GraphDB, NodeType, EdgeType,
                             ValidRelation, PERMISSIONS,
                             NodeDefaultProperty, EdgeDefaultProperty)
@@ -187,3 +188,25 @@ def delete_default_edge_property(request, graph_id, property_id):
     edge_default_property = EdgeDefaultProperty.objects.get(pk=property_id)
     edge_default_property.delete()
     return redirect(schema_editor, graph_id)
+
+
+def edit_graph_permissions(request, graph_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request) 
+    if request.method == "POST":
+        form = EditPermissionsForm(request.POST, graph=graph)
+        if form.is_valid():
+            user = User.objects.filter(username=form.cleaned_data['user'])[0]
+            for p in PERMISSIONS:
+                permission_str = '%s_%s' % (graph.name, p)
+                permission = Permission.objects.filter(name=permission_str)[0]
+                user.user_permissions.remove(permission)
+            for permission in form.cleaned_data['permissions']:
+                permission.user_set.add(user)
+            return redirect(index)
+    else:
+        form = EditPermissionsForm(graph=graph)
+    return render_to_response('graphgamel/graph_manager/permissions.html', {
+                                'form': form,
+                                'graph_id': graph_id})

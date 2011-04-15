@@ -88,6 +88,11 @@
             <a href="{% url graph.views.import_manager g.graph.id %}">Import data from CSV file</a>
         </li>
         {% endif %}
+        {% if g.can_edit and g.can_edit_schema and g.can_delete %}
+        <li>
+            <a href="{% url schema.views.edit_graph_permissions g.graph.id %}">Edit graph permissions</a>
+        </li>
+        {% endif %}
         </ul>
 
     </li>
