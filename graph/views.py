@@ -1,6 +1,7 @@
 import csv
 import datetime
-import neo4jclient
+import neo4jrestclient as neo4jclient
+
 import simplejson
 
 from django.contrib.auth.decorators import login_required
