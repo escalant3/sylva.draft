@@ -1,10 +1,11 @@
 import re
 import simplejson
-
-from django.contrib.auth.models import User, Group, Permission, ContentType
-from django.core.exceptions import ValidationError
-from django.db import models
 from random import randint
+
+from django.contrib.auth.models import Permission, ContentType
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
+from django.db import models
 
 
 PERMISSIONS = ('can_see', 'can_edit', 'can_delete', 'can_edit_schema',
@@ -25,21 +26,18 @@ class GraphDB(models.Model):
     def __unicode__(self):
         return self.name
 
-    
     def save(self, *args, **kwargs):
-        super(GraphDB, self).save(*args, **kwargs) # Call the "real" save() method.
+        # Call the "real" save() method.
+        super(GraphDB, self).save(*args, **kwargs)
         self.create_new_permissions()
-
 
     def save_changes(self, *args, **kwargs):
         super(GraphDB, self).save(*args, **kwargs)
-
 
     def delete(self, *args, **kwargs):
         super(GraphDB, self).delete(*args, **kwargs)
         self.remove_graph_permissions()
         # TODO Delete data from the Neo4j Database
-
 
     def create_new_permissions(self):
         new_permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
@@ -48,13 +46,11 @@ class GraphDB(models.Model):
             p = Permission(content_type=content_type, name=np, codename=np)
             p.save()
 
-
     def remove_graph_permissions(self):
         permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
         for np in permissions:
             p = Permission.objects.filter(name=np)
             p.delete()
-
 
     def get_dictionaries(self):
         form_structure = {}
@@ -89,7 +85,6 @@ class GraphDB(models.Model):
                     incoming[vr.relation.name] = {}
                 incoming[vr.relation.name][vr.node_from.name] = None
         return outgoing, incoming
-
 
     def get_node_types(self):
         node_types = set()
@@ -166,25 +161,40 @@ class ValidRelation(models.Model):
         return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
 
 
-class NodeDefaultProperty(models.Model):
+class BaseProperty(models.Model):
     key = models.CharField(max_length=30)
-    value = models.CharField(max_length=100, blank=True)
+    default = models.CharField(max_length=255, blank=True, null=True)
+    value = models.CharField(max_length=255, blank=True)
+    DATATYPE_CHOICES = (
+        (u'u', _(u'Undefined')),
+        (u'n', _(u'Number')),
+        (u's', _(u'String')),
+        (u'b', _(u'Boolean')),
+        (u'd', _(u'Date')),
+    )
+    datatype = models.CharField(max_length=1, choices=DATATYPE_CHOICES,
+                                default=u"u")
+    required = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "%s: %s" % (self.key, self.value)
+
+    class Meta:
+        abstract = True
+
+    def get_datatype_dict(self):
+        return dict([(v.lower(), u) for (u, v) in self.DATATYPE_CHOICES])
+
+
+class NodeProperty(BaseProperty):
     node = models.ForeignKey(NodeType)
 
-    def __unicode__(self):
-        return "%s: %s" % (self.key, self.value)
-
     class Meta:
-        verbose_name_plural = "Default Node Properties"
+        verbose_name_plural = "Node Properties"
 
 
-class EdgeDefaultProperty(models.Model):
-    key = models.CharField(max_length=30)
-    value = models.CharField(max_length=100, blank=True)
+class EdgeProperty(BaseProperty):
     edge = models.ForeignKey(EdgeType)
 
-    def __unicode__(self):
-        return "%s: %s" % (self.key, self.value)
-
     class Meta:
-        verbose_name_plural = "Default Edge Properties"
+        verbose_name_plural = "Edge Properties"

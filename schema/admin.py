@@ -1,18 +1,18 @@
 from schema.models import GraphDB, NodeType, EdgeType, ValidRelation, \
-                            NodeDefaultProperty, EdgeDefaultProperty
+                            NodeProperty, EdgeProperty
 from django.contrib import admin
 
-class NodeDefaultPropertyInline(admin.TabularInline):
-    model = NodeDefaultProperty
+class NodePropertyInline(admin.TabularInline):
+    model = NodeProperty
 
 class NodeTypeAdmin(admin.ModelAdmin):
-    inlines = [NodeDefaultPropertyInline]
+    inlines = [NodePropertyInline]
 
-class EdgeDefaultPropertyInline(admin.TabularInline):
-    model = EdgeDefaultProperty
+class EdgePropertyInline(admin.TabularInline):
+    model = EdgeProperty
 
 class EdgeTypeAdmin(admin.ModelAdmin):
-    inlines = [EdgeDefaultPropertyInline]
+    inlines = [EdgePropertyInline]
 
 class ValidRelationAdmin(admin.ModelAdmin):
     list_filter = ['graph']
