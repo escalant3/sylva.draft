@@ -99,7 +99,7 @@ def create_node(gdb, n, graph):
         node_properties['id'] = original_id
     node_type_obj = NodeType.objects.filter(name=n['_type'])
     if node_type_obj:
-        default_properties = node_type_obj[0].nodedefaultproperty_set.all()
+        default_properties = node_type_obj[0].nodeproperty_set.all()
         for dp in default_properties:
             node_properties[dp.key] = dp.value
     for key, value in n.items():
@@ -186,7 +186,7 @@ def update_timestamp(element, username):
 def set_relationship_properties(gdb, rel_obj, edge_type, graph_id, user):
     edge_type_obj = EdgeType.objects.filter(name=edge_type)
     if edge_type_obj:
-        default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
+        default_properties = edge_type_obj[0].edgeproperty_set.all()
         for dp in default_properties:
             rel_obj.set(dp.key, dp.value)
     slug = "%s:%s:%s" % (rel_obj.start.properties['_slug'],
