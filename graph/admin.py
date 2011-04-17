@@ -1,4 +1,4 @@
-from graph.models import Node, Media, GraphIndex
+from graph.models import Node, Media
 from django.contrib import admin
 
 
@@ -12,4 +12,3 @@ class NodeAdmin(admin.ModelAdmin):
     inlines = [MediaInline]
 
 admin.site.register(Node, NodeAdmin)
-admin.site.register(GraphIndex)

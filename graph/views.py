@@ -13,7 +13,7 @@ from django.template import defaultfilters
 from django.template import RequestContext
 
 from graph.forms import UploadCSVForm
-from graph.models import Node, Media, GraphIndex
+from graph.models import Node, Media
 from schema.models import ValidRelation, NodeType, EdgeType, GraphDB
 from settings import GRAPHDB_HOST
 
@@ -116,10 +116,11 @@ def create_node(gdb, n, graph):
     idx['_slug'][node['_slug']] = node
     idx['_type'][node['_type']] = node
     idx['_graph'][node['_graph']] = node
-    graph_index = GraphIndex(graph=graph,
+    sql_node = Node(graph=graph,
                             node_id=node['_slug'],
                             node_type=node['_type'])
-    graph.graphindex_set.add(graph_index)
+    sql_node.save()
+    graph.node_set.add(sql_node)
     return node
 
 
@@ -617,10 +618,6 @@ def delete_node(request, graph_id, node_id):
 def delete_sylva_node(graph, node):
     for relation in node.relationships.all():
         relation.delete()
-    GraphIndex.objects.filter(
-        graph=graph,
-        node_id=node['_slug'],
-        node_type=node['_type']).delete()
     media_nodes = Node.objects.filter(graph=graph)
     for media_node in media_nodes:
         media_node.media_set.all().delete()
@@ -647,18 +644,18 @@ def add_media(request, graph_id, node_id):
         return unauthorized_user(request)
     node = get_node_without_connection(graph, node_id)
     if not '_media' in node.properties:
-        graph_index = GraphIndex.objects.filter(
+        sql_node = Node.objects.filter(
                     graph=graph,
                     node_id=node['_slug'],
-                    node_type=node['_type'])
-        node.set('_media', graph_index.id)
+                    node_type=node['_type'])[0]
+        node.set('_media', sql_node.id)
     else:
-        relational_db_node = Node.objects.get(pk=node.properties['_media'])
+        sql_node = Node.objects.get(pk=node.properties['_media'])
     if request.method == "POST":
         media_type = request.POST['media_type']
         media_caption = request.POST['media_caption']
         media_file = request.FILES['media_file']
-        media = Media(node=relational_db_node,
+        media = Media(node=sql_node,
                     media_type=media_type,
                     media_caption=media_caption,
                     media_file=media_file)
@@ -726,11 +723,11 @@ def get_autocompletion_objects(request, graph_id):
         node_type = request.GET.get('node_type', '')
         if node_type:
             results = [r.node_id
-                        for r in graph.graphindex_set.filter(
+                        for r in graph.node_set.filter(
                                         node_type=node_type)]
         else:
             results = ['%s (%s)' % (r.node_id, r.node_type)
-                        for r in graph.graphindex_set.all()]
+                        for r in graph.node_set.all()]
         return HttpResponse(simplejson.dumps(results))
 
 
