@@ -29,7 +29,11 @@ def index(request, error=''):
     graphs = [{'graph': g,
         'can_edit_schema': user.has_perm('schema.%s_can_edit_schema' % g.name),
         'can_edit': user.has_perm('schema.%s_can_edit' % g.name),
-        'can_delete': user.has_perm('schema.%s_can_delete' % g.name)}
+        'can_delete': user.has_perm('schema.%s_can_delete' % g.name),
+        'can_edit_properties': \
+            user.has_perm('schema.%s_can_edit_properties' % g.name),
+        'can_edit_permissions': \
+            user.has_perm('schema.%s_can_edit_permissions' % g.name)}
             for g in GraphDB.objects.all()
             if g.public or user.has_perm("schema.%s_can_see" % g.name)]
     messages = request.session.get('messages', None)

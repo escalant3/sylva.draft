@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.shortcuts import (render_to_response,
@@ -8,14 +8,14 @@ from graph.views import unauthorized_user, index, delete_graph_data
 from schema.forms import (CreateGraphForm, CreateDefaultProperty,
                         EditGraphForm, EditPermissionsForm)
 from schema.models import (GraphDB, NodeType, EdgeType,
-                            ValidRelation, PERMISSIONS,
+                            ValidRelation, SylvaPermission,
                             NodeProperty, EdgeProperty)
 
 
 def schema_editor(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     node_types = graph.nodetype_set.all()
     edge_types = graph.edgetype_set.all()
     valid_relationships = graph.validrelation_set.all()
@@ -29,7 +29,7 @@ def schema_editor(request, graph_id):
 def add_node_type(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     slug = defaultfilters.slugify(request.POST.get('nodetype', None))
     if slug:
         node_type = NodeType(name=slug, graph=graph)
@@ -43,7 +43,7 @@ def add_node_type(request, graph_id):
 def add_edge_type(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     slug = defaultfilters.slugify(request.POST.get('edgetype', None))
     if slug:
         edge_type = EdgeType(name=slug, graph=graph)
@@ -57,7 +57,7 @@ def add_edge_type(request, graph_id):
 def add_valid_relationship(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     node_from = NodeType.objects.filter(name=request.POST['node_from'])[0]
     edge_type = EdgeType.objects.filter(name=request.POST['relation'])[0]
     node_to = NodeType.objects.filter(name=request.POST['node_to'])[0]
@@ -76,7 +76,7 @@ def add_valid_relationship(request, graph_id):
 
 def add_graph(request):
     if not request.user.has_perm("schema.add_graphdb"):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     if request.method == "POST":
         form = CreateGraphForm(request.POST)
         if form.is_valid():
@@ -85,10 +85,8 @@ def add_graph(request):
                             public=form.cleaned_data['public'])
             graph.save()
             # Add all graph permissions to graph creator
-            for p in PERMISSIONS:
-                permission_str = '%s_%s' % (graph.name, p)
-                permission = Permission.objects.filter(name=permission_str)[0]
-                permission.user_set.add(request.user)
+            for p in graph.sylvapermission_set.all():
+                p.user_set.add(request.user)
             return redirect(index)
     else:
         form = CreateGraphForm()
@@ -100,7 +98,7 @@ def add_graph(request):
 
 def edit_graph(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
-    if not request.user.has_perm("schema.%_edit_schema"):
+    if not request.user.has_perm("schema.%_can_edit_properties"):
         return unauthorized_user(request)
     if request.method == "POST":
         form = EditGraphForm(request.POST)
@@ -119,22 +117,20 @@ def edit_graph(request, graph_id):
                                             args=[graph_id])})
 
 
-
-
 def delete_graph(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_delete" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     delete_graph_data(graph)
     graph.delete()
     return redirect(index)
-   
+
 
 def add_default_node_property(request, graph_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
     node = NodeType.objects.get(pk=node_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     if request.method == "POST":
         form = CreateDefaultProperty(request.POST)
         if form.is_valid():
@@ -155,7 +151,7 @@ def add_default_edge_property(request, graph_id, edge_id):
     graph = GraphDB.objects.get(pk=graph_id)
     edge = EdgeType.objects.get(pk=edge_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     if request.method == "POST":
         form = CreateDefaultProperty(request.POST)
         if form.is_valid():
@@ -175,7 +171,7 @@ def add_default_edge_property(request, graph_id, edge_id):
 def delete_default_node_property(request, graph_id, property_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     node_default_property = NodeProperty.objects.get(pk=property_id)
     node_default_property.delete()
     return redirect(schema_editor, graph_id)
@@ -184,7 +180,7 @@ def delete_default_node_property(request, graph_id, property_id):
 def delete_default_edge_property(request, graph_id, property_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+        return unauthorized_user(request)
     edge_default_property = EdgeProperty.objects.get(pk=property_id)
     edge_default_property.delete()
     return redirect(schema_editor, graph_id)
@@ -192,16 +188,15 @@ def delete_default_edge_property(request, graph_id, property_id):
 
 def edit_graph_permissions(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
-    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
-        return unauthorized_user(request) 
+    if not request.user.has_perm("schema.%s_can_edit_permissions" % \
+            graph.name):
+        return unauthorized_user(request)
     if request.method == "POST":
         form = EditPermissionsForm(request.POST, graph=graph)
         if form.is_valid():
             user = User.objects.filter(username=form.cleaned_data['user'])[0]
-            for p in PERMISSIONS:
-                permission_str = '%s_%s' % (graph.name, p)
-                permission = Permission.objects.filter(name=permission_str)[0]
-                user.user_permissions.remove(permission)
+            for p in graph.sylvapermission_set.all():
+                user.user_permissions.remove(p)
             for permission in form.cleaned_data['permissions']:
                 permission.user_set.add(user)
             return redirect(index)
