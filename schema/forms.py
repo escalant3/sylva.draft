@@ -90,11 +90,7 @@ class EdgePropertyForm(forms.ModelForm):
 
 
 class ValidRelationForm(forms.ModelForm):
-<<<<<<< HEAD
-    relation = forms.CharField()
-=======
     relation = forms.CharField(help_text=_("Relation name, like 'Knows' or 'Writes'"))
->>>>>>> 60b0ce818e1b1a3d6e7195a38e6f83497e3d356c
 
     class Meta:
         model = ValidRelation
