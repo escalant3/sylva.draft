@@ -18,4 +18,8 @@ urlpatterns = patterns('',
     (r'edit_permissions/(\d+)/$', 'schema.views.edit_graph_permissions'),
     (r'(\d+)/$', 'schema.views.schema_editor'),
     (r'add_graph/$', 'schema.views.add_graph'),
+
+    # Add valid relationship
+    url(r'(\d+)/nodetype/(\d+)/relation/add/$',
+        'schema.views.schema_relation_add', name="schema_relation_add")
 )

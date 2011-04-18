@@ -4,7 +4,7 @@ from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
 
 from schema.models import (GraphDB, NodeType, NodeProperty, EdgeType,
-                          EdgeProperty, SylvaPermission)
+                           EdgeProperty, SylvaPermission, ValidRelation)
 
 
 def unique_graph_name(value):
@@ -83,3 +83,30 @@ class EdgePropertyForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         self.instance.edge = self.initial["edge"]
         super(EdgePropertyForm, self).save(*args, **kwargs)
+
+
+class ValidRelationForm(forms.ModelForm):
+    relation = forms.CharField()
+
+    class Meta:
+        model = ValidRelation
+        exclude = ("node_from", "graph", "relation")
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        edge_type = self.data["relation"]
+        edges = EdgeType.objects.filter(name__iexact=edge_type)
+        if edges:
+            cleaned_data["relation"] = edges[0]
+        else:
+            edge = EdgeType.objects.create(name=edge_type,
+                                           graph=self.initial["graph"])
+            cleaned_data["relation"] = edge
+        self.initial["relation"] = cleaned_data["relation"]
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        self.instance.node_from = self.initial["node_from"]
+        self.instance.relation = self.initial["relation"]
+        self.instance.graph = self.initial["graph"]
+        super(ValidRelationForm, self).save(*args, **kwargs)
