@@ -19,8 +19,8 @@
         <li><a class="addlink"
         href="{% url schema.views.add_default_node_property graph_id node_type.id %}">
             Add {{ node_type.name }} default property</a>
-    {% if node_type.nodedefaultproperty_set.all %}
-        {% for ndp in node_type.nodedefaultproperty_set.all %}
+    {% if node_type.nodeproperty_set.all %}
+        {% for ndp in node_type.nodeproperty_set.all %}
             <li>{{ ndp.key }}: {{ ndp.value }}
                 <a class="deletelink"
                     href="{% url schema.views.delete_default_node_property graph_id ndp.id %}"></a>
@@ -42,8 +42,8 @@
         <h5>{{ edge_type.name }} default properties:</h5>
         <li><a class="addlink" href="{% url schema.views.add_default_edge_property graph_id edge_type.id %}">
             Add {{ edge_type.name }} default property</a>
-    {% if edge_type.edgedefaultproperty_set.all %}
-        {% for edp in edge_type.edgedefaultproperty_set.all %}
+    {% if edge_type.edgeproperty_set.all %}
+        {% for edp in edge_type.edgeproperty_set.all %}
             <li>{{ edp.key }}: {{ edp.value }}
                 <a class="deletelink" 
                     href="{% url schema.views.delete_default_edge_property graph_id edp.id %}"></a>

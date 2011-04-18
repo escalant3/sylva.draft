@@ -29,7 +29,11 @@ def index(request, error=''):
     graphs = [{'graph': g,
         'can_edit_schema': user.has_perm('schema.%s_can_edit_schema' % g.name),
         'can_edit': user.has_perm('schema.%s_can_edit' % g.name),
-        'can_delete': user.has_perm('schema.%s_can_delete' % g.name)}
+        'can_delete': user.has_perm('schema.%s_can_delete' % g.name),
+        'can_edit_properties': \
+            user.has_perm('schema.%s_can_edit_properties' % g.name),
+        'can_edit_permissions': \
+            user.has_perm('schema.%s_can_edit_permissions' % g.name)}
             for g in GraphDB.objects.all()
             if g.public or user.has_perm("schema.%s_can_see" % g.name)]
     messages = request.session.get('messages', None)
@@ -95,7 +99,7 @@ def create_node(gdb, n, graph):
         node_properties['id'] = original_id
     node_type_obj = NodeType.objects.filter(name=n['_type'])
     if node_type_obj:
-        default_properties = node_type_obj[0].nodedefaultproperty_set.all()
+        default_properties = node_type_obj[0].nodeproperty_set.all()
         for dp in default_properties:
             node_properties[dp.key] = dp.value
     for key, value in n.items():
@@ -182,7 +186,7 @@ def update_timestamp(element, username):
 def set_relationship_properties(gdb, rel_obj, edge_type, graph_id, user):
     edge_type_obj = EdgeType.objects.filter(name=edge_type)
     if edge_type_obj:
-        default_properties = edge_type_obj[0].edgedefaultproperty_set.all()
+        default_properties = edge_type_obj[0].edgeproperty_set.all()
         for dp in default_properties:
             rel_obj.set(dp.key, dp.value)
     slug = "%s:%s:%s" % (rel_obj.start.properties['_slug'],

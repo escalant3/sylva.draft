@@ -9,6 +9,7 @@ from django.db import models
 
 
 PERMISSIONS = ('can_see', 'can_edit', 'can_delete', 'can_edit_schema',
+        'can_edit_properties', 'can_edit_permissions',
         'can_add_data', 'can_edit_data', 'can_delete_data',
         'can_add_operator', 'can_edit_operator', 'can_delete_operator')
 
@@ -47,21 +48,17 @@ class GraphDB(models.Model):
 
     def delete(self, *args, **kwargs):
         super(GraphDB, self).delete(*args, **kwargs)
-        self.remove_graph_permissions()
         # TODO Delete data from the Neo4j Database
 
     def create_new_permissions(self):
         new_permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
         content_type = ContentType.objects.filter(model='graphdb')[0]
         for np in new_permissions:
-            p = Permission(content_type=content_type, name=np, codename=np)
+            p = SylvaPermission(content_type=content_type,
+                                name=np,
+                                codename=np,
+                                graph=self)
             p.save()
-
-    def remove_graph_permissions(self):
-        permissions = ["%s_%s" % (self.name, p) for p in PERMISSIONS]
-        for np in permissions:
-            p = Permission.objects.filter(name=np)
-            p.delete()
 
     def get_dictionaries(self):
         form_structure = {}
@@ -225,3 +222,7 @@ class EdgeProperty(BaseProperty):
     class Meta:
         verbose_name_plural = "Edge Properties"
         unique_together = ["order", "edge"]
+
+
+class SylvaPermission(Permission):
+    graph = models.ForeignKey(GraphDB)

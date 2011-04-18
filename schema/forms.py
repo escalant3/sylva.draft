@@ -4,7 +4,7 @@ from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
 
 from schema.models import (GraphDB, NodeType, NodeProperty, EdgeType,
-                          EdgeProperty)
+                          EdgeProperty, SylvaPermission)
 
 
 def unique_graph_name(value):
@@ -41,7 +41,7 @@ class EditPermissionsForm(forms.Form):
         graph = kwargs.pop('graph', None)
         super(EditPermissionsForm, self).__init__(*args, **kwargs)
         self.fields['permissions'].queryset = \
-            Permission.objects.filter(name__startswith=graph.name)
+            graph.sylvapermission_set.all()
 
     user = forms.CharField(validators=[user_exists])
     permissions = forms.ModelMultipleChoiceField(queryset=None)
