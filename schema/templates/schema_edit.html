@@ -1,0 +1,151 @@
+{% extends "admin/change_form.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block branding %}
+<h1 id="site-name">Sylva: Graph Schema Manager</h1>
+{% endblock %}
+
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    <a href="{% url graph.views.editor graph_id %}">Graph: {{ graph.name }}</a> &rsaquo;
+    <a href="{% url graph.views.editor graph_id %}">Schema</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content" class="colM">
+<h2>Node types</h2>
+<form action="{% url schema.views.add_node_type graph_id %}" method="POST">
+    <input type="text" name="nodetype"/>
+    <input type="submit" value="Create new"/>
+</form>
+<div id="content-main">
+{% for node_type in node_types %}
+    <h3>{{ node_type.name|capfirst }}</h3>
+    <div>
+    <fieldset class="module aligned wide">
+    {% for property in node_type.nodeproperty_set.all %}
+         <div class="form-row">
+         <div>
+            <label {% if property.required %}class="required"{% endif %}>{{ property.key|capfirst }}</label>
+            [{{ property.get_datatype }}] <p class="help">{{ property.default }}</p>
+            <a class="changelink" href="#">
+                Edit
+            </a>
+            <a class="deletelink" href="{% url schema.views.delete_default_node_property graph_id property.id %}">
+                Remove
+            </a>
+        </div>
+        </div>
+    {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+        <a class="addlink"
+           href="{% url schema.views.add_default_node_property graph_id node_type.id %}">
+            Add property
+        </a>
+        <a class="addlink"
+           href="{% url schema.views.add_default_node_property graph_id node_type.id %}">
+            Add relation
+        </a>
+        <!--
+        <input type="button" value="Add another" class="default" name="_save">
+        <input type="submit" value="Save and add another" name="_addanother">
+        <input type="submit" value="Save and continue editing" name="_continue">
+        -->
+    </div>
+    </div>
+{% endfor %}
+</div>
+</div>
+
+<!--
+<div class="instructions">
+<p>Welcome to Sylva Schema Manager. You can learn more about Sylva Schemas <a href=".">here</a>.</p>
+<h3>Node Types</h3>
+<ul>
+{% for node_type in node_types %}
+    <li class="schema_property">{{ node_type.name }}</li>
+    <fieldset class="module aligned wide">
+    {% for property in node_type.nodeproperty_set.all %}
+         <div class="form-row">
+            [{{ property.datatype }}]
+            <label {% if property.required %}class="required"{% endif %}>{{ property.key }}</label>
+            <p class="help">{{ property.default }}</p>
+        </div>
+    {% endfor %}
+    </fieldset>
+    <ul>
+        <h5>{{ node_type.name }} default properties:</h5>
+        <li><a class="addlink"
+        href="{% url schema.views.add_default_node_property graph_id node_type.id %}">
+            Add {{ node_type.name }} default property</a>
+    {% if node_type.nodeproperty_set.all %}
+        {% for ndp in node_type.nodeproperty_set.all %}
+            <li>{{ ndp.key }}: {{ ndp.value }}
+                <a class="deletelink"
+                    href="{% url schema.views.delete_default_node_property graph_id ndp.id %}"></a>
+            </li>
+        {% endfor %}
+    {% endif %}
+    </ul>
+{% endfor %}
+<form action="{% url schema.views.add_node_type graph_id %}" method="POST">
+    <input type="text" name="nodetype"/>
+    <input type="submit" value="Create new NodeType"/>
+</form>
+</ul>
+<h3>Edge Types</h3>
+<ul>
+{% for edge_type in edge_types %}
+    <li class="schema_property">{{ edge_type.name }}</li>
+    <ul>
+        <h5>{{ edge_type.name }} default properties:</h5>
+        <li><a class="addlink" href="{% url schema.views.add_default_edge_property graph_id edge_type.id %}">
+            Add {{ edge_type.name }} default property</a>
+    {% if edge_type.edgedefaultproperty_set.all %}
+        {% for edp in edge_type.edgedefaultproperty_set.all %}
+            <li>{{ edp.key }}: {{ edp.value }}
+                <a class="deletelink" 
+                    href="{% url schema.views.delete_default_edge_property graph_id edp.id %}"></a>
+            </li>
+        {% endfor %}
+    {% endif %}
+    </ul>
+{% endfor %}
+<form action="{% url schema.views.add_edge_type graph_id %}" method="POST">
+    <input type="text" name="edgetype"/>
+    <input type="submit" value="Create new EdgeType"/>
+</form>
+</ul>
+<h3>Valid Relationships</h3>
+<ul>
+{% for vr in valid_relationships %}
+    <h5><li>{{ vr.node_from.name }} {{ vr.relation.name }} {{ vr.node_to.name }}</li></h5>
+{% endfor %}
+<form action="{% url schema.views.add_valid_relationship graph_id %}" method="POST">
+    <select name="node_from">
+        {% for node_type in node_types %}
+            <option value="{{ node_type.name }}">{{ node_type.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="relation">
+        {% for edge_type in edge_types %}
+            <option value="{{ edge_type.name }}">{{ edge_type.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="node_to">
+        {% for node_type in node_types %}
+            <option value="{{ node_type.name }}">{{ node_type.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Create new Valid Relationship"/>
+</form>
+</ul>
+</div>
+-->
+{% endblock %}

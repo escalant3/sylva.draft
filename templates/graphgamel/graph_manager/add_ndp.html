@@ -11,7 +11,7 @@
 <div>
     <h1>Add {{ node.name }} default property</h1>
     <form method="post" action="{% url schema.views.add_default_node_property graph_id node.id %}">
-        {{ form.as_p }}
+        {{ form.as_ul }}
         <input type="submit" value="Create"/>
     </form>
 </div>

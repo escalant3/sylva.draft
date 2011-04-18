@@ -2,7 +2,7 @@ import re
 import simplejson
 from random import randint
 
-from django.contrib.auth.models import Permission, ContentType
+from django.contrib.auth.models import ContentType, Permission, User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.db import models
@@ -20,13 +20,24 @@ def is_alphanumeric(value):
 
 class GraphDB(models.Model):
     name = models.SlugField(max_length=30, unique=True)
-    description = models.CharField(max_length=100)
+    description = models.TextField()
     public = models.BooleanField()
+    order = models.IntegerField()
+    owner = models.ForeignKey(User, blank=True, null=True)
+
+    class Meta:
+        unique_together = ["order", "owner"]
 
     def __unicode__(self):
         return self.name
 
     def save(self, *args, **kwargs):
+        objects = self.__class__.objects
+        orders = objects.all().values("order").order_by("-order")[:1]
+        if orders:
+            self.order = orders[0]["order"] + 1
+        else:
+            self.order = 1
         # Call the "real" save() method.
         super(GraphDB, self).save(*args, **kwargs)
         self.create_new_permissions()
@@ -175,15 +186,29 @@ class BaseProperty(models.Model):
     datatype = models.CharField(max_length=1, choices=DATATYPE_CHOICES,
                                 default=u"u")
     required = models.BooleanField(default=False)
-
-    def __unicode__(self):
-        return "%s: %s" % (self.key, self.value)
+    order = models.IntegerField()
 
     class Meta:
         abstract = True
 
+    def __unicode__(self):
+        return "%s: %s" % (self.key, self.value)
+
+    def save(self, *args, **kwargs):
+        objects = self.__class__.objects
+        orders = objects.all().values("order").order_by("-order")[:1]
+        if orders:
+            self.order = orders[0]["order"] + 1
+        else:
+            self.order = 1
+        super(BaseProperty, self).save(*args, **kwargs)
+
     def get_datatype_dict(self):
         return dict([(v.lower(), u) for (u, v) in self.DATATYPE_CHOICES])
+
+    def get_datatype(self):
+        datatype_dict = dict(self.DATATYPE_CHOICES)
+        return datatype_dict.get(self.datatype)
 
 
 class NodeProperty(BaseProperty):
@@ -191,6 +216,7 @@ class NodeProperty(BaseProperty):
 
     class Meta:
         verbose_name_plural = "Node Properties"
+        unique_together = ["order", "node"]
 
 
 class EdgeProperty(BaseProperty):
@@ -198,3 +224,4 @@ class EdgeProperty(BaseProperty):
 
     class Meta:
         verbose_name_plural = "Edge Properties"
+        unique_together = ["order", "edge"]

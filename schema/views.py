@@ -4,9 +4,12 @@ from django.db import IntegrityError
 from django.shortcuts import (render_to_response,
                                 redirect)
 from django.template import defaultfilters
+
 from graph.views import unauthorized_user, index, delete_graph_data
 from schema.forms import (CreateGraphForm, CreateDefaultProperty,
-                        EditGraphForm, EditPermissionsForm)
+                          EditGraphForm, EditPermissionsForm,
+                          NodeTypeForm, NodePropertyForm,
+                          EdgeTypeForm, EdgePropertyForm)
 from schema.models import (GraphDB, NodeType, EdgeType,
                             ValidRelation, PERMISSIONS,
                             NodeProperty, EdgeProperty)
@@ -19,9 +22,12 @@ def schema_editor(request, graph_id):
     node_types = graph.nodetype_set.all()
     edge_types = graph.edgetype_set.all()
     valid_relationships = graph.validrelation_set.all()
-    return render_to_response('graphgamel/graph_manager/editor.html', {
+    node_type_form = NodeTypeForm()
+    return render_to_response('schema_edit.html', {
                                 'graph_id': graph_id,
+                                'graph': graph,
                                 'node_types': node_types,
+                                'node_type_form': node_type_form,
                                 'edge_types': edge_types,
                                 'valid_relationships': valid_relationships})
 
@@ -133,18 +139,16 @@ def delete_graph(request, graph_id):
 def add_default_node_property(request, graph_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
     node = NodeType.objects.get(pk=node_id)
+    initial = {'node': node}
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
         return unauthorized_user(request) 
     if request.method == "POST":
-        form = CreateDefaultProperty(request.POST)
+        form = NodePropertyForm(request.POST, initial=initial)
         if form.is_valid():
-            ndp = NodeProperty(key=form.cleaned_data['key'],
-                                        value=form.cleaned_data['value'],
-                                        node=node)
-            ndp.save()
+            form.save()
             return redirect(schema_editor, graph_id)
     else:
-        form = CreateDefaultProperty()
+        form = NodePropertyForm(initial=initial)
     return render_to_response('graphgamel/graph_manager/add_ndp.html', {
                                 'form': form,
                                 'graph_id': graph_id,
@@ -154,18 +158,16 @@ def add_default_node_property(request, graph_id, node_id):
 def add_default_edge_property(request, graph_id, edge_id):
     graph = GraphDB.objects.get(pk=graph_id)
     edge = EdgeType.objects.get(pk=edge_id)
+    initial = {'edge': edge}
     if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
         return unauthorized_user(request) 
     if request.method == "POST":
-        form = CreateDefaultProperty(request.POST)
+        form = EdgePropertyForm(request.POST, initial=initial)
         if form.is_valid():
-            edp = EdgeProperty(key=form.cleaned_data['key'],
-                                        value=form.cleaned_data['value'],
-                                        edge=edge)
-            edp.save()
+            form.save()
             return redirect(schema_editor, graph_id)
     else:
-        form = CreateDefaultProperty()
+        form = EdgePropertyForm(initial=initial)
     return render_to_response('graphgamel/graph_manager/add_edp.html', {
                                 'form': form,
                                 'graph_id': graph_id,
