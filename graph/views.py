@@ -312,7 +312,6 @@ def editor(request, graph_id):
         except:
             error_message = "The host %s is not available" % GRAPHDB_HOST
             return index(request, error_message)
-    form_structure = request.session['form_structure']
     node_types = simplejson.dumps([n.name for n in graph.nodetype_set.all()])
     form_structure = simplejson.dumps(graph.get_dictionaries())
     messages = request.session.get('messages', [])
