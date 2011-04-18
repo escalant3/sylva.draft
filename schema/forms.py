@@ -1,14 +1,11 @@
 from django import forms
-from django.forms import widgets
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.template import defaultfilters
 from django.utils.translation import gettext as _
 
 from schema.models import (GraphDB, NodeType, NodeProperty, EdgeType,
-                           EdgeProperty, SylvaPermission, ValidRelation)
-
-from schema.models import (GraphDB, NodeType, NodeProperty, EdgeType,
-                           EdgeProperty, SylvaPermission, ValidRelation)
+                           EdgeProperty, ValidRelation)
 
 
 def unique_graph_name(value):
@@ -77,6 +74,9 @@ class NodePropertyForm(forms.ModelForm):
         self.instance.node = self.initial["node"]
         super(NodePropertyForm, self).save(*args, **kwargs)
 
+    def clean_key(self):
+        return defaultfilters.slugify(self.cleaned_data["key"])
+
 
 class EdgePropertyForm(forms.ModelForm):
 
@@ -88,6 +88,9 @@ class EdgePropertyForm(forms.ModelForm):
         self.instance.edge = self.initial["edge"]
         super(EdgePropertyForm, self).save(*args, **kwargs)
 
+    def clean_key(self):
+        return defaultfilters.slugify(self.cleaned_data["key"])
+
 
 class ValidRelationForm(forms.ModelForm):
     relation = forms.CharField(help_text=_("Relation name, like 'Knows' or 'Writes'"))
@@ -98,7 +101,7 @@ class ValidRelationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        edge_type = self.data["relation"]
+        edge_type = defaultfilters.slugify(self.data["relation"])
         edges = EdgeType.objects.filter(name__iexact=edge_type)
         if edges:
             cleaned_data["relation"] = edges[0]
