@@ -9,7 +9,8 @@ from graph.views import unauthorized_user, index, delete_graph_data
 from schema.forms import (CreateGraphForm, CreateDefaultProperty,
                           EditGraphForm, EditPermissionsForm,
                           NodeTypeForm, NodePropertyForm,
-                          EdgeTypeForm, EdgePropertyForm)
+                          EdgeTypeForm, EdgePropertyForm,
+                          ValidRelationForm)
 from schema.models import (GraphDB, NodeType, EdgeType,
                             ValidRelation, SylvaPermission,
                             NodeProperty, EdgeProperty)
@@ -207,3 +208,26 @@ def edit_graph_permissions(request, graph_id):
     return render_to_response('graphgamel/graph_manager/permissions.html', {
                                 'form': form,
                                 'graph_id': graph_id})
+
+
+def schema_relation_add(request, graph_id, node_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    node = NodeType.objects.get(pk=node_id)
+    initial = {
+        'node_from': node,
+        'graph': graph,
+    }
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request)
+    if request.method == "POST":
+        form = ValidRelationForm(request.POST, initial=initial)
+        if form.is_valid():
+            form.save()
+            return redirect(schema_editor, graph_id)
+    else:
+        form = ValidRelationForm(initial=initial)
+    return render_to_response('schema_relation_add.html', {
+                                'form': form,
+                                'graph_id': graph_id,
+                                'node': node})
+

@@ -131,6 +131,7 @@ class GraphDB(models.Model):
 class NodeType(models.Model):
     name = models.SlugField(max_length=30)
     graph = models.ForeignKey(GraphDB)
+    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.graph.name)
@@ -138,10 +139,14 @@ class NodeType(models.Model):
     class Meta:
         unique_together = ('name', 'graph')
 
+    def get_edges(self):
+        return ValidRelation.objects.filter(node_from=self)
+
 
 class EdgeType(models.Model):
     name = models.SlugField(max_length=30)
     graph = models.ForeignKey(GraphDB)
+    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.graph.name)
@@ -155,6 +160,7 @@ class ValidRelation(models.Model):
     relation = models.ForeignKey(EdgeType)
     node_to = models.ForeignKey(NodeType, related_name='node_to')
     graph = models.ForeignKey(GraphDB)
+    description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)
@@ -174,6 +180,7 @@ class BaseProperty(models.Model):
     datatype = models.CharField(max_length=1, choices=DATATYPE_CHOICES,
                                 default=u"u")
     required = models.BooleanField(default=False)
+    description = models.TextField(blank=True, null=True)
     order = models.IntegerField()
 
     class Meta:
