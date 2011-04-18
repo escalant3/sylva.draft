@@ -278,7 +278,6 @@ Schema: {{ graph }}
         <ul class="actionlist">
         {% for history in history_list %}
         <li>
-            {{ history }}
             <a href="{% ifequal history.element_type 'node' %}
                             {% url graph.views.node_info graph_id history.element_id %}
                         {% endifequal %}
