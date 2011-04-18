@@ -5,6 +5,7 @@ import neo4jrestclient as neo4jclient
 import simplejson
 
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
 from django.shortcuts import (render_to_response,
                                 redirect,
                                 HttpResponse,
@@ -549,6 +550,8 @@ def delete_property(request, element):
 
 
 def search_node(request, graph_id, node_field='', _field_value=''):
+    graph = GraphDB.objects.get(pk=graph_id)
+    predef_properties = []
     if request.method == 'GET':
         gdb = get_graphdb_connection(GRAPHDB_HOST)
         if not gdb:
@@ -577,16 +580,30 @@ def search_node(request, graph_id, node_field='', _field_value=''):
             node_type = field_value
         if field_value and node_field == '_type':
             result = filter_by_property(result, '_type', node_type)
-        response = [{'url': r.url,
+            node_type_obj= NodeType.objects.filter(name=field_value,
+                                                graph=graph)[0]
+            predef_properties = ['_type']
+            predef_properties.extend([n.key \
+                            for n in node_type_obj.nodeproperty_set.all()])
+        response = [{'url': reverse('graph.views.node_info',
+                                    args=[graph_id, r.id]),
                     'neo_id': r.id,
                     'properties': {'slug': r.properties['_slug'],
-                                    'type': r.properties['_type']}}
+                                'type': r.properties['_type']},
+                    'values': get_element_predefs(predef_properties,r)}
                     for r in result]
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
             return search_results(request, graph_id, response,
-                                    [], field_value)
+                                    predef_properties, field_value)
+
+
+def get_element_predefs(props, element):
+    properties = []
+    for p in props:
+        properties.append(element.get(p, ''))
+    return properties
 
 
 def search_nodes_by_field(request, graph_id, node_field, field_value):
@@ -606,12 +623,24 @@ def search_relationships_by_field(request, graph_id, field, value):
     idx = gdb.relationships.indexes.get('sylva_relationships')
     result = idx.get(field)[value]
     result = filter_by_property(result, '_graph', graph_id)
-    response = [{'neo_id': r.id,
+    if field == '_type':
+        edge_type_obj= EdgeType.objects.filter(name=value,
+                                                graph=graph)[0]
+        predef_properties = ['_type']
+        predef_properties.extend([e.key \
+                            for e in edge_type_obj.edgeproperty_set.all()])
+    else:
+        predef_properties = []
+
+    response = [{'url': reverse('graph.views.relation_info',
+                                args=[graph_id, r.id]),
+                'neo_id': r.id,
+                'values': get_element_predefs(predef_properties,r),
                 'properties': {'slug': r.properties['_slug'],
                                 'type': r.properties['_type']}}
                     for r in result]
-    return search_results(request, graph_id, [],
-                            response, value)
+    return search_results(request, graph_id, response,
+                            predef_properties, value)
 
 
 def delete_node(request, graph_id, node_id):
@@ -708,7 +737,7 @@ def create_raw_relationship(request, graph_id, node_id):
 
 
 def search_results(request, graph_id, node_results, 
-                relationship_results, search_string):
+                predefs, search_string):
     graph = GraphDB.objects.get(pk=graph_id)
     node_types = [n.name for n in graph.nodetype_set.all()]
     edge_types = [e.name for e in graph.edgetype_set.all()]
@@ -717,10 +746,10 @@ def search_results(request, graph_id, node_results,
                                 'graph_id': graph_id,
                                 'node_types': node_types,
                                 'edge_types': edge_types,
-                                'node_result_list':
+                                'result_list':
                                     node_results,
-                                'relationship_result_list':
-                                    relationship_results,
+                                'predefs':
+                                    predefs,
                                 'search_string': search_string}))
 
 
