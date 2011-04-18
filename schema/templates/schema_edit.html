@@ -23,11 +23,15 @@
     <input type="text" name="nodetype"/>
     <input type="submit" value="Create new"/>
 </form>
+<br class="clear">
 <div id="content-main">
 {% for node_type in node_types %}
+    <!--
     <h3>{{ node_type.name|capfirst }}</h3>
+    -->
     <div>
     <fieldset class="module aligned wide">
+    {% if node_type.name %}<h2>{{ node_type.name|capfirst }}</h2>{% endif %}
     {% for node_property in node_type.nodeproperty_set.all %}
          <div class="form-row">
          <div>

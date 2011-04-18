@@ -12,7 +12,7 @@ from django.shortcuts import (render_to_response,
 from django.template import defaultfilters
 from django.template import RequestContext
 
-from graph.forms import UploadCSVForm
+from graph.forms import UploadCSVForm, get_form_for_nodetype
 from graph.models import Node, Media
 from schema.models import ValidRelation, NodeType, EdgeType, GraphDB
 from settings import GRAPHDB_HOST
@@ -963,3 +963,32 @@ def delete_graph_data(graph):
     result = idx.get('_graph')[graph.id]
     for node in result:
         delete_sylva_node(graph, node)
+
+
+##############
+# Data nodes #
+##############
+
+def data_node_add(request, graph_id, nodetype_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    nodetype = NodeType.objects.get(pk=nodetype_id)
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return unauthorized_user(request)
+    gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
+    node_form = get_form_for_nodetype(nodetype, gdb=gdb)
+    return render_to_response('graph_data_node_add.html',
+                              {'graph': graph,
+                               'nodetype': nodetype,
+                               'node_form': node_form},
+                              context_instance=RequestContext(request))
+
+def data_node_edit(request, graph_id, nodetype_id, node_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    nodetype = NodeType.objects.get(pk=nodetype_id)
+    if not graph.public and \
+            not request.user.has_perm('schema.%s_can_see' % graph.name):
+        return unauthorized_user(request)
+    return render_to_response('graph_data_node_edit.html',
+                              {},
+                              context_instance=RequestContext(request))

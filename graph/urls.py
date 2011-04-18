@@ -50,4 +50,11 @@ urlpatterns = patterns('',
 
     # Graph data
     url(r'graph/(\d+)/data/$', 'graph.views.search_node', name="graph_data"),
+
+    # Edit graph data
+    url(r'graph/(\d+)/data/node/(\d+)/add/$', 'graph.views.data_node_add',
+        name="data_node_add"),
+    url(r'graph/(\d+)/data/node/(\d+)/edit/(\d+)/$',
+        'graph.views.data_node_edit',
+        name="data_node_edit"),
 )
