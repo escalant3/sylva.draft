@@ -6,8 +6,8 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 PROJECT_ROOT = path.dirname(path.abspath(__file__))
-PROJECT_NAME = 'sylva'
-SESSION_COOKIE_NAME = '%s-sessionid' % PROJECT_NAME
+PROJECT_NAME = 'Sylva'
+SESSION_COOKIE_NAME = '%s-sessionid' % PROJECT_NAME.lower()
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
