@@ -278,14 +278,14 @@ Schema: {{ graph }}
         <ul class="actionlist">
         {% for history in history_list %}
         <li>
-            <a href="{% if history.element_id %}
-                        {% ifequal history.element_type 'node' %}
+            {{ history }}
+            <a href="{% ifequal history.element_type 'node' %}
                             {% url graph.views.node_info graph_id history.element_id %}
                         {% endifequal %}
                         {% ifequal history.element_type 'edge' %}
-                            {% url graph.views.relation_info graph_id history.element_id.0 history.element_id.1 history.element_id.2 %}
+                            {% url graph.views.relation_info graph_id history.element_id %}
                         {% endifequal %}
-                    {% endif %}">{{ history.title }}</a>
+                    ">{{ history.title }}</a>
             <br>
             <span class="mini quiet">{{ history.text }}</span>
         </li>

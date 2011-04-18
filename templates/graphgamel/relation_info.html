@@ -6,7 +6,7 @@
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a>&rsaquo;
     <a href="{% url graph.views.editor graph_id%}">Editor</a>&rsaquo;
-    <a href="{% url graph.views.relation_info graph_id start_node_id edge_type end_node_id%}">Relation Info</a>
+    <a href="{% url graph.views.relation_info graph_id relation_id %}">Relation Info</a>
 </div>
 {% endblock %}
 

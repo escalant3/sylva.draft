@@ -83,18 +83,9 @@ class GraphDB(models.Model):
                 incoming[vr.relation.name][vr.node_from.name] = None
         return outgoing, incoming
 
-    def get_node_types(self):
-        node_types = set()
-        for vr in ValidRelation.objects.filter(graph=self):
-            if vr.node_from.name not in node_types:
-                node_types.add(vr.node_from.name)
-            if vr.node_to.name not in node_types:
-                node_types.add(vr.node_to.name)
-        return list(node_types)
-
     def get_json_schema_graph(self):
         nodes = {}
-        node_types = self.get_node_types()
+        node_types = [n.name for n in self.nodetype_set.all()]
         for node_type in node_types:
             nodes[node_type] = {'_slug': node_type}
         edges = {}

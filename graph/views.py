@@ -285,9 +285,7 @@ def editor(request, graph_id):
                                 title='Created %s' % edge_type,
                                 action_type='add',
                                 element_type='edge',
-                                element_id=(rel_obj.start.id,
-                                            rel_obj.type,
-                                            rel_obj.end.id),
+                                element_id=rel_obj.id,
                                 text='%s(%s) %s %s(%s) relation' %
                                         (data['node_from_id'],
                                         data['node_from_type'],
@@ -299,9 +297,7 @@ def editor(request, graph_id):
                                 title='Modified %s' % edge_type,
                                 action_type='change',
                                 element_type='edge',
-                                element_id=(rel_obj.start.id,
-                                            rel_obj.type,
-                                            rel_obj.end.id),
+                                element_id=rel_obj.id,
                                 text='%s(%s) %s %s(%s) relation' %
                                         (data['node_from_id'],
                                         data['node_from_type'],
@@ -316,12 +312,9 @@ def editor(request, graph_id):
         except:
             error_message = "The host %s is not available" % GRAPHDB_HOST
             return index(request, error_message)
-        form_structure = simplejson.dumps(graph.get_dictionaries())
-        node_types = simplejson.dumps(graph.get_node_types())
-        request.session['form_structure'] = form_structure
-        request.session['node_types'] = node_types
     form_structure = request.session['form_structure']
-    node_types = request.session['node_types']
+    node_types = simplejson.dumps([n.name for n in graph.nodetype_set.all()])
+    form_structure = simplejson.dumps(graph.get_dictionaries())
     messages = request.session.get('messages', [])
     json_graph = graph.get_json_schema_graph()
     return render_to_response('graphgamel/editor.html',
@@ -361,8 +354,7 @@ def node_info(request, graph_id, node_id, page=0):
                         'start_neo_id': r.start.id,
                         'relation_type': r.type,
                         'relation_url': r.url,
-                        #TODO Fix in client
-                        'relation_id': r.url.split('/')[-1],
+                        'relation_id': r.id,
                         'end_id': r.end.get('_slug', None),
                         'end_type': r.end.get('_type', None),
                         'end_neo_id': r.end.id}
@@ -396,34 +388,31 @@ def node_info(request, graph_id, node_id, page=0):
                                     'permission': permissions}))
 
 
-def relation_info(request, graph_id, start_node_id, edge_type, end_node_id):
+def relation_info(request, graph_id, relationship_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not graph.public and \
             not request.user.has_perm("schema.%s_can_see" % graph.name):
         return unauthorized_user(request)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
-    start_node = gdb.node[int(start_node_id)]
-    end_node = gdb.node[int(end_node_id)]
-    relation = get_relationship(gdb, start_node, end_node, edge_type)
-    if relation:
-        properties = simplejson.dumps(relation.properties)
-        start_node = "%s (%s)" % (relation.start['_slug'],
-                                relation.start['_type'])
-        end_node = "%s (%s)" % (relation.end['_slug'],
-                                relation.end['_type'])
-        permissions = get_permissions(request.user, graph.name)
-        relation_id = relation.url.split('/')[-1]
-        return render_to_response('graphgamel/relation_info.html',
-                                RequestContext(request, {
-                                'properties': properties,
-                                'graph_id': graph_id,
-                                'relation_id': relation_id,
-                                'start_node_id': start_node_id,
-                                'end_node_id': end_node_id,
-                                'start_node': start_node,
-                                'end_node': end_node,
-                                'edge_type': edge_type,
-                                'permission': permissions}))
+    relation = gdb.relationships[int(relationship_id)]
+    properties = simplejson.dumps(relation.properties)
+    start_node = "%s (%s)" % (relation.start['_slug'],
+                            relation.start['_type'])
+    end_node = "%s (%s)" % (relation.end['_slug'],
+                             relation.end['_type'])
+    permissions = get_permissions(request.user, graph.name)
+    relation_id = relation.url.split('/')[-1]
+    return render_to_response('graphgamel/relation_info.html',
+                            RequestContext(request, {
+                            'properties': properties,
+                            'graph_id': graph_id,
+                            'relation_id': relation_id,
+                            'start_node_id': relation.start.id,
+                            'end_node_id': relation.end.id,
+                            'start_node': start_node,
+                            'end_node': end_node,
+                            'edge_type': relation.type,
+                            'permission': permissions}))
 
 
 def get_permissions(user, graph):
@@ -487,14 +476,13 @@ def node_property(request, graph_id, node_id, action):
             return delete_property(request, node)
 
 
-def relation_property(request, graph_id, start_node_id,
-                            edge_type, end_node_id, action):
-    relation = get_relationship_without_connection(graph_id, start_node_id,
-                                        edge_type, end_node_id)
+def relation_property(request, graph_id, relationship_id, action):
     key = request.GET['property_key']
     if key.startswith('_'):
         return HttpResponse(simplejson.dumps({'success': False,
                                             'internalfield': key}))
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
+    relation = gdb.relationships[int(relationship_id)]
     graph = GraphDB.objects.get(pk=graph_id)
     if relation:
         if action == 'add':
@@ -598,7 +586,8 @@ def search_node(request, graph_id, node_field='', _field_value=''):
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
         else:
-            return search_results(request, graph_id, response, field_value)
+            return search_results(request, graph_id, response,
+                                    [], field_value)
 
 
 def search_nodes_by_field(request, graph_id, node_field, field_value):
@@ -607,6 +596,23 @@ def search_nodes_by_field(request, graph_id, node_field, field_value):
 
 def filter_by_property(nodes, prop, value):
     return [n for n in nodes if n.properties[prop] == value]
+
+
+def search_relationships_by_field(request, graph_id, field, value):
+    graph = GraphDB.objects.get(pk=graph_id)
+    if not graph.public and \
+            not request.user.has_perm("schema.%s_can_see" % graph.name):
+        return unauthorized_user(request)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
+    idx = gdb.relationships.indexes.get('sylva_relationships')
+    result = idx.get(field)[value]
+    result = filter_by_property(result, '_graph', graph_id)
+    response = [{'neo_id': r.id,
+                'properties': {'slug': r.properties['_slug'],
+                                'type': r.properties['_type']}}
+                    for r in result]
+    return search_results(request, graph_id, [],
+                            response, value)
 
 
 def delete_node(request, graph_id, node_id):
@@ -634,11 +640,8 @@ def delete_relationship(request, graph_id, node_id, relationship_id, page):
     if not request.user.has_perm('schema.%s_can_delete_data' % graph.name):
         return unauthorized_user(request)
     gdb = get_graphdb_connection(GRAPHDB_HOST)
-    node = gdb.nodes[int(node_id)]
-    for relation in node.relationships.all():
-        if relationship_id == relation.url.split('/')[-1]:
-            relation.delete()
-            break
+    relation = gdb.relationships[int(relationship_id)]
+    relation.delete()
     return node_info(request, graph_id, node_id, page)
 
 
@@ -705,17 +708,21 @@ def create_raw_relationship(request, graph_id, node_id):
     return redirect(node_info, graph_id, node_id)
 
 
-def search_results(request, graph_id, results, search_string):
-    if len(results) == 1:
-        return redirect(node_info, graph_id, results[0]['neo_id'])
-    else:
-        graph = GraphDB.objects.get(pk=graph_id)
-        return render_to_response('graphgamel/result_list.html',
-                                    RequestContext(request, {
-                                    'graph_id': graph_id,
-                                    'node_types': graph.get_node_types(),
-                                    'result_list': results,
-                                    'search_string': search_string}))
+def search_results(request, graph_id, node_results, 
+                relationship_results, search_string):
+    graph = GraphDB.objects.get(pk=graph_id)
+    node_types = [n.name for n in graph.nodetype_set.all()]
+    edge_types = [e.name for e in graph.edgetype_set.all()]
+    return render_to_response('graphgamel/result_list.html',
+                                RequestContext(request, {
+                                'graph_id': graph_id,
+                                'node_types': node_types,
+                                'edge_types': edge_types,
+                                'node_result_list':
+                                    node_results,
+                                'relationship_result_list':
+                                    relationship_results,
+                                'search_string': search_string}))
 
 
 def get_autocompletion_objects(request, graph_id):

@@ -153,7 +153,7 @@ Showing page {{ pagination.page|add:"1" }} of {{ pagination.total|add:"1" }}
         <td>{{ relation.relation_type }}</td>
         <td><a href="{% url graph.views.node_info graph_id relation.end_neo_id %}">{{ relation.end_id }}</a>
             ({{ relation.end_type }})</td>
-        <td><a href="{% url graph.views.relation_info graph_id relation.start_neo_id relation.relation_type relation.end_neo_id %}">Open this relation</a></td>
+        <td><a href="{% url graph.views.relation_info graph_id relation.relation_id %}">Open this relation</a></td>
         {% if permission.can_delete  %}
         <td><a class="deletelink" href="{% url graph.views.delete_relationship graph_id node_id relation.relation_id pagination.page %}">Delete this relation</a>
         </td>
