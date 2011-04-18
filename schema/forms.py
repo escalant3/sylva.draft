@@ -2,9 +2,10 @@ from django import forms
 from django.forms import widgets
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
 
-from graph.models import GraphDB
-from schema.models import SylvaPermission
+from schema.models import (GraphDB, NodeType, NodeProperty, EdgeType,
+                           EdgeProperty, SylvaPermission, ValidRelation)
 
 from schema.models import (GraphDB, NodeType, NodeProperty, EdgeType,
                            EdgeProperty, SylvaPermission, ValidRelation)
@@ -89,7 +90,11 @@ class EdgePropertyForm(forms.ModelForm):
 
 
 class ValidRelationForm(forms.ModelForm):
+<<<<<<< HEAD
     relation = forms.CharField()
+=======
+    relation = forms.CharField(help_text=_("Relation name, like 'Knows' or 'Writes'"))
+>>>>>>> 60b0ce818e1b1a3d6e7195a38e6f83497e3d356c
 
     class Meta:
         model = ValidRelation

@@ -156,11 +156,20 @@ class EdgeType(models.Model):
 
 
 class ValidRelation(models.Model):
-    node_from = models.ForeignKey(NodeType, related_name='node_from')
-    relation = models.ForeignKey(EdgeType)
-    node_to = models.ForeignKey(NodeType, related_name='node_to')
+    node_from = models.ForeignKey(NodeType, related_name='node_from',
+                                  help_text=_("Source node type"))
+    relation = models.ForeignKey(EdgeType, help_text=_("Relation name"))
+    node_to = models.ForeignKey(NodeType, related_name='node_to',
+                                help_text=_("Target node type"))
     graph = models.ForeignKey(GraphDB)
     description = models.TextField(blank=True, null=True)
+    arity = models.IntegerField(default=0,
+                                help_text=_("Type 0 for infinite arity"))
+
+    def save(self, *args, **kwargs):
+        if not self.arity or self.arity < 1:
+            self.arity = 0
+        super(ValidRelation, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return '%s %s %s' % (self.node_from.name, self.relation.name, self.node_to.name)

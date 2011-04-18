@@ -46,7 +46,11 @@
          <div class="form-row">
          <div>
             <label>→ {{ edge.relation.name|capfirst }}</label>
+<<<<<<< HEAD
             [∞ {{ edge.node_to.name|capfirst }}] <p class="help"></p>
+=======
+            [{% if edge.arity < 1 %}∞{% else %}{{ edge.arity }} × {% endif %} {{ edge.node_to.name|capfirst }}] <p class="help"></p>
+>>>>>>> 60b0ce818e1b1a3d6e7195a38e6f83497e3d356c
             <a class="changelink" href="#">
                 Edit
             </a>
