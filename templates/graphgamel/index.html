@@ -68,7 +68,7 @@
         <h3>{{ g.graph.name }}: {{ g.graph.description }}</h3>
         <ul>
         <li><a href="{% url graph.views.search_node g.graph.id %}">
-            Browse data
+            Data Panel
         </a></li>
         {% if g.can_edit_schema %}
         <li><a class="changelink" href="{% url schema.views.schema_editor g.graph.id %}">Schema</a></li>

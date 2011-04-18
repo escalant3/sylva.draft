@@ -5,90 +5,87 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a>&rsaquo;
-    <a href="{% url graph.views.editor graph_id %}">Editor</a>&rsaquo;
-    <span>Browser</span>
+    <span>Data Panel</span>
 </div>
 {% endblock %}
 
-{% block extracode %}
-<script type="application/javascript">
-    window.onload = function() {
-        GRAPHGAMEL.get_autocompletion_objects("searchbar", "searchbar");
-    }
-</script>
-{% endblock %}
-
 {% block content %}
-<h1>Browser</h1>
-<p><a target="_blank" href="{% url graph.views.visualize_all graph_id %}">Visualize graph</a></p>
+<div id="content" class="flex">
+<h1>Data Panel</h1>
+<div id="content-main">
+<ul class="object-tools">
+    <li>
+        <a target="_blank" href="{% url graph.views.visualize_all graph_id %}">Visualize graph</a>
+    </li>
+    <li>
+        <a href=".">Add new node</a>
+    </li>
+</ul>
 
-<h3>Node types</h3>
-{% for node_type in node_types %}
-    <a href="{% url graph.views.search_nodes_by_field graph_id '_type' node_type %}">{{ node_type }}</a>
-{% endfor %}
-<h3>Edge types</h3>
-{% for edge_type in edge_types %}
-    <a href="{% url graph.views.search_relationships_by_field graph_id '_type' edge_type %}">{{ edge_type }}</a>
-{% endfor %}
+<div id="changelist" class="module filtered">
+    <div id="changelist-filter">
+        <h2>Filter</h2>
+            <h3>By NodeType</h3>
+                <ul>
 
-<form class="search_box" action="{% url graph.views.search_node graph_id %}" method="get">
-    <label class="search_label" for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
-    <input type="text" size="80" name="field_value" value="{{ search_string }}" id="searchbar" />
-    <input type="submit" value="Search" />
-</form>
-<div class="results">
-{% if node_result_list or relationship_result_list %}
-    <table id="result_list" cellspacing="0">
-    <thead>
-        <tr>
-        <th class="action-checkbox-column" scope="col">
-        </th>
-        <th scope="col">
-        </th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for result in node_result_list %}
-        <tr class="{% cycle 'row1' 'row2' %}">
-            <td class="action-checkbox">
-                <input id="action-select" type="checkbox" name="_selected_action" id="4">
-            </td>
-            <th>
-                <a href="{% url graph.views.node_info graph_id result.neo_id %}">
-                    {{ result.properties.slug }} ({{ result.properties.type }})
-                </a>
-            </th>
-        </tr>
-    {% endfor %}
-    </tbody>
-    </table>
-    <table id="result_list" cellspacing="0">
-    <thead>
-        <tr>
-        <th class="action-checkbox-column" scope="col">
-        </th>
-        <th scope="col">
-        </th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for result in relationship_result_list %}
-        <tr class="{% cycle 'row1' 'row2' %}">
-            <td class="action-checkbox">
-                <input id="action-select" type="checkbox" name="_selected_action" id="4">
-            </td>
-            <th>
-                <a href="{% url graph.views.relation_info graph_id result.neo_id %}">
-                    {{ result.properties.slug }} ({{ result.properties.type }})
-                </a>
-            </th>
-        </tr>
-    {% endfor %}
-    </tbody>
-    </table>
-
-{% else %}
-    No results found
-{% endif %}
+                {% for node_type in node_types %}
+                    <li>
+                        <a href="{% url graph.views.search_nodes_by_field graph_id '_type' node_type %}">{{ node_type|capfirst }}</a>
+                    </li>
+                {% endfor %}
+                </ul>
+            <h3>By EdgeType</h3>
+                <ul>
+                {% for edge_type in edge_types %}
+                    <li>
+                        <a href="{% url graph.views.search_relationships_by_field graph_id '_type' edge_type %}">{{ edge_type|capfirst }}</a>
+                    </li>
+                {% endfor %}
+                </ul>
+    </div>
+    <form id="changelist-form" method="post" action="">
+        <div class="actions">
+            <table id="result-list" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="action-checkbox-column" scope="col">
+                            <input id="action-toggle" type="checkbox" style="display: inline;"/>
+                        </th>
+                        <th scope="col">
+                            <a href=".">Slug</a>
+                        </th>
+                        {% for property in predefs %}
+                        <th>
+                            {% if property.0 == '_' %}
+                                {{ property|slice:"1:"|capfirst }}
+                            {% else %}
+                                {{ property|capfirst }}
+                            {% endif %}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in result_list %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td class="action-checkbox">
+                            <input id="action-select" type="checkbox" name="_selected_action" id="4">
+                        </td>
+                        <th>
+                            <a href="{{ result.url }}">
+                                {{ result.properties.slug }} </a>
+                        </th>
+                        {% for property in result.values %}
+                            <th>{{ property }}</th>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="paginator">{{ result_list|length }} elements</p>
+    </form>
+</div>
+</div>
 </div>
 {% endblock %}
