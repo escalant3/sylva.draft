@@ -81,9 +81,9 @@ def get_form_for_nodetype(nodetype, gdb=False):
         for key in keys:
             if key in self.data and len(self.data[key]) > 0:
                 properties[key] = self.data[key]
-            properties["_slug"] = self.data["_slug"]
-            properties["_type"] = nodetype.name
-            properties["_graph"] = unicode(nodetype.graph.id)
+        properties["_slug"] = self.data["_slug"]
+        properties["_type"] = nodetype.name
+        properties["_graph"] = unicode(nodetype.graph.id)
         node = create_node(gdb, properties, nodetype.graph)
         if node:
             # Create relationships only if everything was OK with node creation
