@@ -99,6 +99,12 @@ class ValidRelationForm(forms.ModelForm):
         model = ValidRelation
         exclude = ("node_from", "graph", "relation")
 
+    def __init__(self, *args, **kwargs):
+        graph = kwargs['initial']['graph']
+        super(ValidRelationForm, self).__init__(*args, **kwargs)
+        self.fields['node_to'].queryset = \
+            graph.nodetype_set.all()
+
     def clean(self):
         cleaned_data = self.cleaned_data
         edge_type = defaultfilters.slugify(self.data["relation"])
