@@ -15,7 +15,8 @@ from django.template import RequestContext
 
 from graph.forms import UploadCSVForm, get_form_for_nodetype
 from graph.models import Node, Media
-from graph.utils import create_node, search_in_index, filter_by_property
+from graph.utils import (create_node, search_in_index, filter_by_property,
+                         get_internal_attributes, update_timestamp)
 from schema.models import ValidRelation, NodeType, EdgeType, GraphDB
 from settings import GRAPHDB_HOST
 
@@ -115,29 +116,6 @@ def get_or_create_relationship(gdb, node1, node2, edge_type,
     else:
         relation = getattr(node1, edge_type)(node2)
     return return_function(relation, created, creation_info)
-
-
-def get_internal_attributes(slug, _type, graph_id, user, relation=False):
-    internal_attrs = {'_slug': slug,
-            '_type': _type,
-            '_graph': graph_id,
-            '_user': user.username,
-            '_timestamp': get_timestamp(),
-            '_origin': 1,
-            }
-    if relation:
-        internal_attrs['_weight'] = False
-    return internal_attrs
-
-
-def get_timestamp():
-    timestamp = datetime.datetime.now()
-    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
-
-
-def update_timestamp(element, username):
-    element.set('_timestamp', get_timestamp())
-    element.set('_user', username)
 
 
 def set_relationship_properties(gdb, rel_obj, edge_type, graph_id, user):
@@ -693,6 +671,11 @@ def search_results(request, graph_id, node_results,
     graph = GraphDB.objects.get(pk=graph_id)
     node_types = [n.name for n in graph.nodetype_set.all()]
     edge_types = [e.name for e in graph.edgetype_set.all()]
+    search_nodetypes = graph.nodetype_set.filter(name__iexact=search_string)
+    if search_nodetypes:
+        search_nodetype = search_nodetypes[0]
+    else:
+        search_nodetype = None
     return render_to_response('graphgamel/result_list.html',
                                 RequestContext(request, {
                                 'graph_id': graph_id,
@@ -702,7 +685,8 @@ def search_results(request, graph_id, node_results,
                                     node_results,
                                 'predefs':
                                     predefs,
-                                'search_string': search_string}))
+                                'search_string': search_string,
+                                'search_nodetype': search_nodetype}))
 
 
 def get_autocompletion_objects(request, graph_id):

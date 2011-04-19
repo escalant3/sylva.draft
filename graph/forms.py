@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext as _
 
-from graph.utils import create_node
+from graph.utils import create_node, get_internal_attributes
 
 
 def get_form_for_nodetype(nodetype, gdb=False):
@@ -42,9 +42,10 @@ def get_form_for_nodetype(nodetype, gdb=False):
         for relationship in nodetype.get_edges():
             graph_id = nodetype.graph.id
             idx = gdb.nodes.indexes.get('sylva_nodes')
-            results = idx.get("_type")[nodetype.name]
+            results = idx.get("_type")[relationship.node_to.name]
+            # TODO: The indexable properties must be string or unicode, why? :\
             choices = [(n.id, n.properties.get("_slug")) for n in results
-                       if n.properties["_graph"] == graph_id]
+                       if n.properties["_graph"] == unicode(graph_id)]
             label = relationship.relation.name.replace("-", " ") \
                     .replace("_", " ")
             label = "%s:" % label.capitalize()
@@ -60,20 +61,53 @@ def get_form_for_nodetype(nodetype, gdb=False):
                                               help_text=help_text, label=label)
             fields[relationship.relation.name] = field
 
+#            def clean_field(self):
+#                value = self.data.getlist(relationship.relation.name)
+#                if len(value) > relationship.arity:
+#                    raise forms.ValidationError(_("Only %s elements at most") \
+#                                                 % relationship.arity)
+#                else:
+#                    return value
+#            fields["clean_%s" % relationship.relation.name] = clean_field
+
     def save_form(self, *args, **kwargs):
-        properties = {}
+        properties = get_internal_attributes(self.data["_slug"], nodetype.name,
+                                             nodetype.graph.id, "", False)
         node_properties = nodetype.nodeproperty_set.all().values("key")
-        keys =  [p["key"] for p in node_properties]
+        keys = [p["key"] for p in node_properties]
         for key in keys:
             if key in self.data and len(self.data[key]) > 0:
                 properties[key] = self.data[key]
             properties["_slug"] = self.data["_slug"]
             properties["_type"] = nodetype.name
             properties["_graph"] = unicode(nodetype.graph.id)
+
         node = create_node(gdb, properties, nodetype.graph)
         if node:
             # Create relationships only if everything was OK with node creation
-            pass
+            for relationship in nodetype.get_edges():
+                key = relationship.relation.name
+                if key in self.data and len(self.data[key]) > 0:
+                    for node_id in self.data.getlist(key):
+                        node_to = gdb.nodes.get(node_id)
+                        if node_to:
+                            rel_obj = node.relationships.create(key, to=node_to)
+                            slug = "%s:%s:%s" % (rel_obj.start.properties['_slug'],
+                                                key,
+                                                rel_obj.end.properties['_slug'])
+                            inner_properties = get_internal_attributes(slug,
+                                                                        key,
+                                                                        str(nodetype.graph.id),
+                                                                        "",
+                                                                        True)
+                            for key1, value in inner_properties.iteritems():
+                                rel_obj.set(key1, value)
+                            rel_obj.set('_url', "/".join(rel_obj.url.split('/')[-2:]))
+                            idx = gdb.relationships.indexes.get('sylva_relationships')
+                            idx['_slug'][slug] = rel_obj
+                            idx['_type'][key] = rel_obj
+                            idx['_graph'][str(graph_id)] = rel_obj
+
     fields["save"] = save_form
     # Using an anonymous class
     form = type("%sForm" % str(nodetype.name.capitalize()),

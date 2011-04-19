@@ -1,3 +1,5 @@
+import datetime
+
 from django.template import defaultfilters
 
 from graph.models import Node
@@ -51,3 +53,27 @@ def search_in_index(gdb, _slug, _type, _graph):
 
 def filter_by_property(nodes, prop, value):
     return [n for n in nodes if n.properties[prop] == value]
+
+
+def get_internal_attributes(slug, _type, graph_id, user, relation=False):
+    internal_attrs = {'_slug': slug,
+            '_type': _type,
+            '_graph': graph_id,
+            #'_user': user.username,
+            '_timestamp': get_timestamp(),
+            '_origin': 1,
+            }
+    if relation:
+        internal_attrs['_weight'] = False
+    return internal_attrs
+
+
+def get_timestamp():
+    timestamp = datetime.datetime.now()
+    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def update_timestamp(element, username):
+    element.set('_timestamp', get_timestamp())
+    element.set('_user', username)
+
