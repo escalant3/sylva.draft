@@ -870,7 +870,7 @@ def import_manager(request, graph_id):
                 return render_to_response('graphgamel/csv/upload.html', {
                                                         'form': form,
                                                         'graph_id': graph_id})
-            node_types = graph.get_node_types()
+            node_types = [n.name for n in graph.nodetype_set.all()]
             valid_relations = []
             for vr in ValidRelation.objects.filter(graph=graph):
                 valid_relations.append({'node_from': vr.node_from.name,
