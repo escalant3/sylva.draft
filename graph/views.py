@@ -1,5 +1,4 @@
 import csv
-import datetime
 import neo4jrestclient as neo4jclient
 
 import simplejson
@@ -407,6 +406,12 @@ def node_property(request, graph_id, node_id, action):
             if not request.user.has_perm('schema.%s_can_delete_data'
                                             % graph.name):
                 return unauthorized_user(request)
+            node_type = NodeType.objects.get(name=node['_type'],
+                                            graph=graph)
+            np = node_type.nodeproperty_set.filter(key=key)
+            if np and np[0].required:
+                    return HttpResponse(simplejson.dumps({'success': False,
+                                                        'required': key}))
             return delete_property(request, node)
 
 
@@ -433,6 +438,12 @@ def relation_property(request, graph_id, relationship_id, action):
             if not request.user.has_perm('schema.%s_can_delete_data'
                                             % graph.name):
                 return unauthorized_user(request)
+            edge_type = EdgeType.objects.get(name=relation['_type'],
+                                            graph=graph)
+            ep = edge_type.edgeproperty_set.filter(key=key)
+            if ep and ep[0].required:
+                    return HttpResponse(simplejson.dumps({'success': False,
+                                                        'required': key}))
             return delete_property(request, relation)
 
 
@@ -958,7 +969,6 @@ def data_node_add(request, graph_id, nodetype_id):
 
 def data_node_edit(request, graph_id, nodetype_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
-    nodetype = NodeType.objects.get(pk=nodetype_id)
     if not graph.public and \
             not request.user.has_perm('schema.%s_can_see' % graph.name):
         return unauthorized_user(request)

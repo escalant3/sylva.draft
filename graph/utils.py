@@ -34,6 +34,8 @@ def create_node(gdb, n, graph):
     idx = gdb.nodes.indexes.get('sylva_nodes')
     idx['_slug'][node['_slug']] = node
     idx['_type'][node['_type']] = node
+
+ 
     idx['_graph'][node['_graph']] = node
     sql_node = Node(graph=graph,
                             node_id=node['_slug'],

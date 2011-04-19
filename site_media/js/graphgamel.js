@@ -5,6 +5,7 @@ var GRAPHGAMEL = {
     'special_fields': [],
     'permission_error': 'Your user has not privilegies to perform that action',
     'internalfield_error': ' is a internal field and cannot be modified by the user',
+    'requiredfield_error': ' is a required property and cannot be deleted',
     'populate_table': function(table_id, properties) {
         table = document.getElementById(table_id);
         table.innerHTML = "";
@@ -153,6 +154,8 @@ var GRAPHGAMEL = {
             alert(GRAPHGAMEL.permission_error);
         } else if (response['internalfield']) {
             alert(response['internalfield'] + GRAPHGAMEL.internalfield_error);
+        } else if (response['required']) {
+            alert(response['required'] + GRAPHGAMEL.requiredfield_error);
         } else {
             alert('An uknown error ocurred')
         }
