@@ -15,6 +15,7 @@ from django.template import RequestContext
 
 from graph.forms import UploadCSVForm, get_form_for_nodetype
 from graph.models import Node, Media
+from graph.utils import create_node, search_in_index, filter_by_property
 from schema.models import ValidRelation, NodeType, EdgeType, GraphDB
 from settings import GRAPHDB_HOST
 
@@ -69,14 +70,6 @@ def add_message(request, text,
     request.session['messages'] = request.session['messages'][:10]
 
 
-def search_in_index(gdb, _slug, _type, _graph):
-    idx = gdb.nodes.indexes.get('sylva_nodes')
-    result = filter_by_property(idx.get('_slug')[_slug],
-                                '_type', _type)
-    result = filter_by_property(result, '_graph', _graph)
-    return result
-
-
 def get_or_create_node(gdb, n, graph, creation_info=False):
     created = False
     slug_id = defaultfilters.slugify(n['_slug'])[:150]
@@ -90,43 +83,6 @@ def get_or_create_node(gdb, n, graph, creation_info=False):
         node = create_node(gdb, n, graph)
         created = True
     return return_function(node, created, creation_info)
-
-
-def create_node(gdb, n, graph):
-    original_id = n['_slug']
-    n['_slug'] = defaultfilters.slugify(n['_slug'])[:150]
-    node_properties = {}
-    if original_id != n['_slug']:
-        node_properties['id'] = original_id
-    node_type_obj = NodeType.objects.filter(name=n['_type'])
-    if node_type_obj:
-        default_properties = node_type_obj[0].nodeproperty_set.all()
-        for dp in default_properties:
-            node_properties[dp.key] = dp.value
-    for key, value in n.items():
-        node_properties[key] = value
-    result = search_in_index(gdb, n['_slug'], n['_type'], n['_graph'])
-    if result:
-        counter = 1
-        slug = "%s-%s" % (n['_slug'], counter)
-        result = search_in_index(gdb, slug, n['_type'], n['_graph'])
-        while result:
-            counter += 1
-            slug = "%s-%s" % (n['_slug'], counter)
-            result = search_in_index(gdb, slug, n['_type'], n['_graph'])
-        node_properties['_slug'] = slug
-    node = gdb.node(**node_properties)
-    node.set('_url', "/".join(node.url.split('/')[-2:]))
-    idx = gdb.nodes.indexes.get('sylva_nodes')
-    idx['_slug'][node['_slug']] = node
-    idx['_type'][node['_type']] = node
-    idx['_graph'][node['_graph']] = node
-    sql_node = Node(graph=graph,
-                            node_id=node['_slug'],
-                            node_type=node['_type'])
-    sql_node.save()
-    graph.node_set.add(sql_node)
-    return node
 
 
 def get_relationship(gdb, node1, node2, edge_type):
@@ -610,10 +566,6 @@ def search_nodes_by_field(request, graph_id, node_field, field_value):
     return search_node(request, graph_id, node_field, field_value)
 
 
-def filter_by_property(nodes, prop, value):
-    return [n for n in nodes if n.properties[prop] == value]
-
-
 def search_relationships_by_field(request, graph_id, field, value):
     graph = GraphDB.objects.get(pk=graph_id)
     if not graph.public and \
@@ -1005,7 +957,15 @@ def data_node_add(request, graph_id, nodetype_id):
             not request.user.has_perm('schema.%s_can_see' % graph.name):
         return unauthorized_user(request)
     gdb = neo4jclient.GraphDatabase(GRAPHDB_HOST)
-    node_form = get_form_for_nodetype(nodetype, gdb=gdb)
+    form = get_form_for_nodetype(nodetype, gdb=gdb)
+    node_form = form()
+    if request.POST:
+        data = request.POST.copy()
+        node_form = form(data)
+        if node_form.is_valid():
+            node_form.save()
+            redirect_url = reverse("graph_data", args=[graph.id])
+            return HttpResponseRedirect(redirect_url)
     return render_to_response('graph_data_node_add.html',
                               {'graph': graph,
                                'nodetype': nodetype,
