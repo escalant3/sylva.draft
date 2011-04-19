@@ -61,14 +61,17 @@ def get_form_for_nodetype(nodetype, gdb=False):
                                               help_text=help_text, label=label)
             fields[relationship.relation.name] = field
 
-#            def clean_field(self):
-#                value = self.data.getlist(relationship.relation.name)
-#                if len(value) > relationship.arity:
-#                    raise forms.ValidationError(_("Only %s elements at most") \
-#                                                 % relationship.arity)
-#                else:
-#                    return value
-#            fields["clean_%s" % relationship.relation.name] = clean_field
+    def clean_form(self):
+        cleaned_data = self.cleaned_data
+        for relationship in nodetype.get_edges():
+            rel_name = relationship.relation.name
+            if rel_name in self.data and relationship.arity > 0:
+                if len(self.data.getlist(rel_name)) > relationship.arity:
+                    msg = _("Only %s elements at most") % relationship.arity
+                    self._errors[rel_name] = msg
+                    del cleaned_data[rel_name]
+        return cleaned_data
+    fields["clean"] = clean_form
 
     def save_form(self, *args, **kwargs):
         properties = get_internal_attributes(self.data["_slug"], nodetype.name,
@@ -81,33 +84,33 @@ def get_form_for_nodetype(nodetype, gdb=False):
             properties["_slug"] = self.data["_slug"]
             properties["_type"] = nodetype.name
             properties["_graph"] = unicode(nodetype.graph.id)
-
         node = create_node(gdb, properties, nodetype.graph)
         if node:
             # Create relationships only if everything was OK with node creation
             for relationship in nodetype.get_edges():
-                key = relationship.relation.name
-                if key in self.data and len(self.data[key]) > 0:
-                    for node_id in self.data.getlist(key):
+                rel_name = relationship.relation.name
+                if rel_name in self.data and len(self.data[rel_name]) > 0:
+                    idx = gdb.relationships.indexes.get('sylva_relationships')
+                    for node_id in self.data.getlist(rel_name):
                         node_to = gdb.nodes.get(node_id)
                         if node_to:
-                            rel_obj = node.relationships.create(key, to=node_to)
-                            slug = "%s:%s:%s" % (rel_obj.start.properties['_slug'],
-                                                key,
-                                                rel_obj.end.properties['_slug'])
-                            inner_properties = get_internal_attributes(slug,
-                                                                        key,
-                                                                        str(nodetype.graph.id),
-                                                                        "",
-                                                                        True)
-                            for key1, value in inner_properties.iteritems():
-                                rel_obj.set(key1, value)
-                            rel_obj.set('_url', "/".join(rel_obj.url.split('/')[-2:]))
-                            idx = gdb.relationships.indexes.get('sylva_relationships')
-                            idx['_slug'][slug] = rel_obj
-                            idx['_type'][key] = rel_obj
-                            idx['_graph'][str(graph_id)] = rel_obj
-
+                            rel = node.relationships.create(rel_name,
+                                                            to=node_to)
+                            slug = "%s:%s:%s" % (rel.start.properties['_slug'],
+                                                 rel_name,
+                                                 rel.end.properties['_slug'])
+                            gid = str(nodetype.graph.id)
+                            inner_props = get_internal_attributes(slug,
+                                                                  rel_name,
+                                                                  gid,
+                                                                  "",
+                                                                  True)
+                            for key, value in inner_props.iteritems():
+                                rel.set(key, value)
+                            rel.set('_url', "/".join(rel.url.split('/')[-2:]))
+                            idx['_slug'][slug] = rel
+                            idx['_type'][rel_name] = rel
+                            idx['_graph'][gid] = rel
     fields["save"] = save_form
     # Using an anonymous class
     form = type("%sForm" % str(nodetype.name.capitalize()),
