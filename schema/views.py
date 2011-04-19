@@ -105,7 +105,8 @@ def add_graph(request):
 
 def edit_graph(request, graph_id):
     graph = GraphDB.objects.get(pk=graph_id)
-    if not request.user.has_perm("schema.%_can_edit_properties"):
+    if not request.user.has_perm("schema.%s_can_edit_properties" % \
+                                                        graph.name):
         return unauthorized_user(request)
     if request.method == "POST":
         form = EditGraphForm(request.POST)
