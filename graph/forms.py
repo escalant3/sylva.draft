@@ -43,15 +43,16 @@ def get_form_for_nodetype(nodetype, gdb=False):
             graph_id = nodetype.graph.id
             idx = gdb.nodes.indexes.get('sylva_nodes')
             results = idx.get("_type")[relationship.node_to.name]
-            # TODO: The indexable properties must be string or unicode, why? :\
+            # TODO: The indexable properties must be string or
+            #       unicode, why? :\
             choices = [(n.id, n.properties.get("_slug")) for n in results
                        if n.properties["_graph"] == unicode(graph_id)]
             label = relationship.relation.name.replace("-", " ") \
                     .replace("_", " ")
             label = "%s:" % label.capitalize()
             # TODO: Fix the required value rendering
-            if node_property.required:
-                label = "* %s" % label
+            # if relationship.required:
+            #    label = "* %s" % label
             if relationship.arity > 0:
                 help_text = _(u"Check %s elements at most." \
                               % relationship.arity)
