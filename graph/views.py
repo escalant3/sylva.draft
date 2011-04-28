@@ -813,10 +813,11 @@ def import_manager(request, graph_id):
                                 form.cleaned_data['text_separator'])
                 row_length = len(rows[0])
             except:
-                #TODO Print a helpful message
+                error = 'There was a problem processing your file'
                 return render_to_response('graphgamel/csv/upload.html', {
                                                         'form': form,
-                                                        'graph_id': graph_id})
+                                                        'graph_id': graph_id,
+                                                        'error_message':error})
             node_types = [n.name for n in graph.nodetype_set.all()]
             valid_relations = []
             for vr in ValidRelation.objects.filter(graph=graph):

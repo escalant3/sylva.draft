@@ -14,6 +14,9 @@
 <p>You, or anyone on your team, should had created the graph database with its schema before using this tool. If you want to learn more about schemas and databases creation you can find information <a href="">here</a>.</p>
 <p>After selecting the target database, select a file from your computer and press Next.</p>
 </div>
+{% if error_message %}
+    <p class="errornote">Error: {{ error_message }}</p>
+{% endif %}
 {% if form.is_multipart %}
     <form class="importer" enctype="multipart/form-data" method="post" action="{% url graph.views.import_manager graph_id %}">
 {% else %}
