@@ -70,9 +70,7 @@
         {% if g.can_edit_schema %}
         <li><a class="changelink" href="{% url schema.views.schema_editor g.graph.id %}">Schema</a></li>
         {% endif %}
-        {% if g.can_edit %}
         <li><a class="changelink" href="{% url graph_data g.graph.id %}">Data</a></li>
-        {% endif %}
         {% if g.can_edit_properties %}
         <li><a class="changelink" href="{% url schema.views.edit_graph g.graph.id %}">Properties</a></li>
         {% endif %}
