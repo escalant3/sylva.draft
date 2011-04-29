@@ -15,6 +15,9 @@
 <div id="content-main">
 <ul class="object-tools">
     <li>
+        <a target="_blank" href="{% url graph.views.export_to_gml graph_id %}">Export to GML</a>
+    </li>
+    <li>
         <a target="_blank" href="{% url graph.views.visualize_all graph_id %}">Visualize graph</a>
     </li>
     {% if search_nodetype %}

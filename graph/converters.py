@@ -91,3 +91,32 @@ def json_to_gexf(json_graph):
     </graph> 
 </gexf>""" % (date, node_attributes_xml, edge_attributes_xml, nodes, edges)
     return gephi_format
+
+
+def neo4j_to_gml(graph):
+    #List of tuples with original key and new key
+    node_attributes = [('_slug', 'label'),
+                        ('_type', 'type')]
+    edge_attributes = [('_type', 'type')]
+    gml_data = ""
+    gml_data += "graph [\n"
+    gml_data += "comment \"Sylva exported graph\"\n"
+    gml_data += "directed 1\n"
+    gml_data += "IsPlanar 1\n"
+    for node in graph['nodes']:
+        gml_data += "node [\n"
+        gml_data += "id %d\n" % node.id
+        # Attributes
+        for at in node_attributes:
+            gml_data += '%s "%s"\n' % (at[1], node.get(at[0], ''))
+        gml_data += "]\n"
+    for relationship in graph['relationships']:
+        gml_data += "edge [\n"
+        gml_data += "source %d\n" % relationship.start.id
+        gml_data += "target %d\n" % relationship.end.id
+        # Attributes
+        for at in edge_attributes:
+            gml_data += '%s "%s"\n' % (at[1], relationship.get(at[0], ''))
+        gml_data += "]\n"
+    gml_data += "]\n"
+    return gml_data

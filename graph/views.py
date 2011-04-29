@@ -420,7 +420,7 @@ def relation_property(request, graph_id, relationship_id, action):
     if key.startswith('_'):
         return HttpResponse(simplejson.dumps({'success': False,
                                             'internalfield': key}))
-    gdb = get_graphdb_connection(GRAPHDB_HOST)
+    gdb = get_gryyaphdb_connection(GRAPHDB_HOST)
     relation = gdb.relationships[int(relationship_id)]
     graph = GraphDB.objects.get(pk=graph_id)
     if relation:
@@ -908,6 +908,25 @@ def export_to_gexf(request, json_graph):
     gephi_format = converters.json_to_gexf(json_graph)
     response.write(gephi_format)
     return response
+
+
+def export_to_gml(request, graph_id):
+    response = HttpResponse(mimetype='application/gml')
+    response['Content-Disposition'] = 'attachment; filename=graph.gml'
+    graph = get_whole_graph(graph_id)
+    gml_format = converters.neo4j_to_gml(graph)
+    response.write(gml_format)
+    return response
+
+
+def get_whole_graph(graph_id):
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
+    graph = {}
+    idxn = gdb.nodes.indexes.get('sylva_nodes')
+    idxr = gdb.relationships.indexes.get('sylva_relationships')
+    graph['nodes'] = idxn.get('_graph')[graph_id]
+    graph['relationships'] = idxr.get('_graph')[graph_id]
+    return graph
 
 
 def visualize_all(request, graph_id):
