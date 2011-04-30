@@ -420,7 +420,7 @@ def relation_property(request, graph_id, relationship_id, action):
     if key.startswith('_'):
         return HttpResponse(simplejson.dumps({'success': False,
                                             'internalfield': key}))
-    gdb = get_gryyaphdb_connection(GRAPHDB_HOST)
+    gdb = get_graphdb_connection(GRAPHDB_HOST)
     relation = gdb.relationships[int(relationship_id)]
     graph = GraphDB.objects.get(pk=graph_id)
     if relation:
