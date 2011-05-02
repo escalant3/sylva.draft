@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'sylva.schema',
     'sylva.graph',
     'file_importer',
+    'south',
 )
 
 try:
