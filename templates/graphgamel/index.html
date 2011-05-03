@@ -6,20 +6,17 @@
 {% block title %}Sylva{% endblock %}
 
 {% block branding %}
+{% block sitename %}
 <h1 id="site-name">Sylva</h1>
+{% endblock %}
 <div id="user-tools">
 {% if user.is_active %}
     {% trans 'Welcome,' %}
     <strong>{% firstof user.first_name user.username %}</strong>.
     {% block userlinks %}
         <a href="{% url admin:index %}">Admin</a> /
-        {% url admin:password_change as password_change_url %}
-        {% if password_change_url %}
-            <a href="{{ password_change_url }}">
-        {% else %}
-            <a href="{{ root_path }}password_change/">
-        {% endif %}
-        {% trans 'Change password' %}</a> /
+        <a href="{% url schema.views.user_profile %}">
+        {% trans 'User profile' %}</a> /
         <a href="{% url django.contrib.auth.views.logout %}?next={% url graph.views.index %}">{% trans 'Log out' %}</a>
     {% endblock %}
 {% else %}

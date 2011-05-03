@@ -14,5 +14,6 @@ urlpatterns = patterns('',
     (r'^accounts/login/$', login),
     (r'^accounts/logout/$', logout),
     (r'^schema/', include('schema.urls')),
+    (r'user_profile/$', 'schema.views.user_profile'),
     (r'^', include('graph.urls')),
 )

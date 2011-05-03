@@ -13,8 +13,7 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a> &rsaquo;
-    <a href="{% url graph.views.editor graph_id %}">Graph: {{ graph.name }}</a> &rsaquo;
-    <a href="{% url graph.views.editor graph_id %}">Schema</a>
+    <a href="{% url schema.views.schema_editor graph_id %}">Schema</a>
 </div>
 {% endblock %}
 

@@ -48,6 +48,17 @@ class EditPermissionsForm(forms.Form):
     permissions = forms.ModelMultipleChoiceField(queryset=None)
 
 
+class ChangePasswordForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput)
+    password2 = forms.CharField(widget=forms.PasswordInput,
+                                label='Repeat password')
+
+    def clean_password(self):
+        if self.data['password'] != self.data['password2']:
+            raise forms.ValidationError('Passwords don\'t match')
+        return self.data['password']
+
+
 ###################################
 # Schema editor form and formsets #
 ###################################

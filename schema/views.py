@@ -10,7 +10,7 @@ from schema.forms import (CreateGraphForm, CreateDefaultProperty,
                           EditGraphForm, EditPermissionsForm,
                           NodeTypeForm, NodePropertyForm,
                           EdgeTypeForm, EdgePropertyForm,
-                          ValidRelationForm)
+                          ValidRelationForm, ChangePasswordForm)
 from schema.models import (GraphDB, NodeType, EdgeType,
                             ValidRelation, SylvaPermission,
                             NodeProperty, EdgeProperty)
@@ -232,3 +232,17 @@ def schema_relation_add(request, graph_id, node_id):
                                 'graph_id': graph_id,
                                 'node': node})
 
+
+def user_profile(request):
+    user = request.user
+    if request.method == "POST":
+        form = ChangePasswordForm(request.POST)
+        if form.is_valid():
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect(index)
+    else:
+        form = ChangePasswordForm()
+    return render_to_response('user_profile.html', {
+                            'form': form,
+                            'user': user})

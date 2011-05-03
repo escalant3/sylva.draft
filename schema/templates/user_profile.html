@@ -1,0 +1,37 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block title %}Sylva: User Profile{% endblock %}
+
+{% block sitename %}
+<h1 id="site-name">Sylva: User Profile</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a>&rsaquo;
+    <a href="{% url schema.views.user_profile %}">User Profile</a>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div>
+    <h1>User {{ user.username }} profile</h1>
+    <h3>Change password</h3>
+    <form method="post" action=".">
+        {{ form.as_p }}
+        <input type="submit" value="Save"/>
+    </form>
+    <h3>User permissions</h3>
+    <ul>
+    {% for p in user.get_all_permissions %}
+        <li>{{ p }}</li>
+    {% empty %}
+        <li>This user has no permissions</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
