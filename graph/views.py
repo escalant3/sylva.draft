@@ -535,7 +535,7 @@ def search_node(request, graph_id, node_field='', _field_value=''):
                     'neo_id': r.id,
                     'properties': {'slug': r.properties['_slug'],
                                 'type': r.properties['_type']},
-                    'values': get_element_predefs(predef_properties,r)}
+                    'values': get_element_predefs(predef_properties, r)}
                     for r in result]
         if request.is_ajax():
             return HttpResponse(simplejson.dumps({'results': response}))
@@ -902,7 +902,7 @@ def add_relationship_ajax(request, graph_id):
         return HttpResponse(simplejson.dumps({'success': success}))
 
 
-def export_to_gexf(request, json_graph):
+def json_to_gexf(request, json_graph):
     response = HttpResponse(mimetype='application/xml')
     response['Content-Disposition'] = 'attachment; filename=graph.gexf'
     gephi_format = converters.json_to_gexf(json_graph)
@@ -910,13 +910,23 @@ def export_to_gexf(request, json_graph):
     return response
 
 
-def export_to_gml(request, graph_id):
+def export_graph(conversion_function, graph_id, ext):
     response = HttpResponse(mimetype='application/gml')
-    response['Content-Disposition'] = 'attachment; filename=graph.gml'
+    response['Content-Disposition'] = 'attachment; filename=graph.%s' % ext
     graph = get_whole_graph(graph_id)
-    gml_format = converters.neo4j_to_gml(graph)
-    response.write(gml_format)
+    response_data = conversion_function(graph)
+    response.write(response_data)
     return response
+
+
+def export_to_gml(request, graph_id):
+    conversion_function = converters.neo4j_to_gml
+    return export_graph(conversion_function, graph_idi, 'gml')
+
+
+def export_to_gexf(request, graph_id):
+    conversion_function = converters.neo4j_to_gexf
+    return export_graph(conversion_function, graph_id, 'gexf')
 
 
 def get_whole_graph(graph_id):
@@ -987,7 +997,8 @@ def data_node_add(request, graph_id, nodetype_id):
                                'node_form': node_form},
                               context_instance=RequestContext(request))
 
-def data_node_edit(request, graph_id, nodetype_id, node_id):
+
+ def data_node_edit(request, graph_id, nodetype_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not graph.public and \
             not request.user.has_perm('schema.%s_can_see' % graph.name):
