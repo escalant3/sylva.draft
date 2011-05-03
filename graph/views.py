@@ -998,7 +998,7 @@ def data_node_add(request, graph_id, nodetype_id):
                               context_instance=RequestContext(request))
 
 
- def data_node_edit(request, graph_id, nodetype_id, node_id):
+def data_node_edit(request, graph_id, nodetype_id, node_id):
     graph = GraphDB.objects.get(pk=graph_id)
     if not graph.public and \
             not request.user.has_perm('schema.%s_can_see' % graph.name):
