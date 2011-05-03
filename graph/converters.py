@@ -94,7 +94,7 @@ def json_to_gexf(json_graph):
 
 def neo4j_to_gml(graph):
     #List of tuples with original key and new key
-    node_attributes = [('_slug', 'label'),
+    node_attributes = [('_slug', 'name'),
                         ('_type', 'type')]
     edge_attributes = [('_type', 'type')]
     gml_data = ""
