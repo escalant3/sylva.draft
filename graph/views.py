@@ -921,7 +921,7 @@ def export_graph(conversion_function, graph_id, ext):
 
 def export_to_gml(request, graph_id):
     conversion_function = converters.neo4j_to_gml
-    return export_graph(conversion_function, graph_idi, 'gml')
+    return export_graph(conversion_function, graph_id, 'gml')
 
 
 def export_to_gexf(request, graph_id):
