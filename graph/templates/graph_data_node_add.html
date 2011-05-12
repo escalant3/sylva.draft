@@ -6,9 +6,8 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a> &rsaquo;
-    <a href="{% url graph.views.editor graph.id %}">Graph: {{ graph.name }}</a> &rsaquo;
-    <a href="{% url graph.views.editor graph.id %}">Data</a> &rsaquo;
-    Add {{ nodetype.name }}
+    <a href="{% url graph_data graph.id %}">Data Panel</a>
+    <span>Add {{ nodetype.name }}</span>
 </div>
 {% endblock %}
 
