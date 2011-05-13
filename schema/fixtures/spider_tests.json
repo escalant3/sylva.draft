@@ -1,0 +1,795 @@
+[
+  {
+    "pk": 22, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_logentry", 
+      "name": "Can add log entry", 
+      "content_type": 8
+    }
+  }, 
+  {
+    "pk": 23, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_logentry", 
+      "name": "Can change log entry", 
+      "content_type": 8
+    }
+  }, 
+  {
+    "pk": 24, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_logentry", 
+      "name": "Can delete log entry", 
+      "content_type": 8
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_group", 
+      "name": "Can add group", 
+      "content_type": 2
+    }
+  }, 
+  {
+    "pk": 5, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_group", 
+      "name": "Can change group", 
+      "content_type": 2
+    }
+  }, 
+  {
+    "pk": 6, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_group", 
+      "name": "Can delete group", 
+      "content_type": 2
+    }
+  }, 
+  {
+    "pk": 10, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_message", 
+      "name": "Can add message", 
+      "content_type": 4
+    }
+  }, 
+  {
+    "pk": 11, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_message", 
+      "name": "Can change message", 
+      "content_type": 4
+    }
+  }, 
+  {
+    "pk": 12, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_message", 
+      "name": "Can delete message", 
+      "content_type": 4
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_permission", 
+      "name": "Can add permission", 
+      "content_type": 1
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_permission", 
+      "name": "Can change permission", 
+      "content_type": 1
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_permission", 
+      "name": "Can delete permission", 
+      "content_type": 1
+    }
+  }, 
+  {
+    "pk": 7, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_user", 
+      "name": "Can add user", 
+      "content_type": 3
+    }
+  }, 
+  {
+    "pk": 8, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_user", 
+      "name": "Can change user", 
+      "content_type": 3
+    }
+  }, 
+  {
+    "pk": 9, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_user", 
+      "name": "Can delete user", 
+      "content_type": 3
+    }
+  }, 
+  {
+    "pk": 13, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_contenttype", 
+      "name": "Can add content type", 
+      "content_type": 5
+    }
+  }, 
+  {
+    "pk": 14, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_contenttype", 
+      "name": "Can change content type", 
+      "content_type": 5
+    }
+  }, 
+  {
+    "pk": 15, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_contenttype", 
+      "name": "Can delete content type", 
+      "content_type": 5
+    }
+  }, 
+  {
+    "pk": 52, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_media", 
+      "name": "Can add media", 
+      "content_type": 18
+    }
+  }, 
+  {
+    "pk": 53, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_media", 
+      "name": "Can change media", 
+      "content_type": 18
+    }
+  }, 
+  {
+    "pk": 54, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_media", 
+      "name": "Can delete media", 
+      "content_type": 18
+    }
+  }, 
+  {
+    "pk": 49, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_node", 
+      "name": "Can add node", 
+      "content_type": 17
+    }
+  }, 
+  {
+    "pk": 50, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_node", 
+      "name": "Can change node", 
+      "content_type": 17
+    }
+  }, 
+  {
+    "pk": 51, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_node", 
+      "name": "Can delete node", 
+      "content_type": 17
+    }
+  }, 
+  {
+    "pk": 43, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_edgeproperty", 
+      "name": "Can add edge property", 
+      "content_type": 15
+    }
+  }, 
+  {
+    "pk": 44, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_edgeproperty", 
+      "name": "Can change edge property", 
+      "content_type": 15
+    }
+  }, 
+  {
+    "pk": 45, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_edgeproperty", 
+      "name": "Can delete edge property", 
+      "content_type": 15
+    }
+  }, 
+  {
+    "pk": 34, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_edgetype", 
+      "name": "Can add edge type", 
+      "content_type": 12
+    }
+  }, 
+  {
+    "pk": 35, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_edgetype", 
+      "name": "Can change edge type", 
+      "content_type": 12
+    }
+  }, 
+  {
+    "pk": 36, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_edgetype", 
+      "name": "Can delete edge type", 
+      "content_type": 12
+    }
+  }, 
+  {
+    "pk": 28, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_graphdb", 
+      "name": "Can add graph db", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 29, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_graphdb", 
+      "name": "Can change graph db", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 30, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_graphdb", 
+      "name": "Can delete graph db", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 61, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_add_data", 
+      "name": "my_graph_can_add_data", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 64, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_add_operator", 
+      "name": "my_graph_can_add_operator", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 57, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_delete", 
+      "name": "my_graph_can_delete", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 63, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_delete_data", 
+      "name": "my_graph_can_delete_data", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 66, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_delete_operator", 
+      "name": "my_graph_can_delete_operator", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 56, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_edit", 
+      "name": "my_graph_can_edit", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 62, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_edit_data", 
+      "name": "my_graph_can_edit_data", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 65, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_edit_operator", 
+      "name": "my_graph_can_edit_operator", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 60, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_edit_permissions", 
+      "name": "my_graph_can_edit_permissions", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 59, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_edit_properties", 
+      "name": "my_graph_can_edit_properties", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 58, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_edit_schema", 
+      "name": "my_graph_can_edit_schema", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 55, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "my_graph_can_see", 
+      "name": "my_graph_can_see", 
+      "content_type": 10
+    }
+  }, 
+  {
+    "pk": 40, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_nodeproperty", 
+      "name": "Can add node property", 
+      "content_type": 14
+    }
+  }, 
+  {
+    "pk": 41, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_nodeproperty", 
+      "name": "Can change node property", 
+      "content_type": 14
+    }
+  }, 
+  {
+    "pk": 42, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_nodeproperty", 
+      "name": "Can delete node property", 
+      "content_type": 14
+    }
+  }, 
+  {
+    "pk": 31, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_nodetype", 
+      "name": "Can add node type", 
+      "content_type": 11
+    }
+  }, 
+  {
+    "pk": 32, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_nodetype", 
+      "name": "Can change node type", 
+      "content_type": 11
+    }
+  }, 
+  {
+    "pk": 33, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_nodetype", 
+      "name": "Can delete node type", 
+      "content_type": 11
+    }
+  }, 
+  {
+    "pk": 46, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_sylvapermission", 
+      "name": "Can add sylva permission", 
+      "content_type": 16
+    }
+  }, 
+  {
+    "pk": 47, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_sylvapermission", 
+      "name": "Can change sylva permission", 
+      "content_type": 16
+    }
+  }, 
+  {
+    "pk": 48, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_sylvapermission", 
+      "name": "Can delete sylva permission", 
+      "content_type": 16
+    }
+  }, 
+  {
+    "pk": 37, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_validrelation", 
+      "name": "Can add valid relation", 
+      "content_type": 13
+    }
+  }, 
+  {
+    "pk": 38, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_validrelation", 
+      "name": "Can change valid relation", 
+      "content_type": 13
+    }
+  }, 
+  {
+    "pk": 39, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_validrelation", 
+      "name": "Can delete valid relation", 
+      "content_type": 13
+    }
+  }, 
+  {
+    "pk": 16, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_session", 
+      "name": "Can add session", 
+      "content_type": 6
+    }
+  }, 
+  {
+    "pk": 17, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_session", 
+      "name": "Can change session", 
+      "content_type": 6
+    }
+  }, 
+  {
+    "pk": 18, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_session", 
+      "name": "Can delete session", 
+      "content_type": 6
+    }
+  }, 
+  {
+    "pk": 19, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_site", 
+      "name": "Can add site", 
+      "content_type": 7
+    }
+  }, 
+  {
+    "pk": 20, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_site", 
+      "name": "Can change site", 
+      "content_type": 7
+    }
+  }, 
+  {
+    "pk": 21, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_site", 
+      "name": "Can delete site", 
+      "content_type": 7
+    }
+  }, 
+  {
+    "pk": 25, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "add_migrationhistory", 
+      "name": "Can add migration history", 
+      "content_type": 9
+    }
+  }, 
+  {
+    "pk": 26, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "change_migrationhistory", 
+      "name": "Can change migration history", 
+      "content_type": 9
+    }
+  }, 
+  {
+    "pk": 27, 
+    "model": "auth.permission", 
+    "fields": {
+      "codename": "delete_migrationhistory", 
+      "name": "Can delete migration history", 
+      "content_type": 9
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+      "username": "admin", 
+      "first_name": "", 
+      "last_name": "", 
+      "is_active": true, 
+      "is_superuser": true, 
+      "is_staff": true, 
+      "last_login": "2011-05-13 20:00:40", 
+      "groups": [], 
+      "user_permissions": [
+        61, 
+        64, 
+        57, 
+        63, 
+        66, 
+        56, 
+        62, 
+        65, 
+        60, 
+        59, 
+        58, 
+        55
+      ], 
+      "password": "sha1$17a82$85a230cb85a23bd6c9e32549427b204c09e067d5", 
+      "email": "a@a.com", 
+      "date_joined": "2011-05-13 19:56:59"
+    }
+  }, 
+  {
+    "pk": "2e31135540d723fb5cfb9574bb19b854", 
+    "model": "sessions.session", 
+    "fields": {
+      "expire_date": "2011-05-27 20:11:45", 
+      "session_data": "gAJ9cQEoVQhtZXNzYWdlc11VDV9hdXRoX3VzZXJfaWRLAVUSX2F1dGhfdXNlcl9iYWNrZW5kVSlk\namFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZHUuMWVhZmU4MTE3NTdlYmNi\nOWExMGM2YWM4MDJjYzU4OTg=\n"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "sites.site", 
+    "fields": {
+      "domain": "example.com", 
+      "name": "example.com"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "schema.graphdb", 
+    "fields": {
+      "owner": null, 
+      "public": true, 
+      "order": 1, 
+      "name": "my_graph", 
+      "description": "my_graph"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "schema.nodetype", 
+    "fields": {
+      "graph": 1, 
+      "name": "author", 
+      "description": null
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "schema.nodetype", 
+    "fields": {
+      "graph": 1, 
+      "name": "book", 
+      "description": null
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "schema.edgetype", 
+    "fields": {
+      "graph": 1, 
+      "name": "writes", 
+      "description": null
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "schema.validrelation", 
+    "fields": {
+      "node_from": 1, 
+      "description": "", 
+      "graph": 1, 
+      "node_to": 2, 
+      "arity": 0, 
+      "relation": 1
+    }
+  }, 
+  {
+    "pk": 61, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 64, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 57, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 63, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 66, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 56, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 62, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 65, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 60, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 59, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 58, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 55, 
+    "model": "schema.sylvapermission", 
+    "fields": {
+      "graph": 1
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "south.migrationhistory", 
+    "fields": {
+      "applied": "2011-05-13 17:57:08", 
+      "app_name": "schema", 
+      "migration": "0001_initial"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "south.migrationhistory", 
+    "fields": {
+      "applied": "2011-05-13 17:57:11", 
+      "app_name": "graph", 
+      "migration": "0001_initial"
+    }
+  }
+]
