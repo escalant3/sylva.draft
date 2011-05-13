@@ -3,13 +3,22 @@
 {% load adminmedia %}
 {% load i18n %}
 
-{% block branding %}
-<h1 id="site-name">Sylva: Graph Manager</h1>
+{% block title %}Sylva: {% trans "Edit permissions" %}{% endblock %}
+
+{% block sitename %}
+<h1 id="site-name">Sylva: {% trans "Edit permissions" %}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    {% trans "Edit permissions" %}
+</div>
 {% endblock %}
 
 {% block content %}
 <div>
-    <h1>Edit permissions</h1>
+    <h1>{% trans "Edit permissions" %}</h1>
     <form method="post" action="{% url schema.views.edit_graph_permissions graph_id %}">
         {{ form.as_p }}
         <input type="submit" value="Save"/>

@@ -4,8 +4,8 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url graph.views.index %}">Home</a>&rsaquo;
-    <a href="{% url graph_data graph_id%}">Data Panel</a>&rsaquo;
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    <a href="{% url graph_data graph_id%}">Data</a> &rsaquo;
     <a href="{% url graph.views.node_info graph_id node_id %}">Node Info</a>
 </div>
 {% endblock %}
