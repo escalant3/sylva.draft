@@ -3,8 +3,17 @@
 {% load adminmedia %}
 {% load i18n %}
 
-{% block branding %}
-<h1 id="site-name">Sylva: Graph Manager</h1>
+{% block title %}Sylva: {{ form_title }}{% endblock %}
+
+{% block sitename %}
+<h1 id="site-name">Sylva: {{ form_title }}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    {{ form_title }}
+</div>
 {% endblock %}
 
 {% block content %}

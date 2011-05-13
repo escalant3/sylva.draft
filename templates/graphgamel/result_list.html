@@ -1,11 +1,12 @@
 {% extends "graphgamel/index.html" %}
 
+{% load i18n %}
 {% load adminmedia %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url graph.views.index %}">Home</a>&rsaquo;
-    <span>Data Panel</span>
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    <span>{% trans "Data" %}</span>
 </div>
 {% endblock %}
 
