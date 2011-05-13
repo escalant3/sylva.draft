@@ -21,5 +21,9 @@ urlpatterns = patterns('',
 
     # Add valid relationship
     url(r'(\d+)/nodetype/(\d+)/relation/add/$',
-        'schema.views.schema_relation_add', name="schema_relation_add")
+        'schema.views.schema_relation_add', name="schema_relation_add"),
+
+    # Edit node type
+    url(r'(\d+)/nodetype/(\d+)/property/(\d+)/edit$',
+        'schema.views.schema_property_edit', name="schema_property_edit"),
 )

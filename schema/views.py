@@ -233,6 +233,28 @@ def schema_relation_add(request, graph_id, node_id):
                                 'node': node})
 
 
+def schema_property_edit(request, graph_id, node_id, property_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    node = NodeType.objects.get(pk=node_id)
+    node_property = NodeProperty.objects.get(pk=property_id)
+    initial = {'node': node}
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request)
+    if request.method == "POST":
+        form = NodePropertyForm(request.POST, initial=initial,
+                                instance=node_property)
+        if form.is_valid():
+            form.save()
+            return redirect(schema_editor, graph_id)
+    else:
+        form = NodePropertyForm(initial=initial, instance=node_property)
+    return render_to_response('graphgamel/graph_manager/add_ndp.html', {
+                                'form': form,
+                                'graph_id': graph_id,
+                                'node': node,
+                                'edit': True})
+
+
 def user_profile(request):
     user = request.user
     if request.method == "POST":

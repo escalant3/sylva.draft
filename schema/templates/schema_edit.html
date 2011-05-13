@@ -13,7 +13,7 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url graph.views.index %}">Home</a> &rsaquo;
-    <a href="{% url schema.views.schema_editor graph_id %}">Schema</a>
+    <a href="{% url schema.views.schema_editor graph_id %}">{% trans "Schema" %}</a>
 </div>
 {% endblock %}
 
@@ -38,7 +38,7 @@
          <div>
             <label {% if node_property.required %}class="required"{% endif %}>⌂ {{ node_property.key|capfirst }}</label>
             [{{ node_property.get_datatype }}] <p class="help">{{ node_property.default }}</p>
-            <a class="changelink" href="#">
+            <a class="changelink" href="{% url schema_property_edit graph_id node_type.id node_property.id %}">
                 Edit
             </a>
             <a class="deletelink" href="{% url schema.views.delete_default_node_property graph_id node_property.id %}">
