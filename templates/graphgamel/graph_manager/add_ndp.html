@@ -3,13 +3,22 @@
 {% load adminmedia %}
 {% load i18n %}
 
-{% block branding %}
-<h1 id="site-name">Sylva: Graph Manager</h1>
+{% block title %}Sylva: {% trans "Add node type" %}{% endblock %}
+
+{% block sitename %}
+<h1 id="site-name">Sylva: {% trans "Add node type" %}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    {% trans "Add node type" %}
+</div>
 {% endblock %}
 
 {% block content %}
 <div>
-    <h1>Add {{ node.name }} default property</h1>
+    <h1>Add {{ node.name }} node type</h1>
     <form method="post" action="{% url schema.views.add_default_node_property graph_id node.id %}">
         {{ form.as_ul }}
         <input type="submit" value="Create"/>

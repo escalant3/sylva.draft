@@ -1,0 +1,27 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block title %}Sylva: {% trans "Delete node type" %}{% endblock %}
+
+{% block sitename %}
+<h1 id="site-name">Sylva: {% trans "Delete node type" %}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    {% trans "Delete node type" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div>
+    <form method="post" action=".">
+        <p>The node type <em>{{ object.key }}</em> will be deleted. Are you sure?</p>
+        <p>Any property <em>{{ object.key }}</em> in nodes will remain.</p>
+        <input type="submit" />
+    </form>
+</div>
+{% endblock %}

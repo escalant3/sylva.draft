@@ -41,7 +41,7 @@
             <a class="changelink" href="{% url schema_property_edit graph_id node_type.id node_property.id %}">
                 Edit
             </a>
-            <a class="deletelink" href="{% url schema.views.delete_default_node_property graph_id node_property.id %}">
+            <a class="deletelink" href="{% url schema_property_delete graph_id node_type.id node_property.id %}">
                 Remove
             </a>
         </div>

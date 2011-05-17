@@ -248,11 +248,11 @@ def schema_property_edit(request, graph_id, node_id, property_id):
             return redirect(schema_editor, graph_id)
     else:
         form = NodePropertyForm(initial=initial, instance=node_property)
-    return render_to_response('graphgamel/graph_manager/add_ndp.html', {
+    return render_to_response('graphgamel/graph_manager/edit_ndp.html', {
                                 'form': form,
                                 'graph_id': graph_id,
                                 'node': node,
-                                'edit': True})
+                                'property_id': property_id})
 
 
 def user_profile(request):
