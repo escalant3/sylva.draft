@@ -1,0 +1,26 @@
+{% extends "graphgamel/index.html" %}
+
+{% load adminmedia %}
+{% load i18n %}
+
+{% block title %}Sylva: {% trans "Delete relation propery" %}{% endblock %}
+
+{% block sitename %}
+<h1 id="site-name">Sylva: {% trans "Delete relation propery" %}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url graph.views.index %}">Home</a> &rsaquo;
+    {% trans "Delete relation propery" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div>
+    <form method="post" action=".">
+        <p>The relation propery <em>{{ object.key }}</em> will be deleted. Are you sure?</p>
+        <input type="submit" />
+    </form>
+</div>
+{% endblock %}

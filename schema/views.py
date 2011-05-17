@@ -233,6 +233,53 @@ def schema_relation_add(request, graph_id, node_id):
                                 'node': node})
 
 
+def schema_relation_property_edit(request, graph_id, nodetype_id, edge_id,
+                                  edge_propery_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    edge = EdgeType.objects.get(pk=edge_id)
+    edge_propery = EdgeProperty.objects.get(pk=edge_propery_id)
+    initial = {'edge': edge}
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request)
+    if request.method == "POST":
+        form = EdgePropertyForm(request.POST, initial=initial,
+                                instance=edge_propery)
+        if form.is_valid():
+            form.save()
+            return redirect(schema_editor, graph_id)
+    else:
+        form = EdgePropertyForm(initial=initial, instance=edge_propery)
+    return render_to_response('graphgamel/graph_manager/edit_edp.html', {
+                                'form': form,
+                                'graph_id': graph_id,
+                                'edge': edge})
+
+
+def schema_relation_edit(request, graph_id, node_id, edge_id):
+    graph = GraphDB.objects.get(pk=graph_id)
+    node = NodeType.objects.get(pk=node_id)
+    edge = ValidRelation.objects.get(pk=edge_id)
+    initial = {
+        'node_from': node,
+        'graph': graph,
+        'relation': edge.relation.name,
+    }
+    if not request.user.has_perm("schema.%s_can_edit_schema" % graph.name):
+        return unauthorized_user(request)
+    if request.method == "POST":
+        form = ValidRelationForm(request.POST, initial=initial, instance=edge)
+        if form.is_valid():
+            form.save()
+            return redirect(schema_editor, graph_id)
+    else:
+        form = ValidRelationForm(initial=initial, instance=edge)
+    return render_to_response('schema_relation_edit.html', {
+                                'form': form,
+                                'graph_id': graph_id,
+                                'node': node,
+                                'edge': edge})
+
+
 def schema_property_edit(request, graph_id, node_id, property_id):
     graph = GraphDB.objects.get(pk=graph_id)
     node = NodeType.objects.get(pk=node_id)

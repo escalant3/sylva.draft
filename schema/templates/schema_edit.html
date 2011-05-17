@@ -52,12 +52,14 @@
          <div>
             <label>→ {{ edge.relation.name|capfirst }}</label>
             [{% if edge.arity < 1 %}∞{% else %}{{ edge.arity }} × {% endif %} {{ edge.node_to.name|capfirst }}] <p class="help"></p>
-            <a class="changelink" href="#">
+            <a class="changelink" href="{% url schema_relation_edit graph_id node_type.id edge.id %}">
                 Edit
             </a>
-            <a class="deletelink" href="#">
+            {% if edge.relation.edgeproperty_set.all|length <= 0 %}
+            <a class="deletelink" href="{% url schema_relation_delete graph_id node_type.id edge.id %}">
                 Remove
             </a>
+            {% endif %}
             <a class="addlink" href="{% url schema.views.add_default_edge_property graph_id edge.relation.id %}">
                 Add relation property
             </a>
@@ -67,7 +69,7 @@
                 <div>
                     <label {% if edge_propery.required %}class="required"{% endif %}>⌂ {{ edge_propery.key|capfirst }}</label>
                     [{{ edge_propery.get_datatype }}] <p class="help">{{ edge_propery.default }}</p>
-                    <a class="changelink" href="#">
+                    <a class="changelink" href="{% url schema_relation_property_edit graph_id node_type.id edge.relation.id edge_propery.id %}">
                         Edit
                     </a>
                     <a class="deletelink" href="{% url schema.views.delete_default_edge_property graph_id edge_propery.id %}">

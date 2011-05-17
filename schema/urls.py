@@ -1,7 +1,8 @@
 from django.conf.urls.defaults import patterns, url
 from django.views.generic.create_update import delete_object
 
-from schema.models import NodeProperty
+from schema.models import NodeProperty, ValidRelation
+
 
 urlpatterns = patterns('',
     (r'(\d+)/add_node_type/$', 'schema.views.add_node_type'),
@@ -25,6 +26,23 @@ urlpatterns = patterns('',
     # Add valid relationship
     url(r'(\d+)/nodetype/(\d+)/relation/add/$',
         'schema.views.schema_relation_add', name="schema_relation_add"),
+
+    # Edit valid relationship
+    url(r'(\d+)/nodetype/(\d+)/relation/(\d+)/edit/$',
+        'schema.views.schema_relation_edit', name="schema_relation_edit"),
+
+    # Edit relationship property
+    url(r'(\d+)/nodetype/(\d+)/relation/(\d+)/property/(\d+)/edit/$',
+        'schema.views.schema_relation_property_edit',
+        name="schema_relation_property_edit"),
+
+    # Delete valid relationship
+    url(r'(\d+)/nodetype/(\d+)/relation/(?P<object_id>[0-9]+)/delete/$',
+        delete_object,
+        {'model': ValidRelation,
+         'post_delete_redirect': '../../../',
+         'template_name': "schema_relation_delete.html"},
+        name="schema_relation_delete"),
 
     # Edit node type
     url(r'(\d+)/nodetype/(\d+)/property/(\d+)/edit/$',
